@@ -109,6 +109,12 @@ test('aucune couleur écrite en dur hors de css/themes.css', () => {
 test('le manifeste pointe vers des icônes existantes', () => {
   const m = JSON.parse(lire('manifest.webmanifest'));
   assert.equal(m.name, 'Omni-Oracle');
+  // L'identité (id) est lue depuis la RACINE du site : « ./ » voudrait dire
+  // « ferrusdantioch.github.io/ », la même identité que toute autre application qui
+  // ferait pareil (conflit vécu avec omni-time dans Brave). Elle doit être le nom du dossier.
+  assert.equal(m.id, '/omni-oracle/', 'id du manifeste : doit être « /omni-oracle/ »');
+  assert.equal(m.scope, './');
+  assert.equal(m.start_url, './');
   for (const i of m.icons) assert.ok(fs.existsSync(path.join(racine, i.src)), `${i.src} introuvable`);
 });
 

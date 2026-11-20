@@ -4,7 +4,7 @@
   "description": "L'oracle de l'Omni-système : un MJ de poche pour jouer en solo ou en duo, hors ligne. Tes parties restent sur ton appareil : aucun compte, aucune donnée envoyée.",
   "lang": "fr",
   "dir": "ltr",
-  "id": "./",
+  "id": "/omni-oracle/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
