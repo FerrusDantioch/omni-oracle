@@ -107,10 +107,10 @@ export function creerVueIntentions(ctx) {
       choisi && h('div', { class: 'rangee' }, h('button', {
         type: 'button', class: 'bouton', 'data-cle': 'intention-reaction',
         onclick: () => ctx.preparerOracle({
-          question: `${choisi.nom} accepte la proposition ?`,
+          question: `${choisi.nom} accepte la proposition ou cède à la menace ?`,
           vraisemblance: M.vraisemblancePourAttitude(ctx.commun, choisi.attitude),
         }),
-      }, `Réaction de ${choisi.nom} à une proposition (oracle)`)));
+      }, `Réaction de ${choisi.nom} à une proposition ou à une menace`)));
 
     const e = p.journal.find((x) => x.n === ecran.dernier);
     if (e) {

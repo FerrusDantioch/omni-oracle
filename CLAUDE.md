@@ -97,7 +97,9 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 6. **Intentions (PNJ et table E) hors bornes** : total > 20 lu en 17-20, total < 1 lu en 1-4 ;
    la règle du 1/20 naturel ne s'applique pas aux intentions.
 7. **Escorte (D1)** : escadrille de 1d4+1 chasseurs ; aliens pour un croiseur alien, humains pour
-   un croiseur humain, au choix pour un vaisseau-mère.
+   un croiseur humain, au choix pour un vaisseau-mère. Un vaisseau-mère peut recevoir une escorte
+   **en plus** de ses chasseurs embarqués : c'est voulu (avoir des chasseurs embarqués n'empêche
+   pas d'être accompagné d'autres vaisseaux).
 8. **D2, états sans attitude** (Endommagé, En fuite, Équipage divisé, À la dérive) : vraisemblance
    « incertain » par défaut, modifiable.
 9. **Mission suivante** : Pression à 3, PJ à leurs omni-points, Oracle à 0, seuil remis à zéro,
@@ -109,7 +111,15 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     l'application le signale.
 13. **Case −2 des intentions** : cochée automatiquement d'après la Pression, mais modifiable.
 14. **Stockage** : localStorage. **Vibration** : courte, activée par défaut, désactivable.
-15. **Space opéra** : la présentation et la note N2 ne citent plus de nom de fichier
+15. **Réaction d'un PNJ** : boutons « Réaction à une proposition ou à une menace » (section 5 du
+    tronc commun). Pour les vaisseaux, « Réaction à une proposition » seulement, comme dans D2.
+16. **Luminosité** (Réglages) : curseur libre de 100 % à 50 %, 100 % par défaut, avec un
+    avertissement. À 100 %, tous les contrastes respectent 4,5:1 ; en dessous, les textes
+    secondaires passent sous 4,5:1 (limites : Omni 85 %, Clair 78 %, Sombre 98 %), choix assumé
+    par Ferrus (même effet que baisser la luminosité de l'appareil). Appliquée avant l'affichage
+    par `js/theme.js` (attribut `data-luminosite` sur `<html>`), à la page ET aux fenêtres
+    (`dialog`, qui échappent au filtre de la page), jamais à l'impression.
+17. **Space opéra** : la présentation et la note N2 ne citent plus de nom de fichier
     (« tronc commun de l'Oracle Omni-système », « traits universels, communs à tous les univers ») ;
     modifié dans la source et dans le JSON.
 

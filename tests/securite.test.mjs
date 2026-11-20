@@ -112,7 +112,8 @@ test('le manifeste pointe vers des icônes existantes', () => {
   for (const i of m.icons) assert.ok(fs.existsSync(path.join(racine, i.src)), `${i.src} introuvable`);
 });
 
-test('le fichier LICENSE est celui du kit, sans modification', (t) => {
-  if (!fs.existsSync(path.join(racine, 'kit/kit-oracle/LICENSE'))) { t.skip('dossier kit absent'); return; }
-  assert.equal(lire('LICENSE'), lire('kit/kit-oracle/LICENSE'));
+test('le fichier LICENSE est celui du kit, sans modification', () => {
+  // Empreinte du fichier LICENSE fourni dans le kit (identique dans tous les dépôts de Ferrus).
+  const empreinte = crypto.createHash('sha256').update(fs.readFileSync(path.join(racine, 'LICENSE'))).digest('hex');
+  assert.equal(empreinte, '0483fae80ead6506beafd3258fea07f5ff23bb81e2fbd41daf137d58798a14fb', 'LICENSE a été modifié : il doit rester identique à celui du kit');
 });
