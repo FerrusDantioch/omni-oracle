@@ -62,7 +62,7 @@
       "titre": null,
       "niveau": 1,
       "texte": [
-        "Cette variante s'utilise avec le **tronc commun** du fichier `01-prototype-cyberpunk.md` (partie 1 : oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Rien ne change dans les règles. Seules changent les tables de contenu et deux ajouts propres au space opéra (rencontres de vaisseaux et vaisseaux ennemis).",
+        "Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Rien ne change dans les règles. Seules changent les tables de contenu et deux ajouts propres au space opéra (rencontres de vaisseaux et vaisseaux ennemis).",
         "Omni-points : comme en cyberpunk, 3 par joueur et par mission. L'Oracle commence à 0."
       ]
     },
@@ -176,7 +176,7 @@
       "titre": "N2 — Trait",
       "niveau": 2,
       "texte": [
-        "Identique à la table N2 du cyberpunk (traits universels, voir `01-prototype-cyberpunk.md`).",
+        "Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).",
         "{{table N2}}"
       ]
     },

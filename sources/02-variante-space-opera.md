@@ -1,6 +1,6 @@
 # Oracle Omni-Système — Variante Space opéra (v0.2)
 
-Cette variante s'utilise avec le **tronc commun** du fichier `01-prototype-cyberpunk.md` (partie 1 : oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Rien ne change dans les règles. Seules changent les tables de contenu et deux ajouts propres au space opéra (rencontres de vaisseaux et vaisseaux ennemis).
+Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Rien ne change dans les règles. Seules changent les tables de contenu et deux ajouts propres au space opéra (rencontres de vaisseaux et vaisseaux ennemis).
 
 Omni-points : comme en cyberpunk, 3 par joueur et par mission. L'Oracle commence à 0.
 
@@ -225,7 +225,7 @@ Tire un d20 dans chacune des trois tables.
 | 20 | IA de vaisseau ou droïde |
 
 ### N2 — Trait
-Identique à la table N2 du cyberpunk (traits universels, voir `01-prototype-cyberpunk.md`).
+Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).
 
 ### N3 — Motivation
 | d20 | Résultat |
