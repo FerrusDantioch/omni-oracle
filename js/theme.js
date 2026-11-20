@@ -7,19 +7,41 @@
 //
 // Choix possibles : 'omni' (par défaut), 'sombre', 'clair', 'auto'.
 // « Auto » suit le réglage de l'appareil : sombre → Omni, clair → Clair.
+//
+// Il applique aussi la luminosité choisie dans les Réglages (50 à 100 %), elle aussi
+// avant l'affichage, pour éviter un éclair de pleine lumière le soir.
 
 (function () {
   var THEMES = ['omni', 'sombre', 'clair', 'auto'];
   var CLE = self.CONFIG_APP.idStockage + '-reglages';
   var clair = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
 
-  function lire() {
+  function reglages() {
     try {
-      var r = JSON.parse(localStorage.getItem(CLE) || '{}');
-      return THEMES.indexOf(r.theme) >= 0 ? r.theme : 'omni';
+      return JSON.parse(localStorage.getItem(CLE) || '{}') || {};
     } catch (e) {
-      return 'omni';
+      return {};
     }
+  }
+
+  function lire() {
+    var r = reglages();
+    return THEMES.indexOf(r.theme) >= 0 ? r.theme : 'omni';
+  }
+
+  // Luminosité en % (50 à 100). En dessous de 100, la page ET les fenêtres sont assombries
+  // (css/app.css et css/livret.css : html[data-luminosite]). Jamais à l'impression.
+  function luminosite(pourcent) {
+    var p = Math.min(100, Math.max(50, Math.round(Number(pourcent) || 100)));
+    var racine = document.documentElement;
+    if (p < 100) {
+      racine.setAttribute('data-luminosite', String(p));
+      racine.style.setProperty('--luminosite', String(p / 100));
+    } else {
+      racine.removeAttribute('data-luminosite');
+      racine.style.removeProperty('--luminosite');
+    }
+    return p;
   }
 
   function resoudre(choix) {
@@ -48,5 +70,6 @@
   }
 
   appliquer(choixCourant);
-  self.OracleTheme = { THEMES: THEMES, appliquer: appliquer, resoudre: resoudre, lire: lire };
+  luminosite(reglages().luminosite);
+  self.OracleTheme = { THEMES: THEMES, appliquer: appliquer, resoudre: resoudre, lire: lire, luminosite: luminosite };
 })();

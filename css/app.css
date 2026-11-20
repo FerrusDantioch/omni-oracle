@@ -628,3 +628,18 @@ details[open] > summary::before { transform: rotate(90deg); }
 .apropos-version { color: var(--discret); }
 .apropos a { overflow-wrap: anywhere; }
 .apropos .lien-seul { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* --- Luminosité (Réglages) : assombrit la page ET les fenêtres, jamais l'impression ---------- */
+html[data-luminosite],
+html[data-luminosite] dialog { filter: brightness(var(--luminosite, 1)); }
+@media print {
+  html[data-luminosite],
+  html[data-luminosite] dialog { filter: none !important; }
+}
+
+.reglage-luminosite input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  accent-color: var(--accent);
+}

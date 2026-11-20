@@ -166,3 +166,11 @@ li { margin-bottom: .15rem; }
   .bloc-table, .bloc-insecable, .fiche-bloc, tr { break-inside: avoid; }
   p, li { orphans: 3; widows: 3; }
 }
+
+/* --- Luminosité (Réglages) : assombrit la page ET les fenêtres, jamais l'impression ---------- */
+html[data-luminosite],
+html[data-luminosite] dialog { filter: brightness(var(--luminosite, 1)); }
+@media print {
+  html[data-luminosite],
+  html[data-luminosite] dialog { filter: none !important; }
+}

@@ -158,3 +158,36 @@ test('« réduire les animations » est respecté', async ({ page, serveur }) =>
   const duree = await page.locator('.resultat').first().evaluate((el) => parseFloat(getComputedStyle(el).animationDuration));
   expect(duree).toBeLessThan(0.01);
 });
+
+test('luminosité : appliquée à la page et aux fenêtres, gardée après rechargement, jamais à l\'impression', async ({ page, serveur }) => {
+  const erreurs = [];
+  page.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()); });
+  await page.goto(serveur.url);
+  // Par défaut : 100 %, aucun filtre.
+  await expect(page.locator('html')).not.toHaveAttribute('data-luminosite', /.*/);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).filter)).toBe('none');
+  await page.getByRole('button', { name: /Menu/ }).click();
+  await page.getByRole('button', { name: /Réglages/ }).click();
+  await page.getByLabel(/Luminosité de l'écran/).fill('60');
+  await expect(page.locator('#valeur-lum')).toHaveText('60 %');
+  await expect(page.locator('html')).toHaveAttribute('data-luminosite', '60');
+  expect(await page.locator('dialog').evaluate((d) => getComputedStyle(d).filter)).toBe('brightness(0.6)');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(page.getByText('Réglages enregistrés.')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-luminosite', '60');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).filter)).toBe('brightness(0.6)');
+  await page.emulateMedia({ media: 'print' });
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).filter)).toBe('none');
+  expect(erreurs).toEqual([]); // aucune violation de la CSP
+});
+
+test('luminosité : « Annuler » rétablit la luminosité précédente', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await page.getByRole('button', { name: /Menu/ }).click();
+  await page.getByRole('button', { name: /Réglages/ }).click();
+  await page.getByLabel(/Luminosité de l'écran/).fill('50');
+  await expect(page.locator('html')).toHaveAttribute('data-luminosite', '50');
+  await page.getByRole('button', { name: 'Annuler' }).click();
+  await expect(page.locator('html')).not.toHaveAttribute('data-luminosite', /.*/);
+});
