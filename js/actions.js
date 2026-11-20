@@ -165,7 +165,7 @@ export async function dialogueContester(ctx, entree) {
   if (!res) return;
   vibrer();
   ctx.enregistrer();
-  annoncer(`Nouvelle réponse : ${res.entree.libelle}`);
+  ctx.annoncerResultat(`Nouvelle réponse : ${res.entree.libelle}`);
   ctx.signaler(res.evenements);
 }
 
@@ -192,10 +192,10 @@ export function tirerComplication(ctx, { cible = null, valeur = null } = {}) {
 /** Tire une ligne dans n'importe quelle table et l'inscrit au journal. */
 export function tirerEtNoter(ctx, table, { cible = null, valeur = null, contexte = '' } = {}) {
   const t = M.tirerTable(table, { valeur });
-  vibrer();
+  if (valeur === null) vibrer();
   return M.journaliser(ctx.partie, {
     type: 'tirage', table: table.id, titre: table.titre, valeur: t.valeur, plage: t.ligne.plage,
-    texte: t.ligne.texte, autres: t.ligne.autres || null, cible, contexte,
+    texte: t.ligne.texte, autres: t.ligne.autres || null, cible, contexte, manuel: valeur !== null,
   });
 }
 

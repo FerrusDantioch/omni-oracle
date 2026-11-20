@@ -71,7 +71,7 @@ export function creerVueJouer(ctx) {
             vibrer();
             ctx.enregistrer();
             const a = p.scene.alteration;
-            annoncer(a.alteree ? `Scène ${a.type === 'modifiee' ? 'modifiée' : 'interrompue'}.` : 'La scène se joue comme prévu.');
+            ctx.annoncerResultat(a.alteree ? `Scène ${a.type === 'modifiee' ? 'modifiée' : 'interrompue'}.` : 'La scène se joue comme prévu.');
           }),
         }, 'Lancer le d20 de scène'),
         h('button', { type: 'button', class: 'bouton', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène')));
@@ -138,7 +138,7 @@ export function creerVueJouer(ctx) {
           ecran.animer = 'oracle';
           vibrer();
           ctx.enregistrer();
-          annoncer(`L'oracle répond : ${e.libelle}`);
+          ctx.annoncerResultat(`L'oracle répond : ${e.libelle}`);
         }),
       }, 'Interroger l\'oracle')));
     const e = p.journal.find((x) => x.n === ecran.dernierOracle);
@@ -228,7 +228,7 @@ export function creerVueJouer(ctx) {
           ecran.animer = 'de';
           vibrer();
           ctx.enregistrer();
-          annoncer(`Résultat : ${jet.total}`);
+          ctx.annoncerResultat(`Résultat : ${jet.total}`);
         }),
       }, 'Lancer le d20')));
     const e = ctx.partie.journal.find((x) => x.n === ecran.dernierJet);
@@ -245,6 +245,13 @@ export function creerVueJouer(ctx) {
   }
 
   function rendre() {
+    // Question préparée par un autre onglet (réaction d'un PNJ ou d'un vaisseau).
+    const demande = ctx.demandeOracle;
+    if (demande) {
+      ctx.demandeOracle = null;
+      ecran.question = demande.question || '';
+      ecran.vraisemblance = demande.vraisemblance || ecran.vraisemblance;
+    }
     remplacer(el,
       h('div', { class: 'rangee option-de' }, caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', {
         coche: ctx.reglages.dePhysique, 'data-cle': 'de-physique',
@@ -252,6 +259,14 @@ export function creerVueJouer(ctx) {
       })),
       h('div', { class: 'grille' }, carteScene(), carteOracle(), carteDe()));
     ecran.animer = null;
+    if (demande) {
+      requestAnimationFrame(() => {
+        const q = el.querySelector('[data-cle="oracle-question"]');
+        q?.scrollIntoView({ block: 'center' });
+        q?.focus({ preventScroll: true });
+      });
+      annoncer('Oracle prêt : vraisemblance choisie d\'après l\'attitude.');
+    }
   }
 
   return { el, actualiser: rendre };

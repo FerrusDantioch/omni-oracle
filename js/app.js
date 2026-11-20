@@ -14,14 +14,28 @@ import {
 import { dialogueOmniPJ, dialogueOmniOracle, messageEvenement, essayer } from './actions.js';
 import { creerVueJouer } from './vue-jouer.js';
 import { creerVueJournal } from './vue-journal.js';
+import { creerVueMission } from './vue-mission.js';
+import { creerVueGenerateurPNJ } from './vue-pnj.js';
+import { creerVueIntentions } from './vue-intentions.js';
+import { creerVueVaisseaux } from './vue-vaisseaux.js';
+import { creerVueFiche } from './vue-fiche.js';
+import { creerVueTables } from './vue-tables.js';
 
 const CONFIG = globalThis.CONFIG_APP;
 
 // Onglets de la partie. `si(univers)` : l'onglet n'apparaît que si l'univers le permet.
 const ONGLETS = [
   { id: 'jouer', texte: 'Jouer', creer: creerVueJouer },
+  { id: 'mission', texte: 'Mission', creer: creerVueMission },
+  { id: 'pnj', texte: 'PNJ', creer: creerVueGenerateurPNJ },
+  { id: 'intentions', texte: 'Intentions', creer: creerVueIntentions },
+  { id: 'vaisseaux', texte: 'Vaisseaux', creer: creerVueVaisseaux, si: (u) => !!u.roles.vaisseaux },
+  { id: 'fiche', texte: 'Fiche', creer: creerVueFiche },
+  { id: 'tables', texte: 'Tables', creer: creerVueTables },
   { id: 'journal', texte: 'Journal', creer: creerVueJournal },
 ];
+
+let compteurSecret = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,6 +46,8 @@ const ctx = {
   reglages: S.lireReglages(),
   vues: {},
   onglet: 'jouer',
+  demandeOracle: null,     // { question, vraisemblance } : à préremplir dans l'onglet Jouer
+  demandeIntention: null,  // index d'un PNJ de la fiche : à présélectionner dans l'onglet Intentions
   get commun() { return this.cat.commun; },
   get univ() { return this.cat.univ(this.partie.univers); },
 
@@ -43,6 +59,21 @@ const ctx = {
     }
     actualiser();
   },
+  /** Enregistre sans redessiner l'écran (saisie dans la fiche de suivi). */
+  enregistrerSansRendu() {
+    this.partie.modifie = new Date().toISOString();
+    S.enregistrerPartie(this.partie);
+  },
+  exporter() {
+    S.exporterPartie(this.partie);
+    annoncer('Fichier de la partie enregistré.');
+  },
+  missionSuivante() { dialogueMissionSuivante(); },
+  /** Ouvre l'oracle de question (onglet Jouer) avec une question et une vraisemblance préparées. */
+  preparerOracle(demande) {
+    this.demandeOracle = demande;
+    allerOnglet('jouer');
+  },
   sauverReglages() {
     S.ecrireReglages(this.reglages);
     reglerVibration(this.reglages.vibration);
@@ -52,10 +83,40 @@ const ctx = {
     const messages = evenements.map(messageEvenement).filter(Boolean);
     if (!messages.length) return;
     vibrer(60);
-    await ouvrirDialogue({ titre: 'À noter', contenu: h('ul', {}, messages.map((m) => h('li', {}, m))) });
+    const rebond = evenements.some((e) => e.type === 'rebondissement');
+    const r = await ouvrirDialogue({
+      titre: 'À noter',
+      contenu: h('ul', {}, messages.map((m) => h('li', {}, m))),
+      actions: rebond
+        ? [{ id: 'ok', texte: 'Fermer' }, { id: 'mission', texte: 'Voir la mission', classe: 'bouton-accent' }]
+        : [{ id: 'ok', texte: 'Fermer' }],
+    });
+    if (r === 'mission') allerOnglet('mission');
   },
-  /** Emballage des résultats (le mode assistant du MJ s'en servira pour les masquer). */
-  resultat(el) { return el; },
+  /**
+   * Emballage des résultats. En mode assistant du MJ, le résultat est masqué
+   * et ne s'affiche qu'au toucher (pour tirer en secret devant les joueurs).
+   */
+  resultat(el) {
+    if (!this.reglages.secret) return el;
+    const id = `secret-${++compteurSecret}`;
+    const MASQUE = 'Résultat masqué : toucher pour voir';
+    const contenu = h('div', { id, hidden: true }, el);
+    const bouton = h('button', {
+      type: 'button', class: 'bouton bouton-secret', 'aria-expanded': 'false', 'aria-controls': id,
+      onclick: () => {
+        const montrer = contenu.hidden;
+        contenu.hidden = !montrer;
+        bouton.setAttribute('aria-expanded', String(montrer));
+        bouton.textContent = montrer ? 'Masquer le résultat' : MASQUE;
+      },
+    }, MASQUE);
+    return h('div', { class: 'secret' }, bouton, contenu);
+  },
+  /** Annonce un résultat, sauf en mode assistant du MJ (il resterait visible à l'écran). */
+  annoncerResultat(message) {
+    annoncer(this.reglages.secret ? 'Résultat tiré (masqué).' : message);
+  },
   aller(id) { allerOnglet(id); },
 };
 
@@ -78,8 +139,14 @@ function actualiser() {
 }
 
 // --- Démarrage -------------------------------------------------------------------------
+/** Pastille « Mode MJ » dans l'en-tête quand les résultats sont masqués. */
+function majModeMJ() {
+  $('badge-mj').hidden = !ctx.reglages.secret;
+}
+
 async function demarrer() {
   reglerVibration(ctx.reglages.vibration);
+  majModeMJ();
   $('bouton-menu').addEventListener('click', ouvrirMenu);
   try {
     ctx.cat = await chargerDonnees();
@@ -279,7 +346,10 @@ function allerOnglet(id) {
   ctx.onglet = o.id;
   if (!ctx.vues[o.id]) ctx.vues[o.id] = o.creer(ctx);
   for (const b of $('onglets').querySelectorAll('.onglet')) {
-    if (b.dataset.onglet === o.id) b.setAttribute('aria-current', 'page');
+    if (b.dataset.onglet === o.id) {
+      b.setAttribute('aria-current', 'page');
+      b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
     else b.removeAttribute('aria-current');
   }
   remplacer($('contenu'), ctx.vues[o.id].el);
@@ -346,6 +416,7 @@ async function ouvrirMenu() {
     enPartie && { id: 'modifier', texte: 'Modifier la partie' },
     enPartie && { id: 'mission', texte: 'Mission suivante' },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
+    { id: 'secret', texte: ctx.reglages.secret ? 'Mode assistant du MJ : activé (désactiver)' : 'Mode assistant du MJ (résultats masqués)' },
     { id: 'reglages', texte: 'Réglages' },
   ].filter(Boolean);
   const r = await ouvrirDialogue({ titre: 'Menu', contenu: null, actions, liste: true, classe: 'dialogue-menu' });
@@ -353,8 +424,15 @@ async function ouvrirMenu() {
     case 'parties': afficherAccueil(); break;
     case 'modifier': dialogueModifier(); break;
     case 'mission': dialogueMissionSuivante(); break;
-    case 'exporter': S.exporterPartie(ctx.partie); annoncer('Fichier de la partie enregistré.'); break;
+    case 'exporter': ctx.exporter(); break;
     case 'reglages': dialogueReglages(); break;
+    case 'secret':
+      ctx.reglages.secret = !ctx.reglages.secret;
+      ctx.sauverReglages();
+      majModeMJ();
+      if (ctx.partie) actualiser();
+      annoncer(ctx.reglages.secret ? 'Mode assistant du MJ : les résultats sont masqués, touche-les pour les voir.' : 'Mode assistant du MJ désactivé.');
+      break;
     default: break;
   }
 }
@@ -362,15 +440,18 @@ async function ouvrirMenu() {
 async function dialogueReglages() {
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
+  const secret = caseACocher('Mode assistant du MJ : résultats masqués, affichés au toucher', { coche: ctx.reglages.secret });
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [vibration, dePhysique, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') return;
   ctx.reglages.vibration = vibration.saisie.checked;
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
+  ctx.reglages.secret = secret.saisie.checked;
   ctx.sauverReglages();
+  majModeMJ();
   if (ctx.partie) actualiser();
   annoncer('Réglages enregistrés.');
 }

@@ -7,6 +7,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
+  /* Garde l'élément sélectionné visible sous la barre collante */
+  scroll-padding-top: 14rem;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -452,3 +454,149 @@ legend { font-weight: 600; padding: 0; margin-bottom: .35rem; }
     scroll-behavior: auto !important;
   }
 }
+
+/* --- Tirages (mission, PNJ) --------------------------------------------------------------- */
+.grille-tirages {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+.tirage {
+  padding: .75rem;
+  border: 1px solid var(--trait);
+  border-radius: .8rem;
+  background: var(--fond);
+  min-width: 0;
+}
+.tirage.verrouille { border-color: var(--accent); border-style: dashed; }
+.tirage-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .6rem;
+  margin-bottom: .35rem;
+}
+.tirage-entete h3 { margin: 0; font-size: 1rem; }
+.tirage-texte { font-size: 1.05rem; }
+.tirage select { width: auto; max-width: 100%; flex: 1 1 12rem; }
+.plage {
+  display: inline-block;
+  min-width: 2.6rem;
+  padding: 0 .4rem;
+  border: 1px solid var(--trait);
+  border-radius: .4rem;
+  color: var(--discret);
+  font-size: .85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.etiquette {
+  padding: 0 .5rem;
+  border-radius: .4rem;
+  background: var(--accent-doux);
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+/* Colonnes supplémentaires (statistiques de vaisseau…) */
+.autres {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: .15rem .75rem;
+  margin: .25rem 0 .5rem;
+  font-size: .92rem;
+}
+.autres dt { color: var(--discret); }
+.autres dd { margin: 0; }
+@media (max-width: 480px) {
+  .autres { grid-template-columns: 1fr; }
+  .autres dd { margin-bottom: .3rem; }
+}
+
+/* Textes des règles affichés dans l'application */
+.regles { font-size: .95rem; }
+.regles ul, .regles ol { margin-bottom: .5rem; }
+details > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+details.petit > summary { font-size: .95rem; }
+details[open] > summary { margin-bottom: .4rem; }
+
+.grille-2 {
+  display: grid;
+  gap: 0 .75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+/* Colonne d'intention : la ligne obtenue est en gras ET marquée « ◀ résultat » */
+.colonnes-intention { list-style: none; padding: 0; margin: .5rem 0 0; font-size: .95rem; }
+.colonnes-intention li { padding: .2rem 0; color: var(--discret); }
+.colonnes-intention li.obtenue { color: var(--texte); font-weight: 600; }
+
+/* --- Consultation des tables ---------------------------------------------------------------- */
+.table-consultation { padding: .25rem 1rem; }
+.table-consultation[open] { padding-bottom: 1rem; }
+.table-consultation + .table-consultation { margin-top: .6rem; }
+.table-titre { font-size: 1.05rem; }
+.lignes-table { list-style: none; padding: 0; margin: .75rem 0 0; }
+.lignes-table li {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  gap: .5rem;
+  align-items: start;
+  padding: .45rem 0;
+  border-top: 1px solid var(--trait);
+}
+.lignes-table li.obtenue { background: var(--accent-doux); border-radius: .4rem; }
+.lignes-table .ligne-texte p { margin: 0; }
+.lignes-table .plage { margin-top: .5rem; }
+.lignes-table .bouton.petit { font-size: .9rem; padding: .4rem .7rem; }
+
+/* --- Fiche de suivi ----------------------------------------------------------------------- */
+.ligne-fiche {
+  display: grid;
+  gap: 0 .75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  padding: .75rem 0;
+  border-top: 1px solid var(--trait);
+}
+.ligne-fiche .champ-notes, .ligne-fiche .champ-consequence, .ligne-fiche .rangee { grid-column: 1 / -1; }
+.ligne-fiche .rangee { margin-top: 0; }
+
+/* --- Mode assistant du MJ ----------------------------------------------------------------- */
+.secret { margin-top: 1rem; }
+.secret > div > .resultat { margin-top: .5rem; }
+.bouton-secret {
+  width: 100%;
+  min-height: 3.5rem;
+  border-style: dashed;
+  border-color: var(--accent);
+  background: var(--fond);
+}
+.badge-mj {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 .7rem;
+  border: 1px dashed var(--accent);
+  border-radius: .6rem;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+/* Petite flèche des dépliants (details), qui tourne à l'ouverture */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--accent);
+  transition: transform .15s;
+}
+details[open] > summary::before { transform: rotate(90deg); }

@@ -10,13 +10,13 @@ const ISSUES = { main: 'le PJ avait la main', subi: 'le PJ a subi', neutre: 'ni 
 const FILTRES = [
   { valeur: 'tout', texte: 'Tout' },
   { valeur: 'oracle', texte: 'Oracle' },
-  { valeur: 'jet', texte: 'Dés' },
+  { valeur: 'jet', texte: 'Dés et tirages' },
   { valeur: 'scene', texte: 'Scènes' },
   { valeur: 'omni', texte: 'Omni-points' },
 ];
 const CORRESPONDANCE = {
   oracle: ['oracle'],
-  jet: ['jet', 'intention', 'intention-vaisseau'],
+  jet: ['jet', 'intention', 'intention-vaisseau', 'vaisseau', 'tirage'],
   scene: ['scene-debut', 'scene-fin', 'pression', 'mission'],
   omni: ['omni-pj', 'omni-oracle'],
 };
@@ -65,6 +65,22 @@ export function decrireEntree(ctx, e) {
     case 'tirage':
       return [h('span', { class: 'journal-type' }, `${e.titre} (${e.valeur}) : `), riche(e.texte),
         e.autres && e.autres.length > 0 && [h('br'), h('span', { class: 'petit discret' }, e.autres.join(' · '))]];
+    case 'intention': {
+      const prof = ctx.commun.tables.find((t) => t.id === 'intentions').lignes.find((l) => l.id === e.profil);
+      return [h('span', { class: 'journal-type' }, `Intention${e.nom ? ` de ${e.nom}` : ''} (${prof ? prof.nom : e.profil}) : `), riche(e.action),
+        e.relance && ' (relancé par l\'Oracle)', h('br'),
+        h('span', { class: 'petit discret' }, `d20 : ${e.de}${e.modificateur ? `, total ${e.total}` : ''} → ${e.plage}`)];
+    }
+    case 'intention-vaisseau':
+      return [h('span', { class: 'journal-type' }, 'Vaisseau ennemi : '), riche(e.action), e.relance && ' (relancé par l\'Oracle)', h('br'),
+        h('span', { class: 'petit discret' }, `d20 : ${e.de}${e.modificateur ? `, total ${e.total}` : ''} → ${e.plage}`)];
+    case 'vaisseau': {
+      const r = e.rencontre;
+      return [h('span', { class: 'journal-type' }, 'Rencontre de vaisseau : '), riche(r.type.ligne.texte),
+        r.escadrille && ` (${r.escadrille.total} chasseurs)`,
+        r.escorte && (r.escorte.deploie ? `, escorte de ${r.escorte.escadrille.total} chasseurs` : ', sans escorte'),
+        h('br'), riche(r.attitude.ligne.texte)];
+    }
     case 'mission':
       return [h('span', { class: 'journal-type' }, `Nouvelle mission (n° ${e.mission})`), e.nom && ` : ${e.nom}`];
     case 'note':
