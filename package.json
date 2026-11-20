@@ -1,8 +1,11 @@
 {
   "name": "omni-oracle",
   "private": true,
+  "type": "module",
   "description": "Outils de test d'Omni-Oracle (inutiles pour faire tourner l'application).",
   "scripts": {
-    "test:donnees": "node tests/verifier-donnees.mjs"
+    "test:donnees": "node tests/verifier-donnees.mjs",
+    "test:moteur": "node --test tests/moteur.test.mjs",
+    "test": "node tests/verifier-donnees.mjs && node --test tests/moteur.test.mjs"
   }
 }
