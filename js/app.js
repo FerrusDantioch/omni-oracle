@@ -20,6 +20,8 @@ import { creerVueIntentions } from './vue-intentions.js';
 import { creerVueVaisseaux } from './vue-vaisseaux.js';
 import { creerVueFiche } from './vue-fiche.js';
 import { creerVueTables } from './vue-tables.js';
+import { initialiserPWA } from './pwa.js';
+import { dialogueAPropos, dialogueInstallation } from './apropos.js';
 
 const CONFIG = globalThis.CONFIG_APP;
 
@@ -148,6 +150,7 @@ async function demarrer() {
   reglerVibration(ctx.reglages.vibration);
   majModeMJ();
   $('bouton-menu').addEventListener('click', ouvrirMenu);
+  initialiserPWA({ bouton: $('bouton-maj') });
   try {
     ctx.cat = await chargerDonnees();
   } catch (e) {
@@ -417,7 +420,9 @@ async function ouvrirMenu() {
     enPartie && { id: 'mission', texte: 'Mission suivante' },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
     { id: 'secret', texte: ctx.reglages.secret ? 'Mode assistant du MJ : activé (désactiver)' : 'Mode assistant du MJ (résultats masqués)' },
-    { id: 'reglages', texte: 'Réglages' },
+    { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
+    { id: 'installer', texte: 'Installer l\'application' },
+    { id: 'apropos', texte: 'À propos' },
   ].filter(Boolean);
   const r = await ouvrirDialogue({ titre: 'Menu', contenu: null, actions, liste: true, classe: 'dialogue-menu' });
   switch (r) {
@@ -426,6 +431,8 @@ async function ouvrirMenu() {
     case 'mission': dialogueMissionSuivante(); break;
     case 'exporter': ctx.exporter(); break;
     case 'reglages': dialogueReglages(); break;
+    case 'installer': dialogueInstallation(); break;
+    case 'apropos': dialogueAPropos(); break;
     case 'secret':
       ctx.reglages.secret = !ctx.reglages.secret;
       ctx.sauverReglages();
@@ -437,16 +444,28 @@ async function ouvrirMenu() {
   }
 }
 
+const NOMS_THEMES = { omni: 'Omni', sombre: 'Sombre', clair: 'Clair', auto: 'Auto' };
+
 async function dialogueReglages() {
+  const T = globalThis.OracleTheme;
+  const avant = ctx.reglages.theme;
+  const theme = choix('Thème', 'theme', T.THEMES.map((t) => ({
+    valeur: t,
+    texte: [t === 'auto'
+      ? h('span', { class: 'apercu-theme apercu-auto', 'aria-hidden': 'true' })
+      : h('span', { class: 'apercu-theme', 'data-theme': t, 'aria-hidden': 'true' }), NOMS_THEMES[t]],
+    detail: t === 'auto' ? 'Suit l\'appareil' : t === 'omni' ? 'Violet nuit' : '',
+  })), avant, { onchange: (t) => T.appliquer(t) });
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
   const secret = caseACocher('Mode assistant du MJ : résultats masqués, affichés au toucher', { coche: ctx.reglages.secret });
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [theme, vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
-  if (r !== 'oui') return;
+  if (r !== 'oui') { T.appliquer(avant); return; }
+  ctx.reglages.theme = theme.valeur();
   ctx.reglages.vibration = vibration.saisie.checked;
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
   ctx.reglages.secret = secret.saisie.checked;

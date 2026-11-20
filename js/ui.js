@@ -113,7 +113,7 @@ export function ouvrirDialogue({ titre, contenu, actions = [{ id: 'ok', texte: '
     const premier = dlg.querySelector('[autofocus]')
       || (liste ? pied.querySelector('button') : pied.querySelector('button:last-child'))
       || dlg.querySelector('.dialogue-entete button');
-    if (premier) premier.focus();
+    if (premier) premier.focus({ preventScroll: true });
   });
 }
 

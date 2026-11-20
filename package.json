@@ -4,8 +4,15 @@
   "type": "module",
   "description": "Outils de test d'Omni-Oracle (inutiles pour faire tourner l'application).",
   "scripts": {
+    "test": "node tests/verifier-donnees.mjs && node --test tests/moteur.test.mjs tests/securite.test.mjs",
     "test:donnees": "node tests/verifier-donnees.mjs",
     "test:moteur": "node --test tests/moteur.test.mjs",
-    "test": "node tests/verifier-donnees.mjs && node --test tests/moteur.test.mjs"
+    "test:securite": "node --test tests/securite.test.mjs",
+    "test:navigateur": "playwright test",
+    "test:tout": "npm test && playwright test",
+    "serveur": "node tests/serveur.mjs 8080"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
   }
 }
