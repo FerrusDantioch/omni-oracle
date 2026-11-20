@@ -1,0 +1,8 @@
+{
+  "name": "omni-oracle",
+  "private": true,
+  "description": "Outils de test d'Omni-Oracle (inutiles pour faire tourner l'application).",
+  "scripts": {
+    "test:donnees": "node tests/verifier-donnees.mjs"
+  }
+}

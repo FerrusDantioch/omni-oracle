@@ -1,0 +1,498 @@
+{
+  "format": 1,
+  "id": "commun",
+  "nom": "Tronc commun",
+  "source": "sources/01-prototype-cyberpunk.md",
+  "oracle": {
+    "vraisemblanceParDefaut": "incertain",
+    "naturel1": "non-et",
+    "naturel20": "oui-et",
+    "complications": {
+      "oui-mais": "mineure",
+      "non-et": "majeure"
+    }
+  },
+  "attitudes": [
+    {
+      "id": "hostile",
+      "nom": "Hostile",
+      "vraisemblance": "improbable"
+    },
+    {
+      "id": "neutre",
+      "nom": "Neutre",
+      "vraisemblance": "incertain"
+    },
+    {
+      "id": "amical",
+      "nom": "Amical",
+      "vraisemblance": "probable"
+    }
+  ],
+  "pression": {
+    "depart": 3,
+    "min": 0,
+    "max": 10,
+    "chanceParPoint": 5,
+    "seuilRupture": 9,
+    "soupape": {
+      "niveau": 10,
+      "retour": 7
+    },
+    "etau": 7
+  },
+  "omniPoints": {
+    "oracleDepart": 0,
+    "gainOracleToutesLes": 2,
+    "gainSeuilRupture": 1
+  },
+  "sections": [
+    {
+      "id": "presentation",
+      "titre": null,
+      "niveau": 1,
+      "texte": [
+        "Objectif : simuler le MJ en solo (1 PJ, parfois des PNJ compagnons) ou en duo (2 PJ), ou servir d'assistant au MJ. Tout fonctionne avec un d20, l'avantage/désavantage et les omni-points des règles communes. Les tables sont jouables sans écran.",
+        "Convention : « d20 » = un dé à 20 faces. Avantage = 2 lancers, on garde le meilleur. Désavantage = 2 lancers, on garde le moins bon."
+      ]
+    },
+    {
+      "id": "mise-en-place",
+      "titre": "1. Mise en place",
+      "niveau": 1,
+      "texte": [
+        "1. Écrire le PJ (et ses PNJ compagnons éventuels) sur la fiche de suivi.",
+        "2. **Pression** de départ : 3.",
+        "3. **Omni-points** : le PJ en a 3 par mission (cyberpunk / space opéra). L'Oracle (le MJ) commence sans omni-point.",
+        "4. Tirer la mission (partie 2, section 6), ou la poser soi-même."
+      ]
+    },
+    {
+      "id": "oracle",
+      "titre": "2. L'oracle de question",
+      "niveau": 1,
+      "texte": [
+        "Quand tu ne sais pas si quelque chose est vrai ou arrive, pose une question fermée (oui/non). Choisis la **vraisemblance**, puis lance le d20.",
+        "{{table vraisemblances}}",
+        "{{table reponses}}",
+        "Un 1 ou un 20 **naturel** donne toujours « Non, et… » ou « Oui, et… », quels que soient les modificateurs.",
+        "**Interpréter « et » et « mais » :**",
+        "- *Oui, mais…* : une complication **mineure** (tirer dans la table Complications, ou inventer).",
+        "- *Non, et…* : une complication **majeure** (même table, ou inventer plus dur).",
+        "- *Non, mais…* et *Oui, et…* : le joueur invente l'élément favorable.",
+        "**Choisir la vraisemblance :** demande-toi ce que ferait un monde cohérent. Si un PNJ est hostile, « m'aide-t-il ? » est improbable. Un doute réel reste « incertain »."
+      ]
+    },
+    {
+      "id": "pression",
+      "titre": "3. La Pression (0 à 10)",
+      "niveau": 1,
+      "texte": [
+        "La Pression mesure à quel point le monde se rebiffe. Plus le PJ domine, plus l'imprévu s'accumule. Elle sert à deux choses : déclencher les scènes altérées (section 4) et durcir les ennemis (section 5).",
+        "**Évolution**",
+        "- **Départ : 3.** Minimum 0, maximum 10.",
+        "- **+1** après une scène où le PJ avait la main (but atteint sans complication notable).",
+        "- **−1** après une scène où le PJ a subi (échec critique, blessure de 3 PV ou plus, « Non, et… », complication majeure).",
+        "- Elle ne bouge qu'une fois par scène.",
+        "**Ce que la Pression implique**",
+        "La chance qu'une scène soit altérée est égale à la Pression × 5 %.",
+        "{{table paliers}}",
+        "**Seuil de rupture** : la première fois que la Pression atteint 9 dans une mission, l'Oracle gagne **1 omni-point** (une seule fois par mission).",
+        "**Soupape** : quand la Pression est à 10 au début d'une scène, cette scène est **automatiquement altérée** (lance quand même un d20 pour savoir si elle est modifiée (pair) ou interrompue (impair)). À la fin de cette scène, la Pression **redescend à 7**, quelle que soit l'issue."
+      ]
+    },
+    {
+      "id": "scenes",
+      "titre": "4. Les scènes",
+      "niveau": 1,
+      "texte": [
+        "1. **Prévue** : décris la scène que tu t'attends à jouer (une phrase).",
+        "2. Lance un d20. Si le résultat est **inférieur ou égal à la Pression**, la scène est altérée :",
+        "   - Résultat **pair** → scène **modifiée** : tire dans la table Complications et ajoute l'élément à ta scène prévue.",
+        "   - Résultat **impair** → scène **interrompue** : tire dans la table Complications, et c'est cet événement qui se joue à la place.",
+        "   - Adapte la gravité de la complication au palier de Pression (voir tableau de la section 3).",
+        "3. Sinon, la scène se joue comme prévu.",
+        "4. Joue la scène avec l'oracle de question et les règles d'Omni (jets, combat…).",
+        "5. Ajuste la Pression, puis passe à la scène suivante."
+      ]
+    },
+    {
+      "id": "intentions",
+      "titre": "5. Intentions des ennemis et des PNJ compagnons",
+      "niveau": 1,
+      "texte": [
+        "L'oracle décide **ce que fait** un adversaire ou un compagnon. Les attaques, dégâts et défenses se résolvent avec les règles communes.",
+        "À chaque tour d'un PNJ : lance un d20 et lis la colonne du profil.",
+        "**Modificateurs au jet :**",
+        "- **+4** si le PNJ a perdu la moitié de ses PV ou plus (sauf Fanatique).",
+        "- **−2** si la Pression est de 7 ou plus (le monde est enhardi).",
+        "{{table intentions}}",
+        "**Réaction d'un PNJ à une proposition ou à une menace :** utilise l'oracle de question. La vraisemblance dépend de son attitude (hostile : improbable ; neutre : incertain ; amical : probable)."
+      ]
+    },
+    {
+      "id": "omni-points",
+      "titre": "6. Les omni-points de l'Oracle",
+      "niveau": 1,
+      "texte": [
+        "- L'Oracle (le « MJ ») commence la mission **sans omni-point**.",
+        "- Il en gagne **1 toutes les 2 utilisations** d'omni-points par les joueurs, et **1** la première fois que la Pression atteint 9 dans la mission.",
+        "- Il peut en dépenser 1 pour : imposer une complication de son choix, relancer le jet d'un ennemi ou d'un PNJ, ou transformer une réponse « Oui » en « Oui, mais… ».",
+        "- Les omni-points du joueur se dépensent comme d'habitude (avec une réplique) pour perturber la narration. Ils servent aussi à **contester** (voir section 8)."
+      ]
+    },
+    {
+      "id": "fiche",
+      "titre": "7. Fiche de suivi (à copier)",
+      "niveau": 1,
+      "texte": [
+        "- Mission : ______ Scène n° : ___ Pression : ___ /10",
+        "- Omni-points PJ : ___ Oracle : ___ Seuil de rupture (9) déjà atteint : ☐",
+        "- **Fils ouverts** : (une ligne par intrigue en cours)",
+        "- **PNJ** : nom — rôle — attitude (hostile/neutre/amical) — profil — notes",
+        "- **Menaces** : qui, quoi, ce qui arrive si on ne fait rien",
+        "- **Lieux** : nom — détail marquant",
+        "- **Journal** : une ligne par scène (ce qui s'est passé)"
+      ]
+    },
+    {
+      "id": "duo",
+      "titre": "8. Règles pour le duo",
+      "niveau": 1,
+      "texte": [
+        "- Les deux joueurs peuvent interroger l'oracle librement.",
+        "- **Interprétation** : le joueur qui a posé la question interprète la réponse.",
+        "- **Contestation** : l'autre joueur peut dépenser 1 omni-point (avec sa réplique) pour **relancer** la question. Le nouveau résultat remplace l'ancien et ne peut plus être contesté.",
+        "- Les scènes et les Pressions sont communes. Chaque PJ a sa propre réserve d'omni-points.",
+        "- Si les deux PJ sont séparés, joue les scènes l'une après l'autre, avec la Pression commune."
+      ]
+    },
+    {
+      "id": "assistant-mj",
+      "titre": "9. Mode assistant du MJ",
+      "niveau": 1,
+      "texte": [
+        "Avec de vrais joueurs, tu es le MJ et l'oracle t'aide à improviser : lance les tables en secret quand tu manques d'idées (PNJ, complications, rebondissements), utilise l'oracle de question pour les réactions des PNJ, et les intentions pour les ennemis que tu ne veux pas décider toi-même."
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "id": "vraisemblances",
+      "titre": "Vraisemblance",
+      "de": null,
+      "colonnes": [
+        "Vraisemblance",
+        "Effet sur le jet"
+      ],
+      "lignes": [
+        {
+          "texte": "Très improbable",
+          "autres": [
+            "Désavantage"
+          ],
+          "id": "tres-improbable",
+          "jet": {
+            "mode": "desavantage",
+            "modificateur": 0
+          }
+        },
+        {
+          "texte": "Improbable",
+          "autres": [
+            "−3 au d20"
+          ],
+          "id": "improbable",
+          "jet": {
+            "mode": "normal",
+            "modificateur": -3
+          }
+        },
+        {
+          "texte": "Incertain",
+          "autres": [
+            "Aucun"
+          ],
+          "id": "incertain",
+          "jet": {
+            "mode": "normal",
+            "modificateur": 0
+          }
+        },
+        {
+          "texte": "Probable",
+          "autres": [
+            "+3 au d20"
+          ],
+          "id": "probable",
+          "jet": {
+            "mode": "normal",
+            "modificateur": 3
+          }
+        },
+        {
+          "texte": "Très probable",
+          "autres": [
+            "Avantage"
+          ],
+          "id": "tres-probable",
+          "jet": {
+            "mode": "avantage",
+            "modificateur": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "reponses",
+      "titre": "Réponses de l'oracle",
+      "de": "d20",
+      "colonnes": [
+        "d20 (après modifs)",
+        "Réponse"
+      ],
+      "lignes": [
+        {
+          "plage": "1 ou moins",
+          "texte": "**Non, et…** (aggravation)",
+          "libelle": "Non, et…",
+          "id": "non-et"
+        },
+        {
+          "plage": "2 à 7",
+          "texte": "**Non**",
+          "libelle": "Non",
+          "id": "non"
+        },
+        {
+          "plage": "8 à 10",
+          "texte": "**Non, mais…** (un élément favorable)",
+          "libelle": "Non, mais…",
+          "id": "non-mais"
+        },
+        {
+          "plage": "11 à 13",
+          "texte": "**Oui, mais…** (un prix ou une complication)",
+          "libelle": "Oui, mais…",
+          "id": "oui-mais"
+        },
+        {
+          "plage": "14 à 19",
+          "texte": "**Oui**",
+          "libelle": "Oui",
+          "id": "oui"
+        },
+        {
+          "plage": "20 ou plus",
+          "texte": "**Oui, et…** (un bonus)",
+          "libelle": "Oui, et…",
+          "id": "oui-et"
+        }
+      ]
+    },
+    {
+      "id": "paliers",
+      "titre": "Paliers de Pression",
+      "de": null,
+      "colonnes": [
+        "Pression",
+        "Chance d'altération",
+        "Ce que ça implique"
+      ],
+      "lignes": [
+        {
+          "texte": "**0-2 Calme**",
+          "autres": [
+            "0 à 10 %",
+            "Le monde est distrait, personne ne cherche le PJ. Bon moment pour préparer, enquêter, se soigner. Les complications, si elles arrivent, sont des aléas mineurs."
+          ],
+          "id": "calme",
+          "nom": "Calme",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "texte": "**3-4 Vigilance**",
+          "autres": [
+            "15 à 20 %",
+            "Des rumeurs circulent, quelques regards de trop. Les complications sont des gênes (retard, témoin, panne légère)."
+          ],
+          "id": "vigilance",
+          "nom": "Vigilance",
+          "min": 3,
+          "max": 4
+        },
+        {
+          "texte": "**5-6 Tension**",
+          "autres": [
+            "25 à 30 %",
+            "Les adversaires s'organisent et se parlent. Les complications ont un coût réel (temps perdu, matériel abîmé, contact compromis)."
+          ],
+          "id": "tension",
+          "nom": "Tension",
+          "min": 5,
+          "max": 6
+        },
+        {
+          "texte": "**7-8 Étau**",
+          "autres": [
+            "35 à 40 %",
+            "Les ennemis sont enhardis (−2 à leur jet d'intention). Les renforts sont probables, les complications sont majeures. Le rebondissement de la mission est tiré."
+          ],
+          "id": "etau",
+          "nom": "Étau",
+          "min": 7,
+          "max": 8
+        },
+        {
+          "texte": "**9-10 Rupture**",
+          "autres": [
+            "45 à 50 %",
+            "Le monde se referme sur le PJ : plus de répit, chaque scène a une chance sur deux de dérailler. Les complications mettent en jeu l'objectif, les alliés ou la sortie."
+          ],
+          "id": "rupture",
+          "nom": "Rupture",
+          "min": 9,
+          "max": 10
+        }
+      ]
+    },
+    {
+      "id": "intentions",
+      "titre": "Intentions des ennemis et des PNJ compagnons",
+      "de": "d20",
+      "colonnes": [
+        "Profil",
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "lignes": [
+        {
+          "texte": "**Brute**",
+          "autres": [
+            "Fonce sur la cible la plus proche",
+            "Fonce sur la cible la plus proche",
+            "Attaque la cible la plus blessée",
+            "Attaque la cible la plus dangereuse",
+            "Recule d'un pas et jauge"
+          ],
+          "nom": "Brute",
+          "id": "brute",
+          "compagnon": false
+        },
+        {
+          "texte": "**Tacticien**",
+          "autres": [
+            "Tire ou frappe depuis un couvert",
+            "Contourne ou prend en tenaille",
+            "Attaque la cible la plus dangereuse",
+            "Utilise un équipement (grenade, drone, piratage, implant)",
+            "Appelle du renfort ou donne l'alerte"
+          ],
+          "nom": "Tacticien",
+          "id": "tacticien",
+          "compagnon": false
+        },
+        {
+          "texte": "**Lâche**",
+          "autres": [
+            "Tire depuis un couvert",
+            "Attaque la cible la plus blessée",
+            "Recule et se met à l'abri",
+            "Appelle du renfort ou donne l'alerte",
+            "Fuit ou se rend"
+          ],
+          "nom": "Lâche",
+          "id": "lache",
+          "compagnon": false
+        },
+        {
+          "texte": "**Fanatique**",
+          "autres": [
+            "Fonce sur la cible la plus proche",
+            "Attaque la cible la plus dangereuse",
+            "Attaque la cible la plus dangereuse",
+            "Se sacrifie pour frapper (dégâts, risque pour lui)",
+            "Utilise un équipement sans retenue"
+          ],
+          "nom": "Fanatique",
+          "id": "fanatique",
+          "compagnon": false
+        },
+        {
+          "texte": "**Professionnel**",
+          "autres": [
+            "Tire ou frappe depuis un couvert",
+            "Contourne ou prend en tenaille",
+            "Attaque la cible la plus blessée",
+            "Utilise un équipement",
+            "Se replie en bon ordre"
+          ],
+          "nom": "Professionnel",
+          "id": "professionnel",
+          "compagnon": false
+        },
+        {
+          "texte": "**Compagnon loyal**",
+          "autres": [
+            "Protège le PJ",
+            "Attaque la cible du PJ",
+            "Tire depuis un couvert",
+            "Aide le PJ (soin, piratage, couverture)",
+            "Se replie vers le PJ"
+          ],
+          "nom": "Compagnon loyal",
+          "id": "compagnon-loyal",
+          "compagnon": true
+        },
+        {
+          "texte": "**Compagnon prudent**",
+          "autres": [
+            "Tire depuis un couvert",
+            "Aide le PJ (soin, piratage, couverture)",
+            "Se replie",
+            "Appelle du renfort ou donne l'alerte",
+            "Fuit ou parlemente"
+          ],
+          "nom": "Compagnon prudent",
+          "id": "compagnon-prudent",
+          "compagnon": true
+        },
+        {
+          "texte": "**Compagnon impulsif**",
+          "autres": [
+            "Fonce sur la cible la plus proche",
+            "Fonce sur la cible la plus proche",
+            "Attaque la cible la plus dangereuse",
+            "Tente une manœuvre risquée",
+            "Tire depuis un couvert"
+          ],
+          "nom": "Compagnon impulsif",
+          "id": "compagnon-impulsif",
+          "compagnon": true
+        }
+      ],
+      "type": "grille",
+      "plages": [
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "modificateurs": {
+        "blesse": 4,
+        "blesseSaufProfils": [
+          "fanatique"
+        ],
+        "pression": {
+          "seuil": 7,
+          "valeur": -2
+        }
+      }
+    }
+  ]
+}

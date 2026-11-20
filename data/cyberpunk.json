@@ -1,0 +1,1089 @@
+{
+  "format": 1,
+  "id": "cyberpunk",
+  "nom": "Cyberpunk",
+  "ordre": 1,
+  "source": "sources/01-prototype-cyberpunk.md",
+  "omniPointsPJ": 3,
+  "roles": {
+    "mission": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6"
+    ],
+    "rebondissement": "T6",
+    "complications": "C",
+    "pnj": {
+      "role": "N1",
+      "trait": "N2",
+      "motivation": "N3"
+    }
+  },
+  "cloture": {
+    "question": "La mission est-elle un succès ?",
+    "issues": [
+      {
+        "libelle": "Oui, et… / Oui",
+        "reponses": [
+          "oui-et",
+          "oui"
+        ],
+        "texte": "succès complet."
+      },
+      {
+        "libelle": "Oui, mais… / Non, mais…",
+        "reponses": [
+          "oui-mais",
+          "non-mais"
+        ],
+        "texte": "succès partiel."
+      },
+      {
+        "libelle": "Non / Non, et…",
+        "reponses": [
+          "non",
+          "non-et"
+        ],
+        "texte": "échec, avec conséquences."
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "mission",
+      "titre": "6. Générer une mission",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des tables suivantes (ou choisis). Une mission de **routine** compte 3 à 5 scènes. Une mission **longue ou épique** en compte 8 ou plus."
+      ]
+    },
+    {
+      "id": "deroule",
+      "titre": "Déroulé suggéré",
+      "niveau": 2,
+      "texte": [
+        "1. **Accroche** : la scène d'ouverture.",
+        "2. **Approche** : le PJ se renseigne, rassemble son matériel, contacte quelqu'un.",
+        "3. **Obstacle** : une première difficulté sur le chemin.",
+        "4. **Rebondissement** : tiré à mi-parcours, ou quand la Pression atteint 7.",
+        "5. **Confrontation** : face à l'antagoniste ou à l'enjeu.",
+        "6. **Sortie** : fuite, conséquences, débrief."
+      ]
+    },
+    {
+      "id": "cloture",
+      "titre": "Clôture",
+      "niveau": 2,
+      "texte": [
+        "Pose l'oracle de question : « La mission est-elle un succès ? » Choisis la vraisemblance selon le déroulé réel.",
+        "- Oui, et… / Oui : succès complet.",
+        "- Oui, mais… / Non, mais… : succès partiel.",
+        "- Non / Non, et… : échec, avec conséquences.",
+        "Applique ensuite la progression d'Omni (mission de routine ou longue). L'Oracle perd ses omni-points restants. Le PJ retrouve ses 3 omni-points pour la mission suivante."
+      ]
+    },
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "niveau": 2,
+      "texte": [
+        "{{table T1}}"
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "niveau": 2,
+      "texte": [
+        "{{table T2}}"
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "niveau": 2,
+      "texte": [
+        "{{table T3}}"
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "niveau": 2,
+      "texte": [
+        "{{table T4}}"
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "niveau": 2,
+      "texte": [
+        "{{table T5}}"
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "niveau": 2,
+      "texte": [
+        "{{table T6}}"
+      ]
+    },
+    {
+      "id": "complications",
+      "titre": "7. Complications et événements (table des scènes altérées)",
+      "niveau": 1,
+      "texte": [
+        "{{table C}}"
+      ]
+    },
+    {
+      "id": "pnj",
+      "titre": "8. Générer un PNJ",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des trois tables."
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "niveau": 2,
+      "texte": [
+        "{{table N1}}"
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "niveau": 2,
+      "texte": [
+        "{{table N2}}"
+      ]
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "niveau": 2,
+      "texte": [
+        "{{table N3}}"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un contact du PJ disparaît en laissant un message crypté qui appelle à l'aide."
+        },
+        {
+          "plage": "2",
+          "texte": "Une mégacorpo propose un contrat bien payé, sans poser de questions, et refuse de nommer son vrai commanditaire."
+        },
+        {
+          "plage": "3",
+          "texte": "Le PJ se réveille avec un implant qu'il n'a jamais acheté, et il émet un signal."
+        },
+        {
+          "plage": "4",
+          "texte": "Un cadavre inconnu est retrouvé avec une puce portant le nom du PJ."
+        },
+        {
+          "plage": "5",
+          "texte": "Un fixeur propose une extraction : sortir quelqu'un d'une tour avant l'aube."
+        },
+        {
+          "plage": "6",
+          "texte": "Un drone endommagé s'écrase aux pieds du PJ, la mémoire pleine de données volées."
+        },
+        {
+          "plage": "7",
+          "texte": "Un ancien allié refait surface, traqué, et demande refuge pour une nuit."
+        },
+        {
+          "plage": "8",
+          "texte": "Un gang prend le contrôle du quartier du PJ et exige une taxe que personne ne peut payer."
+        },
+        {
+          "plage": "9",
+          "texte": "Un hacker anonyme propose un casse numérique contre un serveur corpo, payé d'avance."
+        },
+        {
+          "plage": "10",
+          "texte": "Une livraison banale tourne mal : le colis se met à émettre un signal."
+        },
+        {
+          "plage": "11",
+          "texte": "Une clinique clandestine demande de retrouver un lot d'implants volés avant qu'ils ne soient revendus."
+        },
+        {
+          "plage": "12",
+          "texte": "Une IA de quartier appelle à l'aide les seuls habitants qu'elle juge dignes de confiance."
+        },
+        {
+          "plage": "13",
+          "texte": "Un journaliste indépendant veut prouver un scandale corpo et cherche une escorte."
+        },
+        {
+          "plage": "14",
+          "texte": "Un détail du dernier travail du PJ revient le hanter : un témoin a survécu."
+        },
+        {
+          "plage": "15",
+          "texte": "Un ami d'enfance est accusé d'un meurtre qu'il jure ne pas avoir commis."
+        },
+        {
+          "plage": "16",
+          "texte": "Une prime est placée sur la tête du PJ, sans qu'il sache pourquoi."
+        },
+        {
+          "plage": "17",
+          "texte": "Une panne géante coupe le réseau du secteur, et quelqu'un en profite pour agir."
+        },
+        {
+          "plage": "18",
+          "texte": "Un vieux contact paie une dette en offrant un renseignement sur une cache de matériel."
+        },
+        {
+          "plage": "19",
+          "texte": "Un robot de sécurité réformé demande de l'aide pour fuir sa corpo."
+        },
+        {
+          "plage": "20",
+          "texte": "Une rumeur annonce le transit d'un prototype d'implant révolutionnaire, et tout le monde le veut."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Récupérer un objet précis (mallette, prototype, disque dur)."
+        },
+        {
+          "plage": "2",
+          "texte": "Extraire une personne vivante d'un lieu surveillé."
+        },
+        {
+          "plage": "3",
+          "texte": "Voler des données sur un serveur isolé."
+        },
+        {
+          "plage": "4",
+          "texte": "Neutraliser ou éliminer une cible clairement désignée."
+        },
+        {
+          "plage": "5",
+          "texte": "Escorter un convoi ou une personne jusqu'à destination."
+        },
+        {
+          "plage": "6",
+          "texte": "Protéger un lieu ou une personne pendant une nuit."
+        },
+        {
+          "plage": "7",
+          "texte": "Saboter une installation ou une livraison."
+        },
+        {
+          "plage": "8",
+          "texte": "Retrouver quelqu'un qui a disparu."
+        },
+        {
+          "plage": "9",
+          "texte": "Livrer un colis sans l'ouvrir et sans se faire intercepter."
+        },
+        {
+          "plage": "10",
+          "texte": "Infiltrer un bâtiment ou une soirée pour repérer un détail précis."
+        },
+        {
+          "plage": "11",
+          "texte": "Négocier un accord entre deux factions hostiles."
+        },
+        {
+          "plage": "12",
+          "texte": "Prouver l'innocence d'un accusé."
+        },
+        {
+          "plage": "13",
+          "texte": "Récupérer un implant ou un drone volé."
+        },
+        {
+          "plage": "14",
+          "texte": "Piéger un traître dans un groupe allié."
+        },
+        {
+          "plage": "15",
+          "texte": "Effacer toute trace d'une opération passée."
+        },
+        {
+          "plage": "16",
+          "texte": "Découvrir qui a commandité un événement."
+        },
+        {
+          "plage": "17",
+          "texte": "Libérer des prisonniers d'un site corpo."
+        },
+        {
+          "plage": "18",
+          "texte": "Rembourser une dette en rendant un service."
+        },
+        {
+          "plage": "19",
+          "texte": "Quitter la ville ou le secteur avant une échéance."
+        },
+        {
+          "plage": "20",
+          "texte": "Détruire ou enterrer un secret que personne ne doit connaître."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une tour mégacorpo : étages inférieurs gardés, étages supérieurs inaccessibles."
+        },
+        {
+          "plage": "2",
+          "texte": "Un marché de nuit sous les néons, saturé de vendeurs et d'indics."
+        },
+        {
+          "plage": "3",
+          "texte": "Une clinique clandestine dans un sous-sol humide."
+        },
+        {
+          "plage": "4",
+          "texte": "Un entrepôt portuaire abandonné au bord d'un canal pollué."
+        },
+        {
+          "plage": "5",
+          "texte": "Un hôtel capsule bondé d'inconnus."
+        },
+        {
+          "plage": "6",
+          "texte": "Un quartier inondé, praticable seulement à la barque ou les pieds dans l'eau."
+        },
+        {
+          "plage": "7",
+          "texte": "Un centre de données refroidi à l'extrême, aux couloirs étroits."
+        },
+        {
+          "plage": "8",
+          "texte": "Un bar de mercenaires où tout se négocie."
+        },
+        {
+          "plage": "9",
+          "texte": "Un toit-terrasse au-dessus de la ville, venteux et exposé."
+        },
+        {
+          "plage": "10",
+          "texte": "Une décharge de pièces cybernétiques où rôdent des charognards."
+        },
+        {
+          "plage": "11",
+          "texte": "Un métro désaffecté, éclairé par intermittence."
+        },
+        {
+          "plage": "12",
+          "texte": "Un complexe résidentiel corpo qui contrôle chaque porte et chaque caméra."
+        },
+        {
+          "plage": "13",
+          "texte": "Une usine automatisée où seuls des robots travaillent."
+        },
+        {
+          "plage": "14",
+          "texte": "Un hôpital réquisitionné par une faction."
+        },
+        {
+          "plage": "15",
+          "texte": "Une boîte de nuit VIP, avec fouille aux armes à l'entrée."
+        },
+        {
+          "plage": "16",
+          "texte": "Un commissariat de quartier corrompu."
+        },
+        {
+          "plage": "17",
+          "texte": "Un bidonville vertical accroché au flanc d'une mégastructure."
+        },
+        {
+          "plage": "18",
+          "texte": "Un entrepôt frigorifique en bordure de la ville."
+        },
+        {
+          "plage": "19",
+          "texte": "Un spatioport de transit, filtré et surveillé."
+        },
+        {
+          "plage": "20",
+          "texte": "La matrice : un espace virtuel privé, gardé par des défenses mentales (PV mentaux)."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un cadre de mégacorpo qui veut étouffer une affaire."
+        },
+        {
+          "plage": "2",
+          "texte": "Une équipe de mercenaires concurrents sur le même contrat."
+        },
+        {
+          "plage": "3",
+          "texte": "Un gang de rue qui contrôle le quartier."
+        },
+        {
+          "plage": "4",
+          "texte": "Un hacker légendaire qui joue avec le PJ."
+        },
+        {
+          "plage": "5",
+          "texte": "Un ancien allié trahi par le PJ ou par les événements."
+        },
+        {
+          "plage": "6",
+          "texte": "Un flic corrompu qui protège un criminel."
+        },
+        {
+          "plage": "7",
+          "texte": "Une IA de sécurité qui apprend à se défendre."
+        },
+        {
+          "plage": "8",
+          "texte": "Un chirurgien clandestin qui trafique des implants."
+        },
+        {
+          "plage": "9",
+          "texte": "Un fixeur double-jeu qui vend les deux camps."
+        },
+        {
+          "plage": "10",
+          "texte": "Une secte technologique qui vénère une machine."
+        },
+        {
+          "plage": "11",
+          "texte": "Un assassin professionnel envoyé pour couvrir des traces."
+        },
+        {
+          "plage": "12",
+          "texte": "Un chef de gang qui veut que rien ne change."
+        },
+        {
+          "plage": "13",
+          "texte": "Un inspecteur obstiné, honnête mais mal informé."
+        },
+        {
+          "plage": "14",
+          "texte": "Un client qui ment sur la nature de la mission."
+        },
+        {
+          "plage": "15",
+          "texte": "Un lieutenant corpo ambitieux qui sabote son propre patron."
+        },
+        {
+          "plage": "16",
+          "texte": "Un survivant d'une expérience corpo, désormais instable et dangereux."
+        },
+        {
+          "plage": "17",
+          "texte": "Un drone de combat sans maître qui chasse tout ce qui bouge."
+        },
+        {
+          "plage": "18",
+          "texte": "Un proche du PJ, manipulé ou soumis au chantage."
+        },
+        {
+          "plage": "19",
+          "texte": "Une milice de quartier persuadée de bien faire."
+        },
+        {
+          "plage": "20",
+          "texte": "Un adversaire invisible dont on ne verra jamais le visage avant la fin."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "La vie d'un innocent."
+        },
+        {
+          "plage": "2",
+          "texte": "La réputation du PJ dans le quartier."
+        },
+        {
+          "plage": "3",
+          "texte": "Une grosse somme d'argent."
+        },
+        {
+          "plage": "4",
+          "texte": "La survie d'un contact précieux."
+        },
+        {
+          "plage": "5",
+          "texte": "Un secret qui, révélé, bouleverserait un secteur entier."
+        },
+        {
+          "plage": "6",
+          "texte": "La liberté du PJ (prison ou prime)."
+        },
+        {
+          "plage": "7",
+          "texte": "Le fonctionnement d'un implant vital."
+        },
+        {
+          "plage": "8",
+          "texte": "Un lien avec une faction (alliance ou rupture)."
+        },
+        {
+          "plage": "9",
+          "texte": "Un avantage décisif dans une guerre de gangs."
+        },
+        {
+          "plage": "10",
+          "texte": "La santé mentale de quelqu'un."
+        },
+        {
+          "plage": "11",
+          "texte": "La confiance d'un allié proche."
+        },
+        {
+          "plage": "12",
+          "texte": "Une dette qui ne doit pas être réclamée."
+        },
+        {
+          "plage": "13",
+          "texte": "La survie d'un quartier entier."
+        },
+        {
+          "plage": "14",
+          "texte": "Le contrôle d'un réseau (matrice, trafic)."
+        },
+        {
+          "plage": "15",
+          "texte": "Une preuve qui peut faire tomber quelqu'un de puissant."
+        },
+        {
+          "plage": "16",
+          "texte": "L'accès à un équipement rare."
+        },
+        {
+          "plage": "17",
+          "texte": "Un secret personnel du PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "La vérité sur la mort de quelqu'un."
+        },
+        {
+          "plage": "19",
+          "texte": "Un équilibre fragile entre deux factions."
+        },
+        {
+          "plage": "20",
+          "texte": "Une percée technologique qui changerait l'équilibre des pouvoirs."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Le commanditaire a menti : la vraie cible est quelqu'un d'autre."
+        },
+        {
+          "plage": "2",
+          "texte": "L'objectif a été détruit ou volé juste avant l'arrivée du PJ."
+        },
+        {
+          "plage": "3",
+          "texte": "Un allié du PJ est en réalité un informateur."
+        },
+        {
+          "plage": "4",
+          "texte": "La cible est volontaire et refuse d'être sauvée."
+        },
+        {
+          "plage": "5",
+          "texte": "L'antagoniste cherche la même chose, pour une bonne raison."
+        },
+        {
+          "plage": "6",
+          "texte": "Une troisième faction s'invite avec des moyens supérieurs."
+        },
+        {
+          "plage": "7",
+          "texte": "L'objet est un leurre : le vrai est ailleurs."
+        },
+        {
+          "plage": "8",
+          "texte": "Le lieu est un piège monté pour le PJ."
+        },
+        {
+          "plage": "9",
+          "texte": "Le client prévoit d'éliminer le PJ à la fin du contrat."
+        },
+        {
+          "plage": "10",
+          "texte": "Un implant du PJ est piraté à distance."
+        },
+        {
+          "plage": "11",
+          "texte": "Le temps imparti est réduit de moitié."
+        },
+        {
+          "plage": "12",
+          "texte": "La cible est un proche du PJ."
+        },
+        {
+          "plage": "13",
+          "texte": "L'IA du lieu choisit son camp : peut-être celui du PJ, peut-être pas."
+        },
+        {
+          "plage": "14",
+          "texte": "Le contact du PJ ne répond plus (plus de renseignements ni de matériel)."
+        },
+        {
+          "plage": "15",
+          "texte": "Une tempête de réseau coupe les communications : drones et piratage inutilisables un temps."
+        },
+        {
+          "plage": "16",
+          "texte": "Une personnalité publique est impliquée."
+        },
+        {
+          "plage": "17",
+          "texte": "L'antagoniste propose un marché très tentant."
+        },
+        {
+          "plage": "18",
+          "texte": "L'affaire n'est que la couverture d'une autre, plus vaste."
+        },
+        {
+          "plage": "19",
+          "texte": "Quelqu'un que le PJ croyait mort réapparaît."
+        },
+        {
+          "plage": "20",
+          "texte": "Tout était un test de la corpo pour évaluer le PJ."
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "titre": "Complications et événements",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une patrouille corpo fait un contrôle d'identité inopiné dans la zone."
+        },
+        {
+          "plage": "2",
+          "texte": "Un drone de surveillance repère le PJ et le suit."
+        },
+        {
+          "plage": "3",
+          "texte": "Un témoin innocent se retrouve au mauvais endroit au mauvais moment."
+        },
+        {
+          "plage": "4",
+          "texte": "Le matériel du PJ lâche au pire moment (arme enrayée, terminal planté, implant qui hoquette)."
+        },
+        {
+          "plage": "5",
+          "texte": "Un contact appelle en urgence : il est suivi."
+        },
+        {
+          "plage": "6",
+          "texte": "Une rixe éclate dans la foule et bloque le passage."
+        },
+        {
+          "plage": "7",
+          "texte": "Une coupure de courant plonge le lieu dans le noir."
+        },
+        {
+          "plage": "8",
+          "texte": "Un rival du PJ apparaît et se mêle de l'affaire."
+        },
+        {
+          "plage": "9",
+          "texte": "Une alarme silencieuse a été déclenchée sans que le PJ le sache."
+        },
+        {
+          "plage": "10",
+          "texte": "Un PNJ propose un marché qui paraît trop beau pour être vrai."
+        },
+        {
+          "plage": "11",
+          "texte": "La cible change ses plans et part ailleurs."
+        },
+        {
+          "plage": "12",
+          "texte": "Un gang réclame un droit de passage."
+        },
+        {
+          "plage": "13",
+          "texte": "Un message anonyme prévient le PJ d'un danger, sans détails."
+        },
+        {
+          "plage": "14",
+          "texte": "Une explosion dans un bâtiment voisin attire tout le monde."
+        },
+        {
+          "plage": "15",
+          "texte": "Un robot de sécurité hors programme patrouille dans un secteur qui devait être vide."
+        },
+        {
+          "plage": "16",
+          "texte": "Un implant du PJ est scanné : quelqu'un consulte son profil."
+        },
+        {
+          "plage": "17",
+          "texte": "Un ancien ennemi reconnaît le PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "Une pluie acide force tout le monde à se mettre à l'abri."
+        },
+        {
+          "plage": "19",
+          "texte": "La sécurité ou la police arrive bien plus tôt que prévu."
+        },
+        {
+          "plage": "20",
+          "texte": "Une opportunité inattendue : une porte ouverte, un code oublié, un allié providentiel."
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Fixeur"
+        },
+        {
+          "plage": "2",
+          "texte": "Médecin clandestin"
+        },
+        {
+          "plage": "3",
+          "texte": "Garde corpo"
+        },
+        {
+          "plage": "4",
+          "texte": "Hacker indépendant"
+        },
+        {
+          "plage": "5",
+          "texte": "Informateur de rue"
+        },
+        {
+          "plage": "6",
+          "texte": "Mercenaire"
+        },
+        {
+          "plage": "7",
+          "texte": "Barman"
+        },
+        {
+          "plage": "8",
+          "texte": "Flic de quartier"
+        },
+        {
+          "plage": "9",
+          "texte": "Technicien ou mécano"
+        },
+        {
+          "plage": "10",
+          "texte": "Cadre corpo"
+        },
+        {
+          "plage": "11",
+          "texte": "Marchand d'armes"
+        },
+        {
+          "plage": "12",
+          "texte": "Livreur à moto"
+        },
+        {
+          "plage": "13",
+          "texte": "Journaliste indépendant"
+        },
+        {
+          "plage": "14",
+          "texte": "Pilote de drone"
+        },
+        {
+          "plage": "15",
+          "texte": "Chef de gang"
+        },
+        {
+          "plage": "16",
+          "texte": "Habitant du quartier qui voit tout"
+        },
+        {
+          "plage": "17",
+          "texte": "Assassin à gages"
+        },
+        {
+          "plage": "18",
+          "texte": "Ancien soldat reconverti"
+        },
+        {
+          "plage": "19",
+          "texte": "Prêtre ou gourou technologique"
+        },
+        {
+          "plage": "20",
+          "texte": "IA incarnée dans un terminal ou un robot"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Méfiant : répond toujours par une question."
+        },
+        {
+          "plage": "2",
+          "texte": "Bavard : en dit trop, y compris ce qu'il ne devrait pas."
+        },
+        {
+          "plage": "3",
+          "texte": "Cupide : tout a un prix."
+        },
+        {
+          "plage": "4",
+          "texte": "Loyal : ne trahit jamais ceux qu'il a choisis."
+        },
+        {
+          "plage": "5",
+          "texte": "Nerveux : sursaute au moindre bruit."
+        },
+        {
+          "plage": "6",
+          "texte": "Froid et professionnel : va droit au but."
+        },
+        {
+          "plage": "7",
+          "texte": "Ironique : tourne tout en dérision."
+        },
+        {
+          "plage": "8",
+          "texte": "Fatigué : plus rien ne le surprend."
+        },
+        {
+          "plage": "9",
+          "texte": "Ambitieux : cherche à monter, quitte à écraser."
+        },
+        {
+          "plage": "10",
+          "texte": "Paranoïaque : voit des pièges partout."
+        },
+        {
+          "plage": "11",
+          "texte": "Chaleureux en surface : cache autre chose."
+        },
+        {
+          "plage": "12",
+          "texte": "Colérique : s'enflamme pour un rien."
+        },
+        {
+          "plage": "13",
+          "texte": "Curieux : pose trop de questions."
+        },
+        {
+          "plage": "14",
+          "texte": "Superstitieux : a des rituels pour tout."
+        },
+        {
+          "plage": "15",
+          "texte": "Menteur compulsif : arrange la vérité par habitude."
+        },
+        {
+          "plage": "16",
+          "texte": "Idéaliste : croit encore pouvoir changer les choses."
+        },
+        {
+          "plage": "17",
+          "texte": "Résigné : pense que rien ne sert de lutter."
+        },
+        {
+          "plage": "18",
+          "texte": "Arrogant : se croit intouchable."
+        },
+        {
+          "plage": "19",
+          "texte": "Effrayé : n'aspire qu'à partir."
+        },
+        {
+          "plage": "20",
+          "texte": "Calme de façon inquiétante : ne se trouble jamais."
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Veut de l'argent, et vite."
+        },
+        {
+          "plage": "2",
+          "texte": "Veut protéger un proche."
+        },
+        {
+          "plage": "3",
+          "texte": "Cherche à se venger."
+        },
+        {
+          "plage": "4",
+          "texte": "Veut quitter la ville."
+        },
+        {
+          "plage": "5",
+          "texte": "Cherche la reconnaissance de ses pairs."
+        },
+        {
+          "plage": "6",
+          "texte": "Doit une dette à quelqu'un de dangereux."
+        },
+        {
+          "plage": "7",
+          "texte": "Veut cacher un secret."
+        },
+        {
+          "plage": "8",
+          "texte": "Cherche à rejoindre une corpo ou une faction."
+        },
+        {
+          "plage": "9",
+          "texte": "Veut faire tomber son patron."
+        },
+        {
+          "plage": "10",
+          "texte": "Cherche à réparer ou remplacer un implant défaillant."
+        },
+        {
+          "plage": "11",
+          "texte": "Veut connaître la vérité sur un événement passé."
+        },
+        {
+          "plage": "12",
+          "texte": "Travaille pour deux camps à la fois."
+        },
+        {
+          "plage": "13",
+          "texte": "Veut simplement survivre à la nuit."
+        },
+        {
+          "plage": "14",
+          "texte": "Veut impressionner quelqu'un."
+        },
+        {
+          "plage": "15",
+          "texte": "Veut racheter une faute."
+        },
+        {
+          "plage": "16",
+          "texte": "Cherche à récupérer un objet perdu."
+        },
+        {
+          "plage": "17",
+          "texte": "Obéit à un ordre qu'il ne comprend pas."
+        },
+        {
+          "plage": "18",
+          "texte": "Veut voler la vedette au PJ."
+        },
+        {
+          "plage": "19",
+          "texte": "Veut tester le PJ avant de lui faire confiance."
+        },
+        {
+          "plage": "20",
+          "texte": "N'a aucun but précis : il agit au hasard et sème le chaos."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1248 @@
+{
+  "format": 1,
+  "id": "space-opera",
+  "nom": "Space opéra",
+  "ordre": 2,
+  "source": "sources/02-variante-space-opera.md",
+  "omniPointsPJ": 3,
+  "roles": {
+    "mission": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6"
+    ],
+    "rebondissement": "T6",
+    "complications": "C",
+    "pnj": {
+      "role": "N1",
+      "trait": "N2",
+      "motivation": "N3"
+    },
+    "vaisseaux": {
+      "type": "D1",
+      "attitude": "D2"
+    },
+    "intentionsVaisseau": "E"
+  },
+  "cloture": {
+    "question": "La mission est-elle un succès ?",
+    "issues": [
+      {
+        "libelle": "Oui, et… / Oui",
+        "reponses": [
+          "oui-et",
+          "oui"
+        ],
+        "texte": "succès complet."
+      },
+      {
+        "libelle": "Oui, mais… / Non, mais…",
+        "reponses": [
+          "oui-mais",
+          "non-mais"
+        ],
+        "texte": "succès partiel."
+      },
+      {
+        "libelle": "Non / Non, et…",
+        "reponses": [
+          "non",
+          "non-et"
+        ],
+        "texte": "échec, avec conséquences."
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "presentation",
+      "titre": null,
+      "niveau": 1,
+      "texte": [
+        "Cette variante s'utilise avec le **tronc commun** du fichier `01-prototype-cyberpunk.md` (partie 1 : oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Rien ne change dans les règles. Seules changent les tables de contenu et deux ajouts propres au space opéra (rencontres de vaisseaux et vaisseaux ennemis).",
+        "Omni-points : comme en cyberpunk, 3 par joueur et par mission. L'Oracle commence à 0."
+      ]
+    },
+    {
+      "id": "mission",
+      "titre": "A. Générer une mission",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des tables T1 à T6 (ou choisis). Une mission de **routine** compte 3 à 5 scènes. Une mission **longue ou épique** en compte 8 ou plus."
+      ]
+    },
+    {
+      "id": "deroule",
+      "titre": "Déroulé suggéré",
+      "niveau": 2,
+      "texte": [
+        "1. **Accroche** : la scène d'ouverture, souvent à la base ou à bord.",
+        "2. **Préparation** : briefing, choix des postes à bord, matériel, contacts. Un drone équipé d'un micro et d'une caméra peut être envoyé en reconnaissance (jet de technique : plus la réussite est nette, plus il rapporte d'infos).",
+        "3. **Obstacle** : une première difficulté en route (patrouille, panne, rencontre).",
+        "4. **Rebondissement** : tiré à mi-parcours, ou quand la Pression atteint 7.",
+        "5. **Confrontation** : face à l'antagoniste, à l'enjeu, ou en bataille spatiale.",
+        "6. **Sortie** : retour, conséquences, débrief."
+      ]
+    },
+    {
+      "id": "cloture",
+      "titre": "Clôture",
+      "niveau": 2,
+      "texte": [
+        "Pose l'oracle de question : « La mission est-elle un succès ? » Choisis la vraisemblance selon le déroulé réel.",
+        "- Oui, et… / Oui : succès complet.",
+        "- Oui, mais… / Non, mais… : succès partiel.",
+        "- Non / Non, et… : échec, avec conséquences.",
+        "Applique ensuite la progression d'Omni (mission de routine ou longue). L'Oracle perd ses omni-points restants. Le PJ retrouve ses 3 omni-points pour la mission suivante. Entre deux missions, le PJ peut mener des actions de base (étude de technologies, d'échantillons, entraînement, développement de la base, permission)."
+      ]
+    },
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "niveau": 2,
+      "texte": [
+        "{{table T1}}"
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "niveau": 2,
+      "texte": [
+        "{{table T2}}"
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "niveau": 2,
+      "texte": [
+        "{{table T3}}"
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "niveau": 2,
+      "texte": [
+        "{{table T4}}"
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "niveau": 2,
+      "texte": [
+        "{{table T5}}"
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "niveau": 2,
+      "texte": [
+        "{{table T6}}"
+      ]
+    },
+    {
+      "id": "complications",
+      "titre": "B. Complications et événements (table des scènes altérées)",
+      "niveau": 1,
+      "texte": [
+        "{{table C}}"
+      ]
+    },
+    {
+      "id": "pnj",
+      "titre": "C. Générer un PNJ",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des trois tables."
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "niveau": 2,
+      "texte": [
+        "{{table N1}}"
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "niveau": 2,
+      "texte": [
+        "Identique à la table N2 du cyberpunk (traits universels, voir `01-prototype-cyberpunk.md`).",
+        "{{table N2}}"
+      ]
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "niveau": 2,
+      "texte": [
+        "{{table N3}}"
+      ]
+    },
+    {
+      "id": "rencontres",
+      "titre": "D. Rencontres de vaisseaux (ajout space opéra)",
+      "niveau": 1,
+      "texte": [
+        "Quand le PJ croise un vaisseau (en route, en orbite, pendant une complication ou une scène de bataille), lance un d20 dans la table **D1** pour son type, puis un d20 dans la table **D2** pour son attitude et son état."
+      ]
+    },
+    {
+      "id": "D1",
+      "titre": "D1 — Type de vaisseau",
+      "niveau": 2,
+      "texte": [
+        "Les statistiques viennent du livret space opéra. La colonne « Armement suggéré » est une base à ajuster : l'armement réel dépend de la faction du vaisseau.",
+        "{{table D1}}",
+        "**Escorte :** un croiseur ou un vaisseau-mère (résultats 14 à 19) déploie une escadrille de chasseurs s'il obtient 14 ou plus sur un d20 supplémentaire."
+      ]
+    },
+    {
+      "id": "D2",
+      "titre": "D2 — Attitude et état",
+      "niveau": 2,
+      "texte": [
+        "{{table D2}}",
+        "**Réaction à une proposition :** utilise l'oracle de question, avec une vraisemblance liée à l'attitude (hostile : improbable ; neutre : incertain ; amical : probable)."
+      ]
+    },
+    {
+      "id": "vaisseau-ennemi",
+      "titre": "E. Intentions d'un vaisseau ennemi (ajout space opéra)",
+      "niveau": 1,
+      "texte": [
+        "Pour décider de ce que fait un vaisseau adverse à son tour, lance un d20 sur cette table. Les attaques, boucliers, dégâts et réparations se résolvent avec les règles du livret space opéra.",
+        "**Modificateurs au jet :**",
+        "- **+4** si le vaisseau a perdu la moitié de ses PV ou plus.",
+        "- **−2** si la Pression est de 7 ou plus (l'ennemi est enhardi).",
+        "{{table E}}",
+        "Pour un croiseur avec plusieurs postes de tir, lance un d20 par poste ou applique le résultat à l'ensemble, selon ce qui va le plus vite à ta table."
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un signal inconnu est capté en bordure de zone, et la base veut savoir qui l'émet."
+        },
+        {
+          "plage": "2",
+          "texte": "Un croiseur allié cesse d'émettre et dérive vers un secteur interdit."
+        },
+        {
+          "plage": "3",
+          "texte": "Un diplomate alien demande une audience secrète, sans escorte officielle."
+        },
+        {
+          "plage": "4",
+          "texte": "Un chasseur inconnu atterrit près de la base, son pilote blessé refuse de parler."
+        },
+        {
+          "plage": "5",
+          "texte": "Sur Terre, un haut gradé disparaît juste avant un vote crucial."
+        },
+        {
+          "plage": "6",
+          "texte": "Un psyker reçoit des visions d'une planète qu'il n'a jamais vue."
+        },
+        {
+          "plage": "7",
+          "texte": "Un cargo marchand envoie un appel de détresse avec un très ancien code militaire."
+        },
+        {
+          "plage": "8",
+          "texte": "Un drone d'exploration revient avec des images d'un vaisseau-mère en orbite lointaine."
+        },
+        {
+          "plage": "9",
+          "texte": "Une planète alliée réclame de l'aide : son bouclier planétaire est en panne."
+        },
+        {
+          "plage": "10",
+          "texte": "Un échantillon alien étudié à la base se met à réagir."
+        },
+        {
+          "plage": "11",
+          "texte": "Un marchand d'armes propose une technologie alien contre un service."
+        },
+        {
+          "plage": "12",
+          "texte": "Une faction rivale annonce qu'elle compte s'emparer d'une ressource rare."
+        },
+        {
+          "plage": "13",
+          "texte": "Un déserteur d'un croiseur ennemi demande l'asile et offre des informations."
+        },
+        {
+          "plage": "14",
+          "texte": "Un contact du PJ réclame de l'aide pour échapper à une dette envers des contrebandiers."
+        },
+        {
+          "plage": "15",
+          "texte": "Une mutinerie éclate à bord d'un vaisseau allié."
+        },
+        {
+          "plage": "16",
+          "texte": "Un sabotage détruit une partie de la base, et tout le monde se soupçonne."
+        },
+        {
+          "plage": "17",
+          "texte": "Une vieille épave refait surface sur les scanners avec un message codé."
+        },
+        {
+          "plage": "18",
+          "texte": "Un traité de paix est sur le point d'être signé, et quelqu'un veut le faire échouer."
+        },
+        {
+          "plage": "19",
+          "texte": "Un seigneur de guerre met une prime sur la tête du PJ."
+        },
+        {
+          "plage": "20",
+          "texte": "Une anomalie d'hyperespace ouvre une brèche près de la base."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Récupérer une technologie alien avant qu'elle ne tombe aux mains d'une faction."
+        },
+        {
+          "plage": "2",
+          "texte": "Escorter un diplomate jusqu'à un sommet."
+        },
+        {
+          "plage": "3",
+          "texte": "Infiltrer un vaisseau ennemi pour y poser un dispositif."
+        },
+        {
+          "plage": "4",
+          "texte": "Secourir l'équipage d'un vaisseau en détresse."
+        },
+        {
+          "plage": "5",
+          "texte": "Détruire ou neutraliser un vaisseau précis."
+        },
+        {
+          "plage": "6",
+          "texte": "Protéger une station ou une colonie pendant une attaque."
+        },
+        {
+          "plage": "7",
+          "texte": "Voler des plans ou des données à une faction rivale."
+        },
+        {
+          "plage": "8",
+          "texte": "Négocier un cessez-le-feu entre deux flottes."
+        },
+        {
+          "plage": "9",
+          "texte": "Explorer une planète inconnue et en ramener un échantillon."
+        },
+        {
+          "plage": "10",
+          "texte": "Retrouver un vaisseau ou une personne disparue."
+        },
+        {
+          "plage": "11",
+          "texte": "Livrer une cargaison sensible en évitant les contrôles."
+        },
+        {
+          "plage": "12",
+          "texte": "Démasquer un traître parmi les alliés."
+        },
+        {
+          "plage": "13",
+          "texte": "Libérer des prisonniers d'un croiseur ou d'une prison orbitale."
+        },
+        {
+          "plage": "14",
+          "texte": "Saboter un bouclier planétaire ou un système d'armement."
+        },
+        {
+          "plage": "15",
+          "texte": "Capturer un psyker, ou protéger un psyker poursuivi."
+        },
+        {
+          "plage": "16",
+          "texte": "Réparer ou réactiver un vaisseau ou une installation en panne."
+        },
+        {
+          "plage": "17",
+          "texte": "Prouver qu'un incident n'a pas été causé par les PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "Évacuer des civils avant la destruction d'un site."
+        },
+        {
+          "plage": "19",
+          "texte": "Empêcher un lancement d'arme ou une activation d'hyperespace."
+        },
+        {
+          "plage": "20",
+          "texte": "Percer le secret d'un signal, d'un artefact ou d'une espèce inconnue."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Le pont d'un croiseur en pleine bataille."
+        },
+        {
+          "plage": "2",
+          "texte": "Une base orbitale à la gravité capricieuse."
+        },
+        {
+          "plage": "3",
+          "texte": "Une planète désertique balayée par des tempêtes ioniques."
+        },
+        {
+          "plage": "4",
+          "texte": "Une station marchande cosmopolite, pleine d'espèces et de combines."
+        },
+        {
+          "plage": "5",
+          "texte": "L'épave éventrée d'un vaisseau-mère, à la dérive."
+        },
+        {
+          "plage": "6",
+          "texte": "Un astéroïde miné dont les couloirs forment un labyrinthe."
+        },
+        {
+          "plage": "7",
+          "texte": "Une cité protégée par un bouclier énergétique planétaire."
+        },
+        {
+          "plage": "8",
+          "texte": "Une jungle alien à la faune agressive."
+        },
+        {
+          "plage": "9",
+          "texte": "Une salle des machines saturée de câbles et de vapeur."
+        },
+        {
+          "plage": "10",
+          "texte": "Un palais diplomatique aux couloirs surveillés."
+        },
+        {
+          "plage": "11",
+          "texte": "Une prison orbitale à sécurité maximale."
+        },
+        {
+          "plage": "12",
+          "texte": "Un spatioport terrien, étroitement surveillé."
+        },
+        {
+          "plage": "13",
+          "texte": "Une planète glacée où une installation secrète est enterrée."
+        },
+        {
+          "plage": "14",
+          "texte": "Un laboratoire d'étude alien rempli d'échantillons."
+        },
+        {
+          "plage": "15",
+          "texte": "Un cargo lent aux soutes pleines d'inconnu."
+        },
+        {
+          "plage": "16",
+          "texte": "Un champ d'astéroïdes qui brouille capteurs et boucliers."
+        },
+        {
+          "plage": "17",
+          "texte": "Un vaisseau fantôme dont les systèmes tournent encore."
+        },
+        {
+          "plage": "18",
+          "texte": "Un temple ou une ruine d'une civilisation ancienne."
+        },
+        {
+          "plage": "19",
+          "texte": "Une colonie minière isolée, coupée des communications."
+        },
+        {
+          "plage": "20",
+          "texte": "Un espace psychique : le rêve ou l'esprit d'un psyker (PV mentaux)."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un amiral ambitieux qui désobéit à ses ordres."
+        },
+        {
+          "plage": "2",
+          "texte": "Un seigneur de guerre alien à la tête d'une flotte."
+        },
+        {
+          "plage": "3",
+          "texte": "Un espion infiltré dans la base."
+        },
+        {
+          "plage": "4",
+          "texte": "Un contrebandier prêt à tout pour garder sa cargaison."
+        },
+        {
+          "plage": "5",
+          "texte": "Un psyker instable ou fanatique."
+        },
+        {
+          "plage": "6",
+          "texte": "Une IA de vaisseau qui a pris le contrôle de l'équipage."
+        },
+        {
+          "plage": "7",
+          "texte": "Une faction humaine rivale qui voit les PJ comme une menace."
+        },
+        {
+          "plage": "8",
+          "texte": "Un diplomate manipulateur qui joue plusieurs camps."
+        },
+        {
+          "plage": "9",
+          "texte": "Un chasseur de primes mandaté pour capturer le PJ."
+        },
+        {
+          "plage": "10",
+          "texte": "Un ancien camarade devenu mercenaire."
+        },
+        {
+          "plage": "11",
+          "texte": "Une espèce alien convaincue de défendre son territoire."
+        },
+        {
+          "plage": "12",
+          "texte": "Un scientifique obsédé par une technologie interdite."
+        },
+        {
+          "plage": "13",
+          "texte": "Un capitaine de croiseur humain qui obéit aux ordres sans réfléchir."
+        },
+        {
+          "plage": "14",
+          "texte": "Un pirate de l'espace, maître d'une flottille de chasseurs."
+        },
+        {
+          "plage": "15",
+          "texte": "Une secte qui adore une entité cosmique."
+        },
+        {
+          "plage": "16",
+          "texte": "Un général terrien qui trahit son propre gouvernement."
+        },
+        {
+          "plage": "17",
+          "texte": "Un vaisseau autonome, sans équipage, qui poursuit les PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "Un proche allié manipulé par un autre camp."
+        },
+        {
+          "plage": "19",
+          "texte": "Un parasite ou une créature qui infecte l'équipage."
+        },
+        {
+          "plage": "20",
+          "texte": "Une présence invisible dont on ignore la nature jusqu'à la fin."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "La vie de l'équipage d'un vaisseau allié."
+        },
+        {
+          "plage": "2",
+          "texte": "Une alliance fragile avec une espèce alien."
+        },
+        {
+          "plage": "3",
+          "texte": "Le contrôle d'une ressource rare (cristal, carburant, minerai)."
+        },
+        {
+          "plage": "4",
+          "texte": "La survie d'une colonie ou d'une planète entière."
+        },
+        {
+          "plage": "5",
+          "texte": "La paix entre deux factions."
+        },
+        {
+          "plage": "6",
+          "texte": "Une technologie qui changerait l'équilibre des forces."
+        },
+        {
+          "plage": "7",
+          "texte": "La réputation du PJ auprès de la flotte."
+        },
+        {
+          "plage": "8",
+          "texte": "Un secret sur l'origine d'une espèce ou d'un artefact."
+        },
+        {
+          "plage": "9",
+          "texte": "La base du PJ et ses installations."
+        },
+        {
+          "plage": "10",
+          "texte": "Un psyker précieux ou persécuté."
+        },
+        {
+          "plage": "11",
+          "texte": "La confiance d'un allié proche."
+        },
+        {
+          "plage": "12",
+          "texte": "Une dette envers un seigneur de guerre."
+        },
+        {
+          "plage": "13",
+          "texte": "La liberté de prisonniers."
+        },
+        {
+          "plage": "14",
+          "texte": "Le contrôle d'une route d'hyperespace."
+        },
+        {
+          "plage": "15",
+          "texte": "Une preuve qui peut faire tomber un officier ou un gouvernement."
+        },
+        {
+          "plage": "16",
+          "texte": "L'accès à un vaisseau ou à un équipement rare."
+        },
+        {
+          "plage": "17",
+          "texte": "Un secret personnel du PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "La vérité sur la destruction d'un vaisseau."
+        },
+        {
+          "plage": "19",
+          "texte": "Un équilibre fragile entre trois puissances."
+        },
+        {
+          "plage": "20",
+          "texte": "Une menace qui, si elle est libérée, mettrait la galaxie en danger."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Le commanditaire a menti : la vraie cible est ailleurs."
+        },
+        {
+          "plage": "2",
+          "texte": "L'objectif a été détruit ou volé juste avant l'arrivée des PJ."
+        },
+        {
+          "plage": "3",
+          "texte": "Un allié du PJ est en réalité un espion."
+        },
+        {
+          "plage": "4",
+          "texte": "Le vaisseau à secourir est un piège."
+        },
+        {
+          "plage": "5",
+          "texte": "L'antagoniste veut la même chose, pour une bonne raison."
+        },
+        {
+          "plage": "6",
+          "texte": "Une troisième flotte surgit de l'hyperespace."
+        },
+        {
+          "plage": "7",
+          "texte": "L'artefact est un leurre : le vrai est ailleurs."
+        },
+        {
+          "plage": "8",
+          "texte": "Le lieu est une base ennemie camouflée."
+        },
+        {
+          "plage": "9",
+          "texte": "Le client prévoit de trahir les PJ à la fin."
+        },
+        {
+          "plage": "10",
+          "texte": "Un système du vaisseau est piraté ou saboté à distance."
+        },
+        {
+          "plage": "11",
+          "texte": "Le temps imparti est réduit : l'hyperespace ennemi se prépare."
+        },
+        {
+          "plage": "12",
+          "texte": "La cible est un proche du PJ."
+        },
+        {
+          "plage": "13",
+          "texte": "L'IA de bord choisit son camp : peut-être celui du PJ, peut-être pas."
+        },
+        {
+          "plage": "14",
+          "texte": "Le contact du PJ ne répond plus (plus de renseignements ni de renforts)."
+        },
+        {
+          "plage": "15",
+          "texte": "Une tempête cosmique brouille communications et boucliers."
+        },
+        {
+          "plage": "16",
+          "texte": "Un psyker se révèle plus puissant que prévu."
+        },
+        {
+          "plage": "17",
+          "texte": "L'antagoniste propose une alliance très tentante."
+        },
+        {
+          "plage": "18",
+          "texte": "L'affaire en cache une autre, plus vaste."
+        },
+        {
+          "plage": "19",
+          "texte": "Quelqu'un que le PJ croyait mort réapparaît."
+        },
+        {
+          "plage": "20",
+          "texte": "Tout était une expérience menée par une espèce inconnue."
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "titre": "Complications et événements",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une patrouille ennemie croise la route et exige une identification."
+        },
+        {
+          "plage": "2",
+          "texte": "Un chasseur inconnu suit le vaisseau à distance."
+        },
+        {
+          "plage": "3",
+          "texte": "Un civil se retrouve à bord, par erreur ou par ruse."
+        },
+        {
+          "plage": "4",
+          "texte": "Un système du vaisseau tombe en panne (boucliers, propulsion, communications)."
+        },
+        {
+          "plage": "5",
+          "texte": "Un contact lance un appel urgent : il est poursuivi."
+        },
+        {
+          "plage": "6",
+          "texte": "Une turbulence ou une tempête d'ions secoue le vaisseau."
+        },
+        {
+          "plage": "7",
+          "texte": "Une coupure d'énergie plonge le lieu dans l'obscurité."
+        },
+        {
+          "plage": "8",
+          "texte": "Un rival ou un concurrent s'invite dans l'affaire."
+        },
+        {
+          "plage": "9",
+          "texte": "Une alarme se déclenche sans que personne ne sache pourquoi."
+        },
+        {
+          "plage": "10",
+          "texte": "Un PNJ propose un marché qui sent le piège."
+        },
+        {
+          "plage": "11",
+          "texte": "La cible change de cap ou de plan."
+        },
+        {
+          "plage": "12",
+          "texte": "Des pirates réclament un péage."
+        },
+        {
+          "plage": "13",
+          "texte": "Un message anonyme avertit d'un danger, sans détails."
+        },
+        {
+          "plage": "14",
+          "texte": "Une explosion dans un secteur voisin attire l'attention."
+        },
+        {
+          "plage": "15",
+          "texte": "Un drone ou un robot hors contrôle patrouille dans un secteur censé être vide."
+        },
+        {
+          "plage": "16",
+          "texte": "Un implant ou un drone du PJ est scanné ou piraté."
+        },
+        {
+          "plage": "17",
+          "texte": "Un ancien ennemi reconnaît les PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "Un champ d'astéroïdes ou de débris force à ralentir."
+        },
+        {
+          "plage": "19",
+          "texte": "Des troupes d'abordage ou une milice arrivent plus tôt que prévu."
+        },
+        {
+          "plage": "20",
+          "texte": "Une opportunité inattendue : une porte ouverte, un code oublié, un allié providentiel."
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Capitaine de croiseur"
+        },
+        {
+          "plage": "2",
+          "texte": "Pilote de chasseur"
+        },
+        {
+          "plage": "3",
+          "texte": "Mécanicien de bord"
+        },
+        {
+          "plage": "4",
+          "texte": "Diplomate"
+        },
+        {
+          "plage": "5",
+          "texte": "Contrebandier"
+        },
+        {
+          "plage": "6",
+          "texte": "Soldat d'abordage"
+        },
+        {
+          "plage": "7",
+          "texte": "Psyker indépendant"
+        },
+        {
+          "plage": "8",
+          "texte": "Scientifique"
+        },
+        {
+          "plage": "9",
+          "texte": "Marchand de station"
+        },
+        {
+          "plage": "10",
+          "texte": "Officier du renseignement"
+        },
+        {
+          "plage": "11",
+          "texte": "Chasseur de primes"
+        },
+        {
+          "plage": "12",
+          "texte": "Médecin de bord"
+        },
+        {
+          "plage": "13",
+          "texte": "Pirate"
+        },
+        {
+          "plage": "14",
+          "texte": "Pilote de drone"
+        },
+        {
+          "plage": "15",
+          "texte": "Émissaire alien"
+        },
+        {
+          "plage": "16",
+          "texte": "Civil de colonie"
+        },
+        {
+          "plage": "17",
+          "texte": "Mercenaire"
+        },
+        {
+          "plage": "18",
+          "texte": "Ancien soldat reconverti"
+        },
+        {
+          "plage": "19",
+          "texte": "Prêtre ou gourou d'un culte cosmique"
+        },
+        {
+          "plage": "20",
+          "texte": "IA de vaisseau ou droïde"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "de": "d20",
+      "reference": {
+        "univers": "cyberpunk",
+        "table": "N2"
+      }
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Veut de l'argent, et vite."
+        },
+        {
+          "plage": "2",
+          "texte": "Veut protéger un proche."
+        },
+        {
+          "plage": "3",
+          "texte": "Cherche à se venger."
+        },
+        {
+          "plage": "4",
+          "texte": "Veut quitter ce secteur."
+        },
+        {
+          "plage": "5",
+          "texte": "Cherche la reconnaissance de la flotte."
+        },
+        {
+          "plage": "6",
+          "texte": "Doit une dette à un seigneur de guerre."
+        },
+        {
+          "plage": "7",
+          "texte": "Veut cacher un secret."
+        },
+        {
+          "plage": "8",
+          "texte": "Cherche à rejoindre une faction ou une flotte."
+        },
+        {
+          "plage": "9",
+          "texte": "Veut faire tomber son capitaine."
+        },
+        {
+          "plage": "10",
+          "texte": "Cherche à réparer son vaisseau ou à retrouver un composant."
+        },
+        {
+          "plage": "11",
+          "texte": "Veut connaître la vérité sur un événement passé."
+        },
+        {
+          "plage": "12",
+          "texte": "Travaille pour deux camps à la fois."
+        },
+        {
+          "plage": "13",
+          "texte": "Veut simplement survivre au voyage."
+        },
+        {
+          "plage": "14",
+          "texte": "Veut impressionner quelqu'un."
+        },
+        {
+          "plage": "15",
+          "texte": "Veut racheter une faute."
+        },
+        {
+          "plage": "16",
+          "texte": "Cherche à récupérer un objet perdu."
+        },
+        {
+          "plage": "17",
+          "texte": "Obéit à un ordre qu'il ne comprend pas."
+        },
+        {
+          "plage": "18",
+          "texte": "Veut voler la vedette au PJ."
+        },
+        {
+          "plage": "19",
+          "texte": "Veut tester le PJ avant de lui faire confiance."
+        },
+        {
+          "plage": "20",
+          "texte": "N'a aucun but précis : il agit au hasard et sème le chaos."
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "titre": "D1 — Type de vaisseau",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Type",
+        "Vitesse / Boucliers / Blindage / PV",
+        "Armement suggéré"
+      ],
+      "lignes": [
+        {
+          "plage": "1-3",
+          "texte": "**Chasseurs aliens** (escadrille de 1d4+1)",
+          "autres": [
+            "6 / 0 / 10 / 20 chacun",
+            "1 mitrailleuse lourde ou 1 laser léger chacun"
+          ],
+          "famille": "alien",
+          "escadrille": "1d4+1"
+        },
+        {
+          "plage": "4-5",
+          "texte": "**Avions ou chasseurs humains** (escadrille de 1d4+1)",
+          "autres": [
+            "6 / 0 / 10 / 20 chacun",
+            "1 mitrailleuse lourde chacun"
+          ],
+          "famille": "humain",
+          "escadrille": "1d4+1"
+        },
+        {
+          "plage": "6-9",
+          "texte": "**Vaisseau furtif**",
+          "autres": [
+            "10 / 1 / 15 / 30",
+            "1 laser léger, 1 poste de missiles"
+          ]
+        },
+        {
+          "plage": "10-13",
+          "texte": "**Cargo**",
+          "autres": [
+            "8 / 10 / 20 / 40",
+            "1 laser léger de défense ; soutes pleines"
+          ]
+        },
+        {
+          "plage": "14-16",
+          "texte": "**Croiseur humain**",
+          "autres": [
+            "11 / 10 / 30 / 52",
+            "2 postes mitrailleuses ou lasers légers, 1 canon laser principal, 1 poste de missiles, anti-missiles (3 salves)"
+          ],
+          "famille": "humain",
+          "escorte": true
+        },
+        {
+          "plage": "17-18",
+          "texte": "**Croiseur alien**",
+          "autres": [
+            "11 / 15 / 35 / 55",
+            "2 postes lasers légers, 1 canon laser principal, 1 poste de missiles à énergie"
+          ],
+          "famille": "alien",
+          "escorte": true
+        },
+        {
+          "plage": "19",
+          "texte": "**Vaisseau-mère**",
+          "autres": [
+            "9 / 25 / 50 / 110",
+            "Plusieurs postes lasers et mitrailleuses, 2 canons principaux, missiles, chasseurs embarqués"
+          ],
+          "escorte": true
+        },
+        {
+          "plage": "20",
+          "texte": "**Vaisseau d'une espèce inconnue**",
+          "autres": [
+            "À inventer : pars d'un croiseur alien et ajoute une capacité inattendue (technologie alien non établie)",
+            "À inventer"
+          ],
+          "inconnu": true
+        }
+      ],
+      "escorte": {
+        "de": "d20",
+        "seuil": 14,
+        "escadrille": "1d4+1"
+      }
+    },
+    {
+      "id": "D2",
+      "titre": "D2 — Attitude et état",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1-3",
+          "texte": "**Hostile et embusqué** : attaque dès que le PJ entre à portée.",
+          "attitude": "hostile"
+        },
+        {
+          "plage": "4-6",
+          "texte": "**Hostile en patrouille** : demande une identification, puis tire au moindre faux pas.",
+          "attitude": "hostile"
+        },
+        {
+          "plage": "7-9",
+          "texte": "**Neutre et méfiant** : observe, ne bouge pas si on ne le menace pas.",
+          "attitude": "neutre"
+        },
+        {
+          "plage": "10-12",
+          "texte": "**Neutre et occupé** : en route ailleurs, indifférent au PJ.",
+          "attitude": "neutre"
+        },
+        {
+          "plage": "13-14",
+          "texte": "**Endommagé** : panne, boucliers à plat ; prêt à négocier ou à tenter un coup de désespoir.",
+          "attitude": null
+        },
+        {
+          "plage": "15-16",
+          "texte": "**En fuite** : poursuivi par plus fort que lui.",
+          "attitude": null
+        },
+        {
+          "plage": "17-18",
+          "texte": "**Amical ou allié** : propose son aide ou un échange d'informations.",
+          "attitude": "amical"
+        },
+        {
+          "plage": "19",
+          "texte": "**Équipage divisé** : mutinerie, piratage ou trahison à bord.",
+          "attitude": null
+        },
+        {
+          "plage": "20",
+          "texte": "**À la dérive ou abandonné** : vide, ou fantôme qui cache quelque chose.",
+          "attitude": null
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "titre": "E — Intentions d'un vaisseau ennemi",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Action du vaisseau"
+      ],
+      "lignes": [
+        {
+          "plage": "1-4",
+          "texte": "Concentre tous ses postes de tir sur le vaisseau du PJ."
+        },
+        {
+          "plage": "5-8",
+          "texte": "Manœuvre pour se placer en position de tir favorable (enfilade, dos au soleil, derrière un astéroïde)."
+        },
+        {
+          "plage": "9-12",
+          "texte": "Vise un point faible : tire pour faire tomber les boucliers ou un système précis."
+        },
+        {
+          "plage": "13-16",
+          "texte": "Déploie des chasseurs ou des troupes d'abordage, ou lance des contre-mesures."
+        },
+        {
+          "plage": "17-20",
+          "texte": "Se replie : prépare un saut en hyperespace (3 tours, interruptible par les PJ) ou appelle des renforts."
+        }
+      ],
+      "modificateurs": {
+        "blesse": 4,
+        "pression": {
+          "seuil": 7,
+          "valeur": -2
+        }
+      }
+    }
+  ]
+}
