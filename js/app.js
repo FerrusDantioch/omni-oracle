@@ -463,13 +463,24 @@ async function dialogueReglages() {
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
   const secret = caseACocher('Mode assistant du MJ : résultats masqués, affichés au toucher', { coche: ctx.reglages.secret });
+  const lumAvant = ctx.reglages.luminosite ?? 100;
+  const valeurLum = h('output', { for: 'reglage-lum', id: 'valeur-lum' }, `${lumAvant} %`);
+  const curseurLum = h('input', {
+    type: 'range', id: 'reglage-lum', min: 50, max: 100, step: 5, value: lumAvant, 'aria-describedby': 'aide-lum',
+    oninput: (e) => { valeurLum.textContent = `${e.target.value} %`; T.luminosite(e.target.value); },
+  });
+  const luminosite = h('div', { class: 'champ reglage-luminosite' },
+    h('label', { for: 'reglage-lum' }, 'Luminosité de l\'écran : ', valeurLum),
+    curseurLum,
+    h('p', { class: 'aide', id: 'aide-lum' }, 'Assombrit l\'application pour jouer le soir (100 % = normal). En dessous de 100 %, les textes secondaires deviennent moins contrastés, comme quand tu baisses la luminosité de l\'appareil.'));
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [theme, vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [theme, luminosite, vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
-  if (r !== 'oui') { T.appliquer(avant); return; }
+  if (r !== 'oui') { T.appliquer(avant); T.luminosite(lumAvant); return; }
   ctx.reglages.theme = theme.valeur();
+  ctx.reglages.luminosite = T.luminosite(curseurLum.value);
   ctx.reglages.vibration = vibration.saisie.checked;
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
   ctx.reglages.secret = secret.saisie.checked;

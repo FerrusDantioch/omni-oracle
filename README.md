@@ -39,7 +39,7 @@ scène, les **omni-points** de chaque PJ et de l'Oracle, et le seuil de rupture.
 
 Dans le **menu** : mes parties, modifier la partie, mission suivante, export, **mode assistant
 du MJ** (résultats masqués, affichés au toucher), livret imprimable, réglages (thème Omni,
-Sombre, Clair ou Auto, vibrations, vrai dé), installation, à propos.
+Sombre, Clair ou Auto, luminosité, vibrations, vrai dé), installation, à propos.
 
 ## Publier sur GitHub Pages
 
@@ -171,7 +171,6 @@ data/                       tronc commun et univers (JSON)
 sources/                    les règles d'origine (Markdown), pour référence
 assets/, icons/             logo et icônes
 tests/                      contrôles automatiques
-kit/                        kit fourni au départ (référence)
 ```
 
 ## Licence

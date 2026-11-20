@@ -96,10 +96,10 @@ export function creerVueFiche(ctx) {
           h('button', {
             type: 'button', class: 'bouton', 'data-cle': `fiche-pnjs-${i}-reaction`,
             onclick: () => ctx.preparerOracle({
-              question: `${o.nom || 'Le PNJ'} accepte la proposition ?`,
+              question: `${o.nom || 'Le PNJ'} accepte la proposition ou cède à la menace ?`,
               vraisemblance: M.vraisemblancePourAttitude(ctx.commun, o.attitude),
             }),
-          }, 'Réaction (oracle)'),
+          }, 'Réaction à une proposition ou à une menace'),
         ],
       }),
       listeEditable({
