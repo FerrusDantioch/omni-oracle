@@ -1,0 +1,433 @@
+// =============================================================================
+// Omni-Oracle : point d'entrée de l'application.
+// Accueil (parties enregistrées, nouvelle partie), tableau de bord, onglets, menu.
+// Les règles sont dans js/moteur.js ; les données dans data/*.json.
+// =============================================================================
+
+import * as M from './moteur.js';
+import { chargerDonnees } from './donnees.js';
+import * as S from './stockage.js';
+import {
+  h, remplacer, annoncer, ouvrirDialogue, confirmer, champ, choix, caseACocher,
+  reglerVibration, dateCourte, vibrer,
+} from './ui.js';
+import { dialogueOmniPJ, dialogueOmniOracle, messageEvenement, essayer } from './actions.js';
+import { creerVueJouer } from './vue-jouer.js';
+import { creerVueJournal } from './vue-journal.js';
+
+const CONFIG = globalThis.CONFIG_APP;
+
+// Onglets de la partie. `si(univers)` : l'onglet n'apparaît que si l'univers le permet.
+const ONGLETS = [
+  { id: 'jouer', texte: 'Jouer', creer: creerVueJouer },
+  { id: 'journal', texte: 'Journal', creer: creerVueJournal },
+];
+
+const $ = (id) => document.getElementById(id);
+
+// --- Contexte partagé avec les vues -----------------------------------------------
+const ctx = {
+  cat: null,
+  partie: null,
+  reglages: S.lireReglages(),
+  vues: {},
+  onglet: 'jouer',
+  get commun() { return this.cat.commun; },
+  get univ() { return this.cat.univ(this.partie.univers); },
+
+  /** Enregistre la partie sur l'appareil, puis met l'écran à jour. */
+  enregistrer() {
+    this.partie.modifie = new Date().toISOString();
+    if (!S.enregistrerPartie(this.partie)) {
+      annoncer('Attention : l\'enregistrement sur l\'appareil a échoué (stockage plein ?). Exporte ta partie.');
+    }
+    actualiser();
+  },
+  sauverReglages() {
+    S.ecrireReglages(this.reglages);
+    reglerVibration(this.reglages.vibration);
+  },
+  /** Affiche les événements importants (seuil de rupture, gain de l'Oracle, rebondissement). */
+  async signaler(evenements = []) {
+    const messages = evenements.map(messageEvenement).filter(Boolean);
+    if (!messages.length) return;
+    vibrer(60);
+    await ouvrirDialogue({ titre: 'À noter', contenu: h('ul', {}, messages.map((m) => h('li', {}, m))) });
+  },
+  /** Emballage des résultats (le mode assistant du MJ s'en servira pour les masquer). */
+  resultat(el) { return el; },
+  aller(id) { allerOnglet(id); },
+};
+
+// --- Mise à jour de l'écran en gardant le focus clavier -----------------------------
+function garderFocus(f) {
+  const cle = document.activeElement?.dataset?.cle;
+  f();
+  if (cle) {
+    const cible = document.querySelector(`[data-cle="${CSS.escape(cle)}"]`);
+    if (cible && !cible.disabled) cible.focus({ preventScroll: true });
+  }
+}
+
+function actualiser() {
+  garderFocus(() => {
+    if (!ctx.partie) return;
+    rendreTableauDeBord();
+    ctx.vues[ctx.onglet]?.actualiser();
+  });
+}
+
+// --- Démarrage -------------------------------------------------------------------------
+async function demarrer() {
+  reglerVibration(ctx.reglages.vibration);
+  $('bouton-menu').addEventListener('click', ouvrirMenu);
+  try {
+    ctx.cat = await chargerDonnees();
+  } catch (e) {
+    remplacer($('contenu'), h('div', { class: 'carte' },
+      h('h2', {}, 'Impossible de charger l\'oracle'),
+      h('p', {}, 'Les tables n\'ont pas pu être lues. Vérifie ta connexion pour le premier chargement, puis recharge la page.'),
+      h('p', { class: 'petit discret' }, e.message)));
+    return;
+  }
+  const id = S.lireCourante();
+  const p = id && S.lirePartie(id);
+  if (p && !S.verifierPartie(p, ctx.cat.univers.map((u) => u.id))) ouvrirPartie(p);
+  else afficherAccueil();
+}
+
+// --- Accueil -------------------------------------------------------------------------------
+function afficherAccueil() {
+  ctx.partie = null;
+  ctx.vues = {};
+  S.ecrireCourante(null);
+  $('tableau-de-bord').hidden = true;
+  $('onglets').hidden = true;
+  majTitre();
+  remplacer($('contenu'),
+    h('div', { class: 'accueil-logo' },
+      h('img', { src: 'assets/logo-omni-systeme.webp', alt: '', width: 72, height: 72 }),
+      h('p', {}, 'Ton MJ de poche pour jouer en solo ou en duo, ou pour aider un vrai MJ à improviser.')),
+    carteNouvellePartie(),
+    carteMesParties());
+}
+
+function carteNouvellePartie() {
+  const univers = ctx.cat.univers;
+  const profilsCompagnons = ctx.commun.tables.find((t) => t.id === 'intentions').lignes.filter((l) => l.compagnon);
+  const etat = { univers: univers[0].id, mode: 'solo', compagnons: [] };
+
+  const choixUnivers = choix('Univers', 'nouvel-univers', univers.map((u) => ({ valeur: u.id, texte: u.nom })), etat.univers,
+    { onchange: (v) => { etat.univers = v; } });
+  const mission = champ('Nom de la mission (facultatif)', { type: 'text', placeholder: 'Ex. : Extraction à la tour Kaiden' });
+  const pj1 = champ('Nom du PJ', { type: 'text', autocomplete: 'off' });
+  const pj2 = champ('Nom du second PJ', { type: 'text', autocomplete: 'off' });
+  pj2.hidden = true;
+  const choixMode = choix('Mode', 'nouveau-mode', [
+    { valeur: 'solo', texte: 'Solo', detail: '1 PJ' },
+    { valeur: 'duo', texte: 'Duo', detail: '2 PJ' },
+  ], 'solo', {
+    onchange: (v) => {
+      etat.mode = v;
+      pj2.hidden = v !== 'duo';
+      pj1.querySelector('label').textContent = v === 'duo' ? 'Nom du premier PJ' : 'Nom du PJ';
+    },
+  });
+
+  const listeCompagnons = h('div', {});
+  function rendreCompagnons() {
+    remplacer(listeCompagnons, etat.compagnons.map((c, i) => {
+      const nom = champ(`Compagnon ${i + 1} : nom`, { type: 'text', valeur: c.nom });
+      nom.saisie.addEventListener('input', (e) => { c.nom = e.target.value; });
+      const profil = champ('Profil', { type: 'select', valeur: c.profil, options: profilsCompagnons.map((pr) => ({ valeur: pr.id, texte: pr.nom })) });
+      profil.saisie.addEventListener('change', (e) => { c.profil = e.target.value; });
+      return h('div', { class: 'compagnon' }, nom, profil,
+        h('button', { type: 'button', class: 'bouton', 'aria-label': `Retirer le compagnon ${i + 1}`, onclick: () => { etat.compagnons.splice(i, 1); rendreCompagnons(); } }, '✕'));
+    }));
+  }
+
+  return h('section', { class: 'carte', 'aria-labelledby': 'titre-nouvelle' },
+    h('h2', { id: 'titre-nouvelle' }, 'Nouvelle partie'),
+    choixUnivers, choixMode, mission, pj1, pj2,
+    h('fieldset', {},
+      h('legend', {}, 'PNJ compagnons (facultatif)'),
+      listeCompagnons,
+      h('button', {
+        type: 'button', class: 'bouton',
+        onclick: () => { etat.compagnons.push({ nom: '', profil: profilsCompagnons[0].id }); rendreCompagnons(); listeCompagnons.querySelector('.compagnon:last-child input')?.focus(); },
+      }, '+ Ajouter un compagnon')),
+    h('div', { class: 'rangee' }, h('button', {
+      type: 'button', class: 'bouton bouton-accent bouton-large',
+      onclick: () => {
+        const u = ctx.cat.univ(etat.univers);
+        const pjs = etat.mode === 'duo'
+          ? [{ nom: pj1.saisie.value.trim() }, { nom: pj2.saisie.value.trim() }]
+          : [{ nom: pj1.saisie.value.trim() }];
+        const nomProfil = (id) => profilsCompagnons.find((x) => x.id === id)?.nom || '';
+        const partie = M.creerPartie(ctx.commun, u, {
+          mode: etat.mode,
+          mission: mission.saisie.value.trim(),
+          pjs,
+          pnjs: etat.compagnons.map((c, i) => ({
+            nom: c.nom.trim() || `Compagnon ${i + 1}`, role: 'Compagnon', attitude: 'amical', profil: c.profil, notes: nomProfil(c.profil),
+          })),
+        });
+        M.journaliser(partie, { type: 'mission', nom: partie.mission.nom });
+        S.enregistrerPartie(partie);
+        ouvrirPartie(partie);
+        annoncer('Partie créée. Bonne mission !');
+      },
+    }, 'Commencer la partie')));
+}
+
+function carteMesParties() {
+  const parties = S.listerParties();
+  const inputFichier = h('input', {
+    type: 'file', accept: '.json,application/json', hidden: true, id: 'fichier-import',
+    onchange: (e) => importer(e.target.files[0]),
+  });
+  return h('section', { class: 'carte', 'aria-labelledby': 'titre-parties' },
+    h('h2', { id: 'titre-parties' }, 'Mes parties'),
+    parties.length === 0
+      ? h('p', { class: 'discret' }, 'Aucune partie enregistrée sur cet appareil.')
+      : h('ul', { class: 'liste-parties' }, parties.map((p) => {
+        const u = ctx.cat.univ(p.univers);
+        return h('li', {},
+          h('div', { class: 'titre-partie' }, p.mission?.nom || 'Mission sans nom'),
+          h('div', { class: 'petit discret' },
+            `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${p.pjs.map((x) => x.nom).join(' et ')} · mission ${p.mission?.numero ?? 1}, scène ${p.scene.numero} · ${dateCourte(p.modifie)}`),
+          h('div', { class: 'rangee' },
+            h('button', { type: 'button', class: 'bouton bouton-accent', onclick: () => ouvrirPartie(S.lirePartie(p.id)) }, 'Reprendre'),
+            h('button', { type: 'button', class: 'bouton', onclick: () => S.exporterPartie(p) }, 'Exporter'),
+            h('button', {
+              type: 'button', class: 'bouton bouton-discret',
+              onclick: async () => {
+                if (await confirmer('Supprimer la partie', `Supprimer « ${p.mission?.nom || 'Mission sans nom'} » de cet appareil ? Pense à l'exporter avant si tu veux la garder.`, { oui: 'Supprimer', danger: true })) {
+                  S.supprimerPartie(p.id);
+                  afficherAccueil();
+                  annoncer('Partie supprimée.');
+                }
+              },
+            }, 'Supprimer')));
+      })),
+    h('div', { class: 'rangee' },
+      inputFichier,
+      h('button', { type: 'button', class: 'bouton', onclick: () => inputFichier.click() }, 'Importer un fichier'),
+      parties.length > 0 && h('button', { type: 'button', class: 'bouton', onclick: () => S.exporterTout() }, 'Exporter toutes les parties')),
+    h('p', { class: 'petit discret' }, 'Tes parties restent sur cet appareil. Exporte-les pour les sauvegarder ou pour changer d\'appareil.'));
+}
+
+async function importer(fichier) {
+  if (!fichier) return;
+  let parties;
+  try {
+    parties = await S.lireFichierImport(fichier, ctx.cat.univers.map((u) => u.id));
+  } catch (e) {
+    await ouvrirDialogue({ titre: 'Import impossible', contenu: h('p', {}, e.message) });
+    return;
+  }
+  let nb = 0;
+  for (const p of parties) {
+    if (S.lirePartie(p.id)) {
+      const r = await ouvrirDialogue({
+        titre: 'Partie déjà présente',
+        contenu: h('p', {}, `« ${p.mission?.nom || 'Mission sans nom'} » existe déjà sur cet appareil.`),
+        actions: [
+          { id: 'passer', texte: 'Ne pas importer' },
+          { id: 'copie', texte: 'Garder les deux' },
+          { id: 'remplacer', texte: 'Remplacer', classe: 'bouton-danger' },
+        ],
+      });
+      if (r === 'copie') {
+        p.id = `partie-${Date.now().toString(36)}-${nb}`;
+        p.mission.nom = `${p.mission.nom || 'Mission sans nom'} (copie)`;
+      } else if (r !== 'remplacer') continue;
+    }
+    S.enregistrerPartie(p);
+    nb++;
+  }
+  afficherAccueil();
+  annoncer(nb ? `${nb} partie${nb > 1 ? 's' : ''} importée${nb > 1 ? 's' : ''}.` : 'Aucune partie importée.');
+}
+
+// --- Partie ------------------------------------------------------------------------------------
+function ouvrirPartie(partie) {
+  ctx.partie = partie;
+  S.ecrireCourante(partie.id);
+  ctx.vues = {};
+  ctx.onglet = 'jouer';
+  $('tableau-de-bord').hidden = false;
+  $('onglets').hidden = false;
+  rendreOnglets();
+  allerOnglet('jouer');
+}
+
+function ongletsDisponibles() {
+  return ONGLETS.filter((o) => !o.si || o.si(ctx.univ));
+}
+
+function rendreOnglets() {
+  remplacer($('onglets'), ongletsDisponibles().map((o) => h('button', {
+    type: 'button', class: 'onglet', 'data-onglet': o.id, 'data-cle': `onglet-${o.id}`,
+    'aria-current': o.id === ctx.onglet ? 'page' : false,
+    onclick: () => allerOnglet(o.id),
+  }, o.texte)));
+}
+
+function allerOnglet(id) {
+  const o = ongletsDisponibles().find((x) => x.id === id) || ONGLETS[0];
+  ctx.onglet = o.id;
+  if (!ctx.vues[o.id]) ctx.vues[o.id] = o.creer(ctx);
+  for (const b of $('onglets').querySelectorAll('.onglet')) {
+    if (b.dataset.onglet === o.id) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  }
+  remplacer($('contenu'), ctx.vues[o.id].el);
+  garderFocus(() => {
+    rendreTableauDeBord();
+    ctx.vues[o.id].actualiser();
+  });
+}
+
+function rendreTableauDeBord() {
+  const p = ctx.partie;
+  const C = ctx.commun;
+  const pal = M.palier(C, p.pression);
+  const changer = (d) => {
+    const r = M.ajusterPression(C, p, d);
+    if (r.avant === r.apres) { annoncer(`La Pression est déjà à ${r.apres}.`); return; }
+    ctx.enregistrer();
+    annoncer(`Pression ${r.avant} → ${r.apres}${r.dejaBougee ? '. Attention : elle avait déjà bougé pendant cette scène (une fois par scène).' : '.'}`);
+    ctx.signaler(r.evenements);
+  };
+  const jauge = h('span', { class: 'tdb-jauge', 'aria-hidden': 'true' },
+    Array.from({ length: C.pression.max }, (_, i) => h('span', { class: i < p.pression ? 'plein' : '' })));
+  majTitre();
+  remplacer($('tableau-de-bord'),
+    h('div', { class: 'tdb-bloc tdb-pression', role: 'group', 'aria-label': 'Pression' },
+      h('button', { type: 'button', class: 'bouton bouton-icone', 'aria-label': 'Baisser la Pression de 1', 'data-cle': 'tdb-moins', onclick: () => changer(-1) }, '−'),
+      h('div', { class: 'tdb-pression-valeur' },
+        h('span', { class: 'tdb-etiquette' }, 'Pression'),
+        h('span', {}, h('strong', {}, String(p.pression)), h('span', { class: 'discret' }, ` /${C.pression.max}`)),
+        jauge),
+      h('button', { type: 'button', class: 'bouton bouton-icone', 'aria-label': 'Monter la Pression de 1', 'data-cle': 'tdb-plus', onclick: () => changer(+1) }, '+'),
+      h('span', { class: 'tdb-palier' }, h('strong', {}, pal.nom), h('br'), `${pal.chance} %`)),
+    h('div', { class: 'tdb-bloc tdb-scene' }, h('span', { class: 'tdb-etiquette' }, 'Scène'), h('strong', {}, String(p.scene.numero))),
+    h('div', { class: 'tdb-bloc tdb-omni' },
+      p.pjs.map((pj) => h('button', {
+        type: 'button', class: 'bouton jeton', 'data-cle': `tdb-omni-${pj.id}`,
+        'aria-label': `${pj.nom} : ${pj.omni} omni-point${pj.omni > 1 ? 's' : ''}. Dépenser un omni-point`,
+        onclick: () => dialogueOmniPJ(ctx, pj.id),
+      }, pj.nom, ' ', h('span', { class: 'omni' }, `◆ ${pj.omni}`))),
+      h('button', {
+        type: 'button', class: 'bouton jeton', 'data-cle': 'tdb-omni-oracle',
+        'aria-label': `Oracle : ${p.oracle.omni} omni-point${p.oracle.omni > 1 ? 's' : ''}. Actions de l'Oracle`,
+        onclick: () => dialogueOmniOracle(ctx),
+      }, 'Oracle ', h('span', { class: 'omni' }, `◆ ${p.oracle.omni}`)),
+      caseACocher(`Seuil ${C.pression.seuilRupture} atteint`, {
+        coche: p.seuilAtteint, 'data-cle': 'tdb-seuil', title: `Seuil de rupture (${C.pression.seuilRupture}) déjà atteint dans la mission`,
+        onchange: (v) => { p.seuilAtteint = v; ctx.enregistrer(); annoncer(v ? 'Seuil de rupture coché (correction manuelle, sans gain d\'omni-point).' : 'Seuil de rupture décoché.'); },
+      })));
+}
+
+/** Titre de l'en-tête : nom de l'application à l'accueil, nom de la mission en partie. */
+function majTitre() {
+  const p = ctx.partie;
+  const titre = p ? `${p.mission.nom || 'Mission sans nom'}${p.mission.numero > 1 ? ` (mission ${p.mission.numero})` : ''}` : CONFIG.nom;
+  $('titre-app').textContent = titre;
+  document.title = p ? `${titre} · ${CONFIG.nom}` : CONFIG.nom;
+}
+
+// --- Menu ---------------------------------------------------------------------------------------
+async function ouvrirMenu() {
+  const enPartie = !!ctx.partie;
+  const actions = [
+    enPartie && { id: 'parties', texte: 'Mes parties' },
+    enPartie && { id: 'modifier', texte: 'Modifier la partie' },
+    enPartie && { id: 'mission', texte: 'Mission suivante' },
+    enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
+    { id: 'reglages', texte: 'Réglages' },
+  ].filter(Boolean);
+  const r = await ouvrirDialogue({ titre: 'Menu', contenu: null, actions, liste: true, classe: 'dialogue-menu' });
+  switch (r) {
+    case 'parties': afficherAccueil(); break;
+    case 'modifier': dialogueModifier(); break;
+    case 'mission': dialogueMissionSuivante(); break;
+    case 'exporter': S.exporterPartie(ctx.partie); annoncer('Fichier de la partie enregistré.'); break;
+    case 'reglages': dialogueReglages(); break;
+    default: break;
+  }
+}
+
+async function dialogueReglages() {
+  const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
+  const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
+  const r = await ouvrirDialogue({
+    titre: 'Réglages',
+    contenu: [vibration, dePhysique, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
+  });
+  if (r !== 'oui') return;
+  ctx.reglages.vibration = vibration.saisie.checked;
+  ctx.reglages.dePhysique = dePhysique.saisie.checked;
+  ctx.sauverReglages();
+  if (ctx.partie) actualiser();
+  annoncer('Réglages enregistrés.');
+}
+
+async function dialogueModifier() {
+  const p = ctx.partie;
+  const mission = champ('Nom de la mission', { type: 'text', valeur: p.mission.nom });
+  const pjs = p.pjs.map((pj, i) => ({
+    nom: champ(`Nom du PJ ${i + 1}`, { type: 'text', valeur: pj.nom }),
+    omni: champ(`Omni-points de ${pj.nom}`, { type: 'number', valeur: pj.omni, min: 0, inputmode: 'numeric' }),
+  }));
+  const oracle = champ('Omni-points de l\'Oracle', { type: 'number', valeur: p.oracle.omni, min: 0, inputmode: 'numeric' });
+  const utilisations = champ('Utilisations d\'omni-points par les joueurs', {
+    type: 'number', valeur: p.oracle.utilisationsJoueurs, min: 0, inputmode: 'numeric',
+    aide: 'L\'Oracle gagne 1 omni-point toutes les 2 utilisations.',
+  });
+  const scene = champ('Numéro de scène', { type: 'number', valeur: p.scene.numero, min: 1, inputmode: 'numeric' });
+  const r = await ouvrirDialogue({
+    titre: 'Modifier la partie',
+    contenu: [mission, pjs.map((x) => [x.nom, x.omni]), oracle, utilisations, scene,
+      h('p', { class: 'petit discret' }, 'Pour corriger une erreur. La Pression se règle avec les boutons − et + du tableau de bord.')],
+    actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
+  });
+  if (r !== 'oui') return;
+  const entier = (c, min) => Math.max(min, Number.parseInt(c.saisie.value, 10) || min);
+  p.mission.nom = mission.saisie.value.trim();
+  pjs.forEach((x, i) => {
+    p.pjs[i].nom = x.nom.saisie.value.trim() || `PJ ${i + 1}`;
+    p.pjs[i].omni = entier(x.omni, 0);
+  });
+  p.oracle.omni = entier(oracle, 0);
+  p.oracle.utilisationsJoueurs = entier(utilisations, 0);
+  p.scene.numero = entier(scene, 1);
+  ctx.enregistrer();
+  annoncer('Partie modifiée.');
+}
+
+async function dialogueMissionSuivante() {
+  const p = ctx.partie;
+  const nom = champ('Nom de la nouvelle mission (facultatif)', { type: 'text' });
+  const r = await ouvrirDialogue({
+    titre: 'Mission suivante',
+    contenu: [
+      h('p', {}, 'Avant de passer à la suite, pense à la clôture : pose à l\'oracle « La mission est-elle un succès ? », puis applique la progression d\'Omni.'),
+      h('ul', {},
+        h('li', {}, `La Pression revient à ${ctx.commun.pression.depart}, le seuil de rupture est remis à zéro, et on repart de la scène 1.`),
+        h('li', {}, `L'Oracle perd ses omni-points restants (${p.oracle.omni}).`),
+        h('li', {}, `Chaque PJ retrouve ses ${ctx.univ.omniPointsPJ} omni-points.`),
+        h('li', {}, 'La fiche de suivi et le journal sont conservés.')),
+      nom,
+    ],
+    actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Commencer la mission suivante', classe: 'bouton-accent' }],
+  });
+  if (r !== 'oui') return;
+  essayer(() => M.missionSuivante(ctx.commun, ctx.univ, p, { nom: nom.saisie.value.trim() }));
+  ctx.enregistrer();
+  annoncer(`Mission ${p.mission.numero} : c'est parti.`);
+}
+
+demarrer();
