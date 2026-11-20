@@ -1,0 +1,8 @@
+{
+  "format": 1,
+  "commun": "data/commun.json",
+  "univers": [
+    "data/cyberpunk.json",
+    "data/space-opera.json"
+  ]
+}

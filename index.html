@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr" data-theme="omni">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Omni-Oracle</title>
+  <meta name="description" content="L'oracle de l'Omni-système : un MJ de poche pour jouer en solo ou en duo, hors ligne.">
+  <meta name="theme-color" content="#1d1929">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/config.js"></script>
+  <!-- Applique le thème avant l'affichage (voir le fichier) -->
+  <script src="js/theme.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+
+  <header class="entete">
+    <h1 class="entete-titre">
+      <img src="icons/favicon-32.png" alt="" width="28" height="28">
+      <span id="titre-app">Omni-Oracle</span>
+    </h1>
+    <div class="entete-actions">
+      <span id="badge-mj" class="badge-mj" hidden>Mode MJ</span>
+      <button type="button" id="bouton-maj" class="bouton bouton-accent" hidden>Mettre à jour</button>
+      <button type="button" id="bouton-menu" class="bouton" aria-haspopup="dialog">
+        <span aria-hidden="true">☰</span> Menu
+      </button>
+    </div>
+  </header>
+
+  <!-- Tableau de bord et onglets de la partie (toujours visibles) : remplis par js/app.js -->
+  <div class="barre-collante">
+    <section id="tableau-de-bord" class="tableau-de-bord" aria-label="Tableau de bord" hidden></section>
+    <nav id="onglets" class="onglets" aria-label="Sections de la partie" hidden></nav>
+  </div>
+
+  <main id="contenu" tabindex="-1">
+    <p class="chargement">Chargement de l'oracle…</p>
+    <noscript><p>Omni-Oracle a besoin de JavaScript pour fonctionner.</p></noscript>
+  </main>
+
+  <!-- Annonces pour les lecteurs d'écran, et petit message temporaire à l'écran -->
+  <div id="annonce" class="annonce" role="status" aria-live="polite"></div>
+</body>
+</html>
