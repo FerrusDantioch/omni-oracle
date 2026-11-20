@@ -48,13 +48,18 @@ lisent **les mêmes données** (`data/*.json`) :
    `oracle-parties`, `oracle-courante`, `oracle-reglages` (localStorage) et caches
    `oracle-v<version>`. Le service worker n'efface que les caches commençant par `oracle-`
    (le site est partagé avec les autres applications de Ferrus).
-9. **Version** : une seule source, `js/config.js`. **L'augmenter à chaque publication** : c'est ce
+9. **Identité de l'application** (`manifest.webmanifest`) : `"id": "/omni-oracle/"`, jamais
+   `"./"`. L'id est lu depuis la **racine du site** : `"./"` donnerait l'identité
+   `ferrusdantioch.github.io/`, partagée avec toute autre application qui ferait pareil
+   (Brave a pris l'Oracle pour omni-time, installé avec cette ancienne identité). Ne plus la
+   changer après publication. Testé par `tests/securite.test.mjs` et `tests/navigateur/manifeste.spec.js`.
+10. **Version** : une seule source, `js/config.js`. **L'augmenter à chaque publication** : c'est ce
    qui déclenche le bouton « Mettre à jour » (jamais de mise à jour sans action de la personne).
    Le nom figure aussi dans `manifest.webmanifest` : le changer aux deux endroits.
-10. **À propos** : contenu et ordre fixés (logo ; nom ; version ; « Application réalisée par… » ;
+11. **À propos** : contenu et ordre fixés (logo ; nom ; version ; « Application réalisée par… » ;
     licence avec lien deed.fr ; phrase sur les droits réservés des règles ; confidentialité ;
     contact ; « Découvrir l'Omni-système »). Valeurs lues dans `js/config.js`, jamais en dur.
-11. **Licence** : code en CC BY-NC-ND 4.0 (`LICENSE` identique au kit, ne pas le modifier) ;
+12. **Licence** : code en CC BY-NC-ND 4.0 (`LICENSE` identique au kit, ne pas le modifier) ;
     règles, tables, textes et logo de l'Omni-système : tous droits réservés.
 
 ## Architecture
