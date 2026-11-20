@@ -421,6 +421,7 @@ async function ouvrirMenu() {
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
     { id: 'secret', texte: ctx.reglages.secret ? 'Mode assistant du MJ : activé (désactiver)' : 'Mode assistant du MJ (résultats masqués)' },
     { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
+    { id: 'livret', texte: 'Livret imprimable' },
     { id: 'installer', texte: 'Installer l\'application' },
     { id: 'apropos', texte: 'À propos' },
   ].filter(Boolean);
@@ -432,6 +433,9 @@ async function ouvrirMenu() {
     case 'exporter': ctx.exporter(); break;
     case 'reglages': dialogueReglages(); break;
     case 'installer': dialogueInstallation(); break;
+    case 'livret':
+      window.location.href = `livret.html?univers=${encodeURIComponent(ctx.partie ? ctx.partie.univers : ctx.cat.univers[0].id)}`;
+      break;
     case 'apropos': dialogueAPropos(); break;
     case 'secret':
       ctx.reglages.secret = !ctx.reglages.secret;

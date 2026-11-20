@@ -1,0 +1,168 @@
+/* ==========================================================================
+   Livret imprimable (livret.html).
+   À l'écran : une « feuille » dans le thème choisi. À l'impression : A4, noir
+   sur blanc, numéros de page, aucune information portée par la seule couleur
+   (gras, bordures et texte suffisent). Aucune couleur ici : variables de themes.css.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  font-size: 1rem;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+:focus-visible { outline: 3px solid var(--halo); outline-offset: 2px; }
+a { color: var(--halo); }
+
+/* --- Barre d'outils (écran seulement) ---------------------------------------- */
+.outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem 1rem;
+  padding: .75rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+}
+.outils-choix { display: flex; align-items: center; gap: .5rem; }
+.outils-choix label { font-weight: 600; }
+.outils select {
+  min-height: 44px;
+  padding: .4rem .6rem;
+  border: 1px solid var(--trait);
+  border-radius: .5rem;
+  background: var(--fond);
+  color: var(--texte);
+  font: inherit;
+}
+.outils-aide { flex-basis: 100%; margin: 0; font-size: .9rem; color: var(--discret); }
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: .5rem 1rem;
+  border: 1px solid var(--trait);
+  border-radius: .6rem;
+  background: var(--surface);
+  color: var(--texte);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.bouton:hover { background: var(--survol); }
+.bouton-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-texte); }
+
+/* --- La feuille ------------------------------------------------------------------ */
+.livret {
+  max-width: 52rem;
+  margin: 1rem auto 3rem;
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--page);
+  border: 1px solid var(--trait);
+  border-radius: .5rem;
+}
+.chargement { color: var(--discret); text-align: center; }
+
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 .75rem; }
+h2 { font-size: 1.45rem; margin: 2rem 0 .75rem; padding-bottom: .25rem; border-bottom: 2px solid currentColor; }
+h3 { font-size: 1.2rem; margin: 1.4rem 0 .5rem; }
+h4 { font-size: 1.05rem; margin: 1.1rem 0 .4rem; }
+p { margin: 0 0 .6rem; }
+ul, ol { margin: 0 0 .6rem; padding-left: 1.4rem; }
+li { margin-bottom: .15rem; }
+
+.couverture { margin-bottom: 1rem; }
+.mentions { font-size: .85rem; color: var(--discret); }
+.renvoi { font-style: italic; font-size: .9rem; }
+
+/* --- Tables ------------------------------------------------------------------------- */
+.bloc-table { margin: .5rem 0 1rem; overflow-x: auto; }
+.table-donnees { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.table-donnees caption { text-align: left; font-weight: 700; margin-bottom: .3rem; }
+.table-donnees th, .table-donnees td {
+  padding: .3rem .5rem;
+  border: 1px solid var(--trait);
+  text-align: left;
+  vertical-align: top;
+}
+.table-donnees thead th { font-weight: 700; border-bottom: 2px solid currentColor; }
+.table-donnees tbody th { font-weight: 700; white-space: nowrap; width: 1%; }
+.table-donnees.grille tbody th { white-space: normal; width: auto; }
+
+/* --- Fiche de suivi --------------------------------------------------------------------- */
+.fiche h3 { font-size: 1.05rem; margin: 1rem 0 .3rem; }
+.fiche-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.fiche-table th, .fiche-table td { border: 1px solid currentColor; padding: .2rem .4rem; text-align: left; }
+.fiche-table td { height: 2.1rem; }
+.ligne-a-remplir { display: inline-block; min-width: 3.5rem; border-bottom: 1px solid currentColor; }
+.ligne-a-remplir.longue { min-width: 20rem; max-width: 70%; }
+.case-vide {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: .2rem;
+  border: 1.5px solid currentColor;
+  vertical-align: -.15rem;
+}
+.pression-piste { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
+.case-pression {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: .9rem;
+}
+
+/* --- Impression --------------------------------------------------------------------------- */
+@page {
+  size: A4;
+  margin: 15mm 14mm 17mm;
+  @bottom-center {
+    content: "Page " counter(page) " / " counter(pages);
+    font-family: system-ui, sans-serif;
+    font-size: 9pt;
+  }
+  /* Le texte de cet en-tête (nom de l'univers) est ajouté par js/livret.js. */
+  @top-right {
+    font-family: system-ui, sans-serif;
+    font-size: 9pt;
+  }
+}
+
+@media print {
+  html, body { background: var(--fond); }  /* blanc à l'impression (themes.css) */
+  body { font-size: 10.5pt; color: var(--texte); }  /* noir à l'impression */
+  .outils { display: none !important; }
+  .livret { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+  a { color: var(--texte); text-decoration: none; }
+  .mentions { color: var(--texte); }
+  h1 { font-size: 20pt; }
+  h2 { font-size: 15pt; margin-top: 0; }
+  h3 { font-size: 12.5pt; }
+  h4 { font-size: 11pt; }
+  .table-donnees, .fiche-table { font-size: 9.5pt; line-height: 1.25; }
+  .table-donnees th, .table-donnees td { border-color: currentColor; padding: 1.2pt 4pt; }
+  .bloc-table { margin: 2pt 0 8pt; }
+  h3 { margin: 10pt 0 4pt; }
+  .bloc-table { overflow: visible; }
+
+  /* Chaque partie commence sur une nouvelle page ; la fiche aussi. */
+  .partie, .fiche { break-before: page; }
+  .couverture + .partie { break-before: auto; } /* les règles commencent sous le titre */
+  /* Un titre reste avec ce qui le suit ; une table n'est pas coupée quand c'est possible. */
+  h1, h2, h3, h4, h5 { break-after: avoid; }
+  .bloc-table, .bloc-insecable, .fiche-bloc, tr { break-inside: avoid; }
+  p, li { orphans: 3; widows: 3; }
+}

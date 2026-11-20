@@ -31,6 +31,10 @@ test('hors ligne : tout fonctionne une fois le serveur coupé', async ({ browser
   await page.getByRole('button', { name: 'À propos' }).click();
   const logoCharge = await page.locator('.apropos-logo').evaluate((img) => img.complete && img.naturalWidth > 0);
   expect(logoCharge).toBe(true);
+  // Le livret aussi est disponible hors ligne.
+  await page.goto(`${serveur.url}livret.html?univers=space-opera`);
+  await expect(page.locator('h1')).toHaveText('Oracle Omni-système — Space opéra');
+  await expect(page.locator('.table-donnees').first()).toBeVisible();
   expect(erreurs).toEqual([]);
   await contexte.close();
 });

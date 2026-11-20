@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr" data-theme="omni">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Livret · Omni-Oracle</title>
+  <meta name="description" content="Le livret imprimable de l'Oracle Omni-système : règles, tables et fiche de suivi, pour jouer sans écran avec un d20.">
+  <meta name="theme-color" content="#1d1929">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/livret.css">
+  <script src="js/config.js"></script>
+  <!-- Applique le thème avant l'affichage (à l'impression, la page est toujours blanche) -->
+  <script src="js/theme.js"></script>
+  <script type="module" src="js/livret.js"></script>
+</head>
+<body>
+  <!-- Barre d'outils : visible à l'écran seulement, jamais imprimée -->
+  <div class="outils" role="region" aria-label="Préparer l'impression">
+    <a class="bouton" href="./">← Retour à l'application</a>
+    <div class="outils-choix">
+      <label for="choix-univers">Univers</label>
+      <select id="choix-univers"></select>
+    </div>
+    <button type="button" id="bouton-imprimer" class="bouton bouton-accent">Imprimer</button>
+    <p class="outils-aide">Pour un PDF : « Imprimer », puis choisis « Enregistrer au format PDF ». Format A4, lisible en noir et blanc.</p>
+  </div>
+
+  <main id="livret" class="livret">
+    <p class="chargement">Préparation du livret…</p>
+    <noscript><p>Le livret a besoin de JavaScript pour être construit.</p></noscript>
+  </main>
+</body>
+</html>
