@@ -50,7 +50,15 @@ export function messageEvenement(ev, voc = { la: 'la mission', de: 'de la missio
       ? `Seuil de rupture : la Pression atteint 9 pour la première fois ${voc.de}. Sans omni-points dans cet univers, il ne rapporte rien à l'Oracle.`
       : `Seuil de rupture : la Pression atteint 9 pour la première fois ${voc.de}. L'Oracle gagne 1 omni-point.`;
     case 'gain-oracle': return 'L\'Oracle gagne 1 omni-point (2 utilisations d\'omni-points par les joueurs).';
-    case 'rebondissement': return `La Pression atteint 7 (Étau) : le rebondissement ${voc.de} est tiré.`;
+    case 'rebondissement': {
+      // ev.etau : résultat de M.rebondissementEtau (tiré maintenant, déjà tiré, ou à lancer au vrai dé).
+      const r = ev.etau;
+      const debut = 'La Pression atteint 7 (Étau) :';
+      if (r?.tire) return `${debut} le rebondissement ${voc.de} est tiré. ${r.titre} (d20 : ${r.tire.valeur}) : ${r.tire.texte}`;
+      if (r?.deja) return `${debut} le rebondissement ${voc.de}, déjà tiré, entre en jeu. ${r.titre} (${r.deja.valeur}) : ${r.deja.texte}`;
+      if (r?.aLancer) return `${debut} le rebondissement ${voc.de} est tiré. Lance ton d20 et choisis la ligne (${r.titre}) dans l'onglet ${voc.Nom}.`;
+      return `${debut} le rebondissement ${voc.de} est tiré.`;
+    }
     default: return '';
   }
 }

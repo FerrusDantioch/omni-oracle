@@ -126,8 +126,13 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 9. **Mission suivante** : Pression à 3, PJ à leurs omni-points, Oracle à 0, seuil remis à zéro,
    scène 1 ; fiche de suivi et journal conservés.
 10. **Duo** : une seule question « qui avait la main ? » par scène, pour les deux PJ.
-11. **Étau (Pression 7)** : l'application signale le rebondissement (une fois par mission) et
-    propose d'aller à la mission, sans tirer automatiquement.
+11. **Étau (Pression 7)** : *modifiée par Ferrus le 21/11/2026.* La première fois que la Pression
+    atteint 7 dans la mission (même par les boutons manuels), le rebondissement (T6) est **tiré
+    automatiquement** s'il ne l'est pas encore (ou s'il a été ignoré), dans les quatre univers, et
+    affiché dans « À noter » avec « Voir la mission ». Déjà tiré : il n'est pas retiré, il est
+    rappelé. Mode « vrai dé » : rien n'est tiré, le message invite à lancer le d20 et à choisir la
+    ligne dans l'onglet de la mission. Relancer / Ignorer restent possibles (décision 18).
+    L'« option à tester » de l'horreur (à 9) est gardée telle quelle. `M.rebondissementEtau()`.
 12. **Pression changée à la main** : compte comme le mouvement de la scène (« une fois par scène ») ;
     l'application le signale.
 13. **Case −2 des intentions** : cochée automatiquement d'après la Pression, mais modifiable.

@@ -41,6 +41,10 @@ Adresse publique : <https://ferrusdantioch.github.io/omni-oracle/>
 | **Tables** | Toutes les tables de l'univers, avec recherche : tirage ou choix d'une ligne précise ; grilles de profils (F4, M1) et paliers propres à l'univers à consulter |
 | **Journal** | L'historique de la partie |
 
+**Étau** : la première fois que la Pression atteint 7 dans la mission, le rebondissement (T6)
+est tiré automatiquement s'il ne l'est pas encore (déjà tiré : il est rappelé ; avec le vrai dé :
+l'application t'invite à lancer ton d20 et à choisir la ligne).
+
 Toujours visible en haut de l'écran : la **Pression** (avec + et −), le palier, le numéro de
 scène, les **omni-points** de chaque PJ et de l'Oracle, et le seuil de rupture. En horreur
 (univers sans omni-points) : les **points de choc** de chaque PJ à la place des omni-points.

@@ -779,6 +779,38 @@ test('option à tester (horreur) : au seuil de rupture, le rebondissement est ti
   assert.equal(M.rebondissementAuSeuil(cat, 'cyberpunk', c, { de: des(5) }), null);
 });
 
+test('étau : à la Pression 7, le rebondissement est tiré s\'il ne l\'est pas encore (décision du 21/11/2026)', () => {
+  for (const u of index.univers.map((f) => lire(f).id)) {
+    const univ = cat.univ(u);
+    const t6 = cat.table(u, univ.roles.rebondissement);
+    // Libre : tiré maintenant, noté au journal (« auto : etau ») et dans le générateur de mission.
+    const p = M.creerPartie(commun, univ, { pjs: [{ nom: 'Kei' }] });
+    const r = M.rebondissementEtau(cat, u, p, { de: des(5) });
+    assert.equal(r.titre, t6.titre, u);
+    assert.equal(r.tire.table, t6.id);
+    assert.equal(r.tire.valeur, 5);
+    assert.equal(r.tire.texte, M.ligneParValeur(t6, 5).texte);
+    assert.equal(r.tire.auto, 'etau');
+    assert.equal(r.tire.contexte, 'mission');
+    assert.equal(p.tirageMission[t6.id].valeur, 5);
+    assert.equal(p.tirageMission[t6.id].n, r.tire.n);
+    // Déjà tiré : on ne le retire pas, on le rappelle.
+    const encore = M.rebondissementEtau(cat, u, p, { de: des(17) });
+    assert.equal(encore.tire, null);
+    assert.deepEqual(encore.deja, { valeur: 5, texte: r.tire.texte });
+    assert.equal(p.journal.filter((e) => e.type === 'tirage').length, 1);
+    // Ignoré par le MJ (valeur effacée) : la table est libre, il est tiré à nouveau.
+    p.tirageMission[t6.id].valeur = null;
+    assert.equal(M.rebondissementEtau(cat, u, p, { de: des(12) }).tire.valeur, 12);
+    // Vrai dé : rien n'est tiré à la place de la personne.
+    const q = M.creerPartie(commun, univ, { pjs: [{ nom: 'Kei' }] });
+    const v = M.rebondissementEtau(cat, u, q, { dePhysique: true, de: des(5) });
+    assert.deepEqual(v, { titre: t6.titre, tire: null, deja: null, aLancer: true });
+    assert.equal(q.journal.filter((e) => e.type === 'tirage').length, 0);
+    assert.ok(!q.tirageMission[t6.id]?.valeur);
+  }
+});
+
 describe('rappel de sauvegarde', () => {
   const finir = (p, n) => { for (let i = 0; i < n; i++) M.terminerScene(commun, p, 'neutre'); };
 
