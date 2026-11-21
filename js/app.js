@@ -84,9 +84,15 @@ const ctx = {
   /** Affiche les événements importants (seuil de rupture, gain de l'Oracle, rebondissement). */
   async signaler(evenements = []) {
     const messages = evenements.map((e) => messageEvenement(e, this.voc)).filter(Boolean);
+    // « Option à tester » (horreur, si cochée) : au seuil de rupture, le rebondissement est tiré.
+    const auSeuil = evenements.some((e) => e.type === 'seuil-rupture') && M.rebondissementAuSeuil(this.cat, this.univ.id, this.partie);
+    if (auSeuil) {
+      this.enregistrer();
+      messages.push(`Option à tester : le rebondissement ${this.voc.de} n'était pas encore tiré, il l'est maintenant (${auSeuil.titre}, d20 : ${auSeuil.valeur}).`);
+    }
     if (!messages.length) return;
     vibrer(60);
-    const rebond = evenements.some((e) => e.type === 'rebondissement');
+    const rebond = auSeuil || evenements.some((e) => e.type === 'rebondissement');
     const r = await ouvrirDialogue({
       titre: 'À noter',
       contenu: h('ul', {}, messages.map((m) => h('li', {}, m))),

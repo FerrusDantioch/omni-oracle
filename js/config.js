@@ -12,7 +12,7 @@ self.CONFIG_APP = Object.freeze({
   nom: 'Omni-Oracle',
 
   // Numéro de version : à augmenter à chaque publication (ex. 1.0.1).
-  version: '0.3.0',
+  version: '0.3.1',
 
   // Auteur affiché et contact.
   auteur: 'Ferrus Dantioch',

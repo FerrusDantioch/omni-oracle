@@ -111,12 +111,45 @@ export function creerVueTables(ctx) {
     return details;
   }
 
+  /**
+   * Table à consulter seulement : grilles de profils (F4, M1), qui se jouent dans « Intentions »,
+   * et paliers de Pression propres à l'univers, qui s'appliquent tout seuls. Pas de « Tirer » ici.
+   */
+  function blocConsultation(table, motif) {
+    const lignes = table.lignes.filter((l) => !motif || simplifier([l.texte, ...(l.autres || [])].join(' ')).includes(motif));
+    if (motif && !lignes.length && !simplifier(table.titre).includes(motif)) return null;
+    const grille = table.type === 'grille';
+    const details = h('details', { class: 'carte table-consultation', open: !!motif || ecran.ouvertes.has(table.id), 'data-table': table.id },
+      h('summary', {}, h('span', { class: 'table-titre' }, table.titre), ' ',
+        h('span', { class: 'discret petit' }, grille ? `${table.lignes.length} profils · à consulter` : 'à consulter')),
+      h('p', { class: 'petit discret' }, grille
+        ? 'Ces profils se jouent dans l\'onglet Intentions (d20 et modificateurs).'
+        : 'Ces paliers s\'appliquent tout seuls d\'après la Pression (tableau de bord et onglet Jouer).'),
+      // Tableau large : il défile dans son cadre sur téléphone, sans élargir la page.
+      h('div', { class: 'cadre-defilant', tabindex: '0', role: 'region', 'aria-label': `${table.titre} (faire défiler)` },
+        h('table', { class: 'table-lecture' },
+          h('thead', {}, h('tr', {}, table.colonnes.map((c) => h('th', { scope: 'col' }, riche(c))))),
+          h('tbody', {}, lignes.map((l) => h('tr', {},
+            h('th', { scope: 'row' }, riche(l.texte)),
+            (l.autres || []).map((c) => h('td', {}, riche(c)))))))),
+      grille && h('div', { class: 'rangee' }, h('button', {
+        type: 'button', class: 'bouton', 'data-cle': `tables-${table.id}-intentions`, onclick: () => ctx.aller('intentions'),
+      }, 'Aller aux Intentions')));
+    details.addEventListener('toggle', () => {
+      if (details.open) ecran.ouvertes.add(table.id); else ecran.ouvertes.delete(table.id);
+    });
+    return details;
+  }
+
   function rendreListe(zone) {
     const motif = simplifier(ecran.recherche.trim());
-    // Tables à tirer au d20. Les grilles de profils (F4, M1) se jouent dans « Intentions » et
-    // les paliers de Pression dans « Jouer » : elles n'ont pas de ligne à tirer ici.
-    const tables = ctx.univ.tables.map((t) => ctx.cat.table(ctx.univ.id, t.id)).filter((t) => t.de === 'd20' && t.type !== 'grille');
-    const blocs = tables.map((t) => blocTable(t, motif)).filter(Boolean);
+    // Tables à tirer au d20, puis tables à consulter seulement (grilles de profils, paliers).
+    const tables = ctx.univ.tables.map((t) => ctx.cat.table(ctx.univ.id, t.id));
+    const aTirer = (t) => t.de === 'd20' && t.type !== 'grille';
+    const blocs = [
+      ...tables.filter(aTirer).map((t) => blocTable(t, motif)),
+      ...tables.filter((t) => !aTirer(t)).map((t) => blocConsultation(t, motif)),
+    ].filter(Boolean);
     remplacer(zone, blocs.length ? blocs : h('p', { class: 'carte discret' }, `Aucune ligne ne contient « ${ecran.recherche.trim()} ».`));
   }
 

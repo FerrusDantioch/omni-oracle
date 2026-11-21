@@ -1,7 +1,7 @@
 // Onglet « Mission » : générateur de mission (T1 à T6), déroulé suggéré et clôture.
 
 import * as M from './moteur.js';
-import { h, remplacer, choix, annoncer, vibrer, animerResultat } from './ui.js';
+import { h, remplacer, choix, annoncer, vibrer, animerResultat, caseACocher } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { tirageVerrouillable } from './composants.js';
 import { tirerEtNoter, saisieDes, essayer, decrireJet, ecarter } from './actions.js';
@@ -56,6 +56,12 @@ export function creerVueMission(ctx) {
       intro && h('div', { class: 'regles' }, rendreBloc(intro.texte)),
       h('p', { class: 'petit discret' }, 'Verrouille un résultat pour le garder quand tu relances les autres. Avec ton vrai dé, choisis la ligne à la main.'),
       ctx.partie.rebondissementSignale && h('p', { class: 'complication' }, h('strong', {}, 'Étau : '), `la Pression a atteint 7, le rebondissement ${ctx.voc.de} est tiré.`),
+      // « Option à tester » de la source (horreur) : décochée par défaut.
+      M.optionsUnivers(ctx.univ).rebondissementAuSeuil && caseACocher(
+        `Option à tester : à la Pression ${ctx.commun.pression.seuilRupture}, si le rebondissement ${ctx.voc.de} n'a pas encore été tiré, le tirer immédiatement`, {
+          coche: !!ctx.partie.rebondissementAuSeuil, 'data-cle': 'option-rebondissement-seuil',
+          onchange: (v) => { ctx.partie.rebondissementAuSeuil = v; ctx.enregistrer(); },
+        }),
       h('div', { class: 'grille-tirages' }, ctx.univ.roles.mission.map((id) => tirageVerrouillable(ctx, {
         table: ctx.cat.table(ctx.univ.id, id),
         etat: etat[id],

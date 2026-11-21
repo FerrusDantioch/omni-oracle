@@ -33,7 +33,7 @@ Adresse publique : <https://ferrusdantioch.github.io/omni-oracle/>
 | **Intentions** | Ce que fait un ennemi ou un compagnon (+4 si blessé, −2 si Pression ≥ 7), avec les profils en plus de l'univers (F4 en fantasy, M1 en horreur) ; vaisseaux ennemis (table E) |
 | **Vaisseaux** / **Rencontres** | Space opéra : type (D1) avec statistiques, escadrille, escorte, attitude (D2). Fantasy : type de rencontre (F1, bande de 1d4+1), attitude et état (F2). Réaction à une proposition |
 | **Fiche** | Fiche de suivi modifiable : fils ouverts, PNJ, menaces, lieux, journal de scènes. En horreur : indices trouvés, suspects et témoins, chronologie, chocs et folie de chaque PJ |
-| **Tables** | Toutes les tables à tirer de l'univers, avec recherche, tirage ou choix d'une ligne précise |
+| **Tables** | Toutes les tables de l'univers, avec recherche : tirage ou choix d'une ligne précise ; grilles de profils (F4, M1) et paliers propres à l'univers à consulter |
 | **Journal** | L'historique de la partie |
 
 Toujours visible en haut de l'écran : la **Pression** (avec + et −), le palier, le numéro de
@@ -43,7 +43,9 @@ scène, les **omni-points** de chaque PJ et de l'Oracle, et le seuil de rupture.
 **Horreur / enquête** : pas d'omni-points ni de contestation ; paliers de Pression « Calme
 trompeur → Rupture » ; chocs (+1 / +2 après la table C1, +1 après « Terrorise » de M1) ;
 à 5 chocs, alerte et conversion en 1 point de folie avec un jet sur la table de folie
-(option « la folie s'aggrave », décochée par défaut). **Fantasy** : rappel « un omni-point
+(option « la folie s'aggrave », décochée par défaut). « Option à tester » de la source, dans
+l'onglet Mystère (décochée par défaut) : à la Pression 9, le rebondissement est tiré s'il ne
+l'est pas encore. **Fantasy** : rappel « un omni-point
 permet aussi de récupérer une utilisation de sort » dans « Dépenser un omni-point ».
 
 Dans le **menu** : mes parties, modifier la partie, mission suivante, export, livret
@@ -120,6 +122,7 @@ et il est disponible hors ligne.
     "libelles": { "mission": { "nom": "quête", "feminin": true } }, // « Quête », « Tirer toute la quête »…
     "omniPoints": false,          // aucun omni-point (mettre aussi "omniPointsPJ": 0) ; défaut : true
     "contestation": false,        // pas de contestation en duo ; défaut : true (jamais sans omni-points)
+    "rebondissementAuSeuil": true, // propose la case « à 9, tirer le rebondissement s'il ne l'est pas »
     "paliers": "paliers",         // table de l'univers qui remplace les paliers de Pression (noms, textes)
     "profils": ["F4"],            // tables de profils d'intention ajoutées à celles du tronc commun
     "rappelOmni": "…",            // rappel affiché dans « Dépenser un omni-point »
