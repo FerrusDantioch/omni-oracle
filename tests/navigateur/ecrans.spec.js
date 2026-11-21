@@ -4,6 +4,11 @@ import { test, expect, creerPartie, onglet, TABLETTE, TELEPHONE } from './outils
 
 const ECRANS = { tablette: TABLETTE, telephone: TELEPHONE, 'petit téléphone': { width: 360, height: 740 } };
 const ONGLETS = ['Jouer', 'Mission', 'PNJ', 'Intentions', 'Vaisseaux', 'Fiche', 'Tables', 'Journal'];
+// Nouveaux univers : leurs onglets propres (« Quête », « Rencontres », « Mystère ») et leurs écrans.
+const AUTRES = [
+  { univers: 'Fantasy', onglets: ['Quête', 'Intentions', 'Rencontres', 'Fiche', 'Tables'] },
+  { univers: 'Horreur / enquête', onglets: ['Jouer', 'Mystère', 'Intentions', 'Fiche', 'Tables', 'Journal'] },
+];
 
 async function controler(page, ou) {
   const pb = await page.evaluate(() => {
@@ -43,6 +48,33 @@ for (const [nom, taille] of Object.entries(ECRANS)) {
     await controler(page, 'menu');
     await page.getByRole('button', { name: 'À propos' }).click();
     await controler(page, 'à propos');
+    await page.close();
+  });
+
+  test(`${nom} : Fantasy et Horreur, onglets sans débordement et cibles de 44 px`, async ({ browser, serveur }) => {
+    const page = await browser.newPage({ viewport: taille });
+    await page.goto(serveur.url);
+    for (const { univers, onglets } of AUTRES) {
+      await creerPartie(page, { univers, mode: 'Duo', pjs: ['Ysabelle', 'Tarnovski'] });
+      await page.getByRole('button', { name: 'Interroger l\'oracle' }).click();
+      for (const o of onglets) {
+        await onglet(page, o);
+        if (o === 'Quête') await page.getByRole('button', { name: 'Tirer toute la quête' }).click();
+        if (o === 'Mystère') await page.getByRole('button', { name: 'Tirer tout le mystère' }).click();
+        if (o === 'Rencontres') await page.getByRole('button', { name: 'Nouvelle rencontre' }).click();
+        if (o === 'Intentions') await page.locator('[data-cle="intention-jouer"]').click();
+        if (o === 'Fiche' && univers !== 'Fantasy') {
+          for (let i = 0; i < 5; i++) await page.locator('[data-cle="fiche-pj1-chocs-plus"]').click();
+          await page.getByRole('dialog').getByRole('button', { name: 'Convertir 5 chocs en 1 point de folie' }).click();
+        }
+        if (o === 'Tables') await page.locator('summary').nth(6).click();
+        // On mesure une fois les animations d'apparition terminées.
+        await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+        await controler(page, `${univers} · ${o}`);
+      }
+      await page.getByRole('button', { name: /Menu/ }).click();
+      await page.getByRole('button', { name: 'Mes parties' }).click();
+    }
     await page.close();
   });
 
