@@ -12,6 +12,9 @@ lisent **les mêmes données** (`data/*.json`) :
 - `index.html` : la PWA (outil de table, surtout sur tablette) ;
 - `livret.html` : le livret imprimable (A4, noir et blanc), construit dans le navigateur.
 
+Plus un **guide d'utilisation**, `guide.html` (menu « Guide d'utilisation » et lien de l'accueil),
+fabriqué à partir de `sources/08-guide-utilisation.md` (voir « Guide d'utilisation » plus bas).
+
 ## Travailler avec Ferrus
 
 - Ferrus est novice en programmation : explique en français simple, signale chaque terme
@@ -78,6 +81,7 @@ lisent **les mêmes données** (`data/*.json`) :
 | `js/ui.js`, `js/texte.js`, `js/composants.js` | Outils d'affichage (fenêtres, champs, mise en forme `**gras**`, tables tirables, boutons Relancer / Ignorer / Afficher aux joueurs, boutons de chocs). |
 | `js/pwa.js`, `js/apropos.js` | Service worker, bouton « Mettre à jour », installation, À propos. |
 | `js/livret.js`, `css/livret.css` | Livret imprimable. |
+| `guide.html`, `css/guide.css`, `js/guide.js` | Guide d'utilisation. `guide.html` est fabriqué par `outils/generer-guide.mjs` (`npm run guide`) : ne jamais le modifier à la main. |
 
 Données :
 
@@ -122,8 +126,13 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 9. **Mission suivante** : Pression à 3, PJ à leurs omni-points, Oracle à 0, seuil remis à zéro,
    scène 1 ; fiche de suivi et journal conservés.
 10. **Duo** : une seule question « qui avait la main ? » par scène, pour les deux PJ.
-11. **Étau (Pression 7)** : l'application signale le rebondissement (une fois par mission) et
-    propose d'aller à la mission, sans tirer automatiquement.
+11. **Étau (Pression 7)** : *modifiée par Ferrus le 21/11/2026.* La première fois que la Pression
+    atteint 7 dans la mission (même par les boutons manuels), le rebondissement (T6) est **tiré
+    automatiquement** s'il ne l'est pas encore (ou s'il a été ignoré), dans les quatre univers, et
+    affiché dans « À noter » avec « Voir la mission ». Déjà tiré : il n'est pas retiré, il est
+    rappelé. Mode « vrai dé » : rien n'est tiré, le message invite à lancer le d20 et à choisir la
+    ligne dans l'onglet de la mission. Relancer / Ignorer restent possibles (décision 18).
+    L'« option à tester » de l'horreur (à 9) est gardée telle quelle. `M.rebondissementEtau()`.
 12. **Pression changée à la main** : compte comme le mouvement de la scène (« une fois par scène ») ;
     l'application le signale.
 13. **Case −2 des intentions** : cochée automatiquement d'après la Pression, mais modifiable.
@@ -190,12 +199,25 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     la date du dernier export. Stockage persistant demandé au navigateur lors d'un geste
     (création de partie, export), état affiché dans les Réglages.
 
+## Guide d'utilisation
+
+- Texte écrit par Ferrus dans `sources/08-guide-utilisation.md`, au tutoiement. **Ne pas le
+  modifier** sans sa demande : une erreur ou une phrase obsolète se signale à Ferrus.
+  Après une modification du Markdown : `npm run guide`, puis `npm test` (`tests/guide.test.mjs`
+  vérifie que la page est à jour et identique au Markdown, mot pour mot).
+- **À chaque changement de l'application** (onglet, bouton, libellé, règle, réglage) : relire
+  le guide et signaler à Ferrus ce qui ne correspond plus. La phrase « Ce guide suit la version… »
+  ne change qu'avec son accord.
+- Approche choisie par Ferrus (21/11/2026) : HTML statique fabriqué à partir du Markdown (pas de
+  convertisseur dans la page, pas de bibliothèque Markdown). Ancres des titres : minuscules sans
+  accents, préfixe `section-` si le titre commence par un chiffre.
+
 ## Tests
 
-- `npm test` : données (plages 1-20, fidélité mot pour mot), moteur (cas limites), sécurité.
+- `npm test` : données (plages 1-20, fidélité mot pour mot), moteur (cas limites), sécurité, fidélité du guide au Markdown.
 - `npx playwright test` (après `npm install`) : hors ligne (serveur coupé), aucune requête
   externe, export/import, thèmes et contrastes, focus, animations réduites, tablette (800 px),
-  téléphone (400 et 360 px), À propos, mise à jour, livret, nouvel univers, options des univers,
+  téléphone (400 et 360 px), À propos, mise à jour, livret, guide d'utilisation, nouvel univers, options des univers,
   chocs et folie, suggestions du MJ, anciennes parties (0.2.1).
   Utiliser `--trace off` ou la configuration fournie (traces désactivées).
 - Avant de dire que c'est terminé : vérifier hors ligne, sur tablette et téléphone, relire

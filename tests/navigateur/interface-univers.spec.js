@@ -200,17 +200,23 @@ test('horreur : option à tester, le rebondissement est tiré à la Pression 9 (
   await option.check();
   for (let i = 0; i < 6; i++) {
     await page.locator('[data-cle="tdb-plus"]').click();
-    if (i === 3) await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click(); // étau à 7
+    if (i === 3) {
+      // Étau à 7 : le rebondissement est tiré ; le MJ l'ignore, la table redevient libre.
+      await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click();
+      await page.locator('[data-cle="mission-T6-ignorer"]').click();
+    }
   }
   const dlg = page.getByRole('dialog');
   await expect(dlg).toContainText('Option à tester : le rebondissement du mystère n\'était pas encore tiré, il l\'est maintenant (T6 — Révélation');
   await dlg.getByRole('button', { name: 'Voir le mystère' }).click();
   await expect(page.locator('[data-cle="mission-T6-ignorer"]')).toBeVisible();
   await onglet(page, 'Journal');
-  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Révélation' })).toHaveCount(1);
+  // Celui de l'Étau (ignoré, barré) et celui de l'option à tester.
+  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Révélation' })).toHaveCount(2);
+  await expect(page.locator('.journal li.ecarte').filter({ hasText: 'T6 — Révélation' })).toHaveCount(1);
 });
 
-test('horreur : sans la case, la Pression 9 ne tire rien', async ({ page, serveur }) => {
+test('horreur : sans la case, la Pression 9 ne tire rien de plus', async ({ page, serveur }) => {
   await page.goto(serveur.url);
   await creerPartie(page, { univers: 'Horreur / enquête', pjs: ['Ada'] });
   for (let i = 0; i < 6; i++) {
@@ -220,7 +226,70 @@ test('horreur : sans la case, la Pression 9 ne tire rien', async ({ page, serveu
   await expect(page.getByRole('dialog')).not.toContainText('Option à tester');
   await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click();
   await onglet(page, 'Mystère');
-  await expect(page.locator('[data-cle="mission-T6-tirer"]')).toBeVisible();
+  await expect(page.locator('[data-cle="mission-T6-relancer"]')).toBeVisible(); // tiré à l'Étau
+  // Seul le tirage de l'Étau (Pression 7) figure au journal.
+  await onglet(page, 'Journal');
+  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Révélation' })).toHaveCount(1);
+});
+
+// --- Étau (Pression 7) : le rebondissement est tiré (décision de Ferrus du 21/11/2026) ---------
+
+/** Monte la Pression de 3 à 7 avec le bouton + ; renvoie la fenêtre « À noter » de l'Étau. */
+async function monterAEtau(page) {
+  for (let i = 0; i < 4; i++) await page.locator('[data-cle="tdb-plus"]').click();
+  const dlg = page.getByRole('dialog');
+  await expect(dlg).toContainText('La Pression atteint 7 (Étau)');
+  return dlg;
+}
+
+for (const [univers, nom, table, bouton] of [
+  ['Cyberpunk', 'mission', 'T6 — Rebondissement', 'Voir la mission'],
+  ['Fantasy', 'quête', 'T6 — Rebondissement', 'Voir la quête'],
+  ['Horreur / enquête', 'mystère', 'T6 — Révélation', 'Voir le mystère'],
+]) {
+  test(`étau (${univers}) : à la Pression 7, le rebondissement est tiré et noté`, async ({ page, serveur }) => {
+    await page.goto(serveur.url);
+    await creerPartie(page, { univers, pjs: ['Kei'] });
+    const dlg = await monterAEtau(page);
+    await expect(dlg).toContainText(new RegExp(`le rebondissement d[eu] (la |l')?${nom} est tiré\\. ${table} \\(d20 : \\d+\\) : .+`));
+    await dlg.getByRole('button', { name: bouton }).click();
+    // Dans l'onglet de la mission : un résultat ordinaire, que le MJ peut relancer ou ignorer.
+    await expect(page.locator('[data-cle="mission-T6-relancer"]')).toBeVisible();
+    await expect(page.locator('[data-cle="mission-T6-ignorer"]')).toBeVisible();
+    await onglet(page, 'Journal');
+    await expect(page.locator('.journal li').filter({ hasText: table })).toHaveCount(1);
+    // Une seule fois par mission : redescendre puis remonter à 7 ne tire rien de plus.
+    await page.locator('[data-cle="tdb-moins"]').click();
+    await page.locator('[data-cle="tdb-plus"]').click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('.journal li').filter({ hasText: table })).toHaveCount(1);
+  });
+}
+
+test('étau : un rebondissement déjà tiré n\'est pas retiré, il est rappelé', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await creerPartie(page);
+  await onglet(page, 'Mission');
+  await page.getByRole('button', { name: 'Tirer toute la mission' }).click();
+  await onglet(page, 'Journal');
+  const tirage = (await page.locator('.journal li').filter({ hasText: 'T6 — Rebondissement' }).locator('.journal-type').textContent()).trim();
+  expect(tirage).toMatch(/^T6 — Rebondissement \(\d+\) :$/);
+  const dlg = await monterAEtau(page);
+  await expect(dlg).toContainText(`le rebondissement de la mission, déjà tiré, entre en jeu. ${tirage}`);
+  await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click();
+  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Rebondissement' })).toHaveCount(1);
+});
+
+test('étau : avec le vrai dé, rien n\'est tiré à ta place', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await creerPartie(page);
+  await page.locator('[data-cle="de-physique"]').check();
+  const dlg = await monterAEtau(page);
+  await expect(dlg).toContainText('Lance ton d20 et choisis la ligne (T6 — Rebondissement) dans l\'onglet Mission.');
+  await dlg.getByRole('button', { name: 'Voir la mission' }).click();
+  await expect(page.locator('[data-cle="mission-T6-ignorer"]')).toHaveCount(0);
+  await onglet(page, 'Journal');
+  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Rebondissement' })).toHaveCount(0);
 });
 
 test('Tables : grilles de profils et paliers à consulter, sans « Tirer »', async ({ page, serveur }) => {
@@ -241,3 +310,40 @@ test('Tables : grilles de profils et paliers à consulter, sans « Tirer »', as
   await page.locator('[data-cle="tables-M1-intentions"]').click();
   await expect(page.getByRole('heading', { name: 'Intentions des ennemis et des PNJ compagnons' })).toBeVisible();
 });
+
+// --- Aucun « null », « false » ou « undefined » affiché par erreur (défaut corrigé en 0.3.4) ---
+for (const univers of ['Cyberpunk', 'Space opéra', 'Fantasy', 'Horreur / enquête']) {
+  test(`${univers} : aucun mot technique (null, false, undefined) affiché dans les onglets`, async ({ page, serveur }) => {
+    const motsTechniques = () => page.evaluate(() => {
+      const res = [];
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) {
+        const t = w.currentNode.textContent.trim();
+        if (/^(null|false|undefined|NaN)$/.test(t) || /\b(undefined|NaN)\b/.test(t)) res.push(`« ${t} » dans .${w.currentNode.parentElement.className}`);
+      }
+      return res;
+    });
+    await page.goto(serveur.url);
+    await creerPartie(page, { univers, pjs: ['Kei'] });
+    // Pression à 10 : la soupape rend la scène toujours altérée (cas des complications).
+    for (let i = 0; i < 7; i++) {
+      await page.locator('[data-cle="tdb-plus"]').click();
+      if (await page.locator('dialog[open]').count()) await page.keyboard.press('Escape');
+    }
+    const fautes = [];
+    for (const nom of (await page.locator('#onglets button').allTextContents()).map((t) => t.trim())) {
+      await onglet(page, nom);
+      // Les boutons principaux de l'onglet, pour faire apparaître des résultats.
+      for (const b of await page.locator('#contenu button.bouton-accent').all()) {
+        if (!(await b.isVisible()) || !(await b.isEnabled())) continue;
+        await b.click();
+        if (await page.locator('dialog[open]').count()) {
+          fautes.push(...(await motsTechniques()).map((f) => `${nom} (fenêtre) : ${f}`));
+          await page.keyboard.press('Escape');
+        }
+      }
+      fautes.push(...(await motsTechniques()).map((f) => `${nom} : ${f}`));
+    }
+    expect(fautes).toEqual([]);
+  });
+}

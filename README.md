@@ -12,6 +12,11 @@ Il existe sous deux formes qui lisent **les mêmes données** :
    aussi sur téléphone et sur ordinateur.
 2. **Le livret imprimable** (`livret.html`) : pour jouer sans écran, avec un vrai d20.
 
+Et un **guide d'utilisation** (`guide.html`) pour prendre l'application en main dès la première
+partie : ouvert depuis le menu (« Guide d'utilisation ») ou depuis l'accueil (« Première fois ?
+Lis le guide d'utilisation »), lisible hors ligne et imprimable. Son texte est dans
+`sources/08-guide-utilisation.md` (voir « Mettre à jour le guide d'utilisation » plus bas).
+
 Adresse publique : <https://ferrusdantioch.github.io/omni-oracle/>
 
 ## Principes
@@ -36,6 +41,10 @@ Adresse publique : <https://ferrusdantioch.github.io/omni-oracle/>
 | **Tables** | Toutes les tables de l'univers, avec recherche : tirage ou choix d'une ligne précise ; grilles de profils (F4, M1) et paliers propres à l'univers à consulter |
 | **Journal** | L'historique de la partie |
 
+**Étau** : la première fois que la Pression atteint 7 dans la mission, le rebondissement (T6)
+est tiré automatiquement s'il ne l'est pas encore (déjà tiré : il est rappelé ; avec le vrai dé :
+l'application t'invite à lancer ton d20 et à choisir la ligne).
+
 Toujours visible en haut de l'écran : la **Pression** (avec + et −), le palier, le numéro de
 scène, les **omni-points** de chaque PJ et de l'Oracle, et le seuil de rupture. En horreur
 (univers sans omni-points) : les **points de choc** de chaque PJ à la place des omni-points.
@@ -48,8 +57,8 @@ l'onglet Mystère (décochée par défaut) : à la Pression 9, le rebondissement
 l'est pas encore. **Fantasy** : rappel « un omni-point
 permet aussi de récupérer une utilisation de sort » dans « Dépenser un omni-point ».
 
-Dans le **menu** : mes parties, modifier la partie, mission suivante, export, livret
-imprimable, réglages (thème Omni, Sombre, Clair ou Auto, luminosité, vibrations, vrai dé,
+Dans le **menu** : mes parties, modifier la partie, mission suivante, export, guide
+d'utilisation, livret imprimable, réglages (thème Omni, Sombre, Clair ou Auto, luminosité, vibrations, vrai dé,
 « Masquer les résultats (écran visible des joueurs) », rappel de sauvegarde), installation,
 à propos.
 
@@ -87,8 +96,31 @@ Le fichier `.nojekyll` (vide) demande à GitHub de publier les fichiers sans les
 1. Augmente le numéro de **version** dans `js/config.js` (par exemple `0.1.0` → `0.1.1`).
    C'est ce qui fait apparaître le bouton « Mettre à jour » chez les personnes qui ont
    installé l'application.
-2. Lance les tests (voir plus bas).
-3. Fusionne dans `main`.
+2. **Relis le guide d'utilisation** si l'application a changé (un onglet, un bouton, un
+   libellé, une règle, un réglage) : le guide doit décrire l'application telle qu'elle est.
+   Corrige le texte si besoin (voir la section suivante).
+3. Lance les tests (voir plus bas).
+4. Fusionne dans `main`.
+
+## Mettre à jour le guide d'utilisation
+
+Le texte du guide est dans `sources/08-guide-utilisation.md` (Markdown). La page `guide.html`
+est **fabriquée** à partir de ce fichier par un petit script ; elle ne se modifie jamais à la main.
+
+1. Modifie le guide (par exemple dans Claude), puis exporte-le en Markdown.
+2. Remplace le fichier `sources/08-guide-utilisation.md` par ce nouvel export (même nom).
+3. Refais la page :
+   ```bash
+   npm run guide
+   ```
+   (ou demande à Claude de « régénérer la page du guide »).
+4. Lance `npm test` : il vérifie que `guide.html` est à jour et identique au Markdown, mot pour
+   mot (titres, tableaux, texte).
+5. Augmente la version dans `js/config.js`, pour que les personnes reçoivent le nouveau guide.
+
+Le Markdown reconnu : titres `#`, `##`, `###` ; paragraphes ; **gras**, *italique*, `code` ;
+listes à puces ; listes numérotées avec sous-listes (retrait de 3 espaces) ; tableaux ; liens.
+Le sommaire est construit tout seul à partir des titres `##` et `###`.
 
 ## Ajouter un univers
 
@@ -191,7 +223,8 @@ Les tests ne font pas partie de l'application : ce sont des outils de développe
 ```bash
 npm test
 ```
-Données (plages 1-20, fidélité aux sources), moteur de règles, sécurité. Il suffit d'avoir Node.js.
+Données (plages 1-20, fidélité aux sources), moteur de règles, sécurité, fidélité du guide
+d'utilisation au Markdown. Il suffit d'avoir Node.js.
 
 ```bash
 npm install
@@ -202,7 +235,7 @@ npm install
 npx playwright test
 ```
 Tests dans le navigateur : hors ligne, réseau, thèmes et contrastes, tablette et téléphone,
-À propos, mise à jour, livret, nouvel univers, options des univers (fantasy, horreur), chocs
+À propos, mise à jour, livret, guide d'utilisation, nouvel univers, options des univers (fantasy, horreur), chocs
 et folie, suggestions du MJ, et relecture de vraies parties de la version 0.2.1.
 
 Pour essayer l'application sur ton ordinateur :
@@ -215,18 +248,23 @@ puis ouvre <http://127.0.0.1:8080/>.
 ## Organisation des fichiers
 
 ```
-index.html, livret.html     les deux pages
+index.html, livret.html     les deux pages (application, livret imprimable)
+guide.html                  le guide d'utilisation (fabriqué par « npm run guide », ne pas
+                            le modifier à la main)
 manifest.webmanifest        description de l'application installable
 sw.js                       service worker : copie hors ligne et mise à jour
 css/themes.css              les SEULES couleurs (thèmes Omni, Sombre, Clair)
 css/app.css, css/livret.css mise en page
+css/guide.css               mise en page du guide (écran et impression A4)
 js/config.js                nom, version, auteur, contact, identifiant de stockage
 js/moteur.js                les règles (oracle, Pression, scènes, omni-points, chocs, folie…)
 js/vue-*.js                 les onglets de l'application
 js/livret.js                construction du livret
+js/guide.js                 bouton « Imprimer » du guide
+outils/generer-guide.mjs    fabrique guide.html à partir du Markdown du guide
 data/                       tronc commun et univers (JSON)
 sources/                    les règles d'origine (Markdown), pour référence ; 06 = table de folie
-                            recopiée du PDF de Ferrus
+                            recopiée du PDF de Ferrus ; 08 = texte du guide d'utilisation
 assets/, icons/             logo et icônes
 tests/                      contrôles automatiques
 ```

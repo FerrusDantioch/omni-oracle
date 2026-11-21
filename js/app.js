@@ -9,7 +9,7 @@ import { chargerDonnees } from './donnees.js';
 import * as S from './stockage.js';
 import {
   h, remplacer, annoncer, ouvrirDialogue, confirmer, champ, choix, caseACocher,
-  reglerVibration, dateCourte, vibrer,
+  reglerVibration, dateCourte, vibrer, riche,
 } from './ui.js';
 import { dialogueOmniPJ, dialogueOmniOracle, messageEvenement, essayer } from './actions.js';
 import { creerVueJouer } from './vue-jouer.js';
@@ -85,6 +85,11 @@ const ctx = {
   },
   /** Affiche les événements importants (seuil de rupture, gain de l'Oracle, rebondissement). */
   async signaler(evenements = []) {
+    // Étau (Pression 7) : le rebondissement est tiré s'il ne l'est pas encore (sauf avec le vrai dé).
+    evenements = evenements.map((e) => (e.type === 'rebondissement'
+      ? { ...e, etau: M.rebondissementEtau(this.cat, this.univ.id, this.partie, { dePhysique: this.reglages.dePhysique }) }
+      : e));
+    if (evenements.some((e) => e.etau?.tire)) this.enregistrer();
     const messages = evenements.map((e) => messageEvenement(e, this.voc)).filter(Boolean);
     // « Option à tester » (horreur, si cochée) : au seuil de rupture, le rebondissement est tiré.
     const auSeuil = evenements.some((e) => e.type === 'seuil-rupture') && M.rebondissementAuSeuil(this.cat, this.univ.id, this.partie);
@@ -97,7 +102,7 @@ const ctx = {
     const rebond = auSeuil || evenements.some((e) => e.type === 'rebondissement');
     const r = await ouvrirDialogue({
       titre: 'À noter',
-      contenu: h('ul', {}, messages.map((m) => h('li', {}, m))),
+      contenu: h('ul', {}, messages.map((m) => h('li', {}, riche(m)))),
       actions: rebond
         ? [{ id: 'ok', texte: 'Fermer' }, { id: 'mission', texte: `Voir ${this.voc.la}`, classe: 'bouton-accent' }]
         : [{ id: 'ok', texte: 'Fermer' }],
@@ -185,12 +190,19 @@ function afficherAccueil() {
   $('tableau-de-bord').hidden = true;
   $('onglets').hidden = true;
   majTitre();
+  // Lien vers le guide : bien en vue tant qu'aucune partie n'est enregistrée sur l'appareil,
+  // puis plus discret, en bas de l'accueil.
+  const premiereFois = S.listerParties().length === 0;
+  const lienGuide = () => h('a', { href: 'guide.html', class: 'lien-guide', 'data-cle': 'accueil-guide' }, 'Première fois ? Lis le guide d\'utilisation');
   remplacer($('contenu'),
     h('div', { class: 'accueil-logo' },
       h('img', { src: 'assets/logo-omni-systeme.webp', alt: '', width: 72, height: 72 }),
-      h('p', {}, 'Ton MJ de poche pour jouer en solo ou en duo, ou pour aider un vrai MJ à improviser.')),
+      h('div', {},
+        h('p', {}, 'Ton MJ de poche pour jouer en solo ou en duo, ou pour aider un vrai MJ à improviser.'),
+        premiereFois && lienGuide())),
     carteNouvellePartie(),
-    carteMesParties());
+    carteMesParties(),
+    !premiereFois && h('p', { class: 'petit accueil-guide-bas' }, lienGuide()));
 }
 
 function carteNouvellePartie() {
@@ -450,6 +462,7 @@ async function ouvrirMenu() {
     enPartie && { id: 'mission', texte: ctx.voc.Suivante },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
     { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
+    { id: 'guide', texte: 'Guide d\'utilisation' },
     { id: 'livret', texte: 'Livret imprimable' },
     { id: 'installer', texte: 'Installer l\'application' },
     { id: 'apropos', texte: 'À propos' },
@@ -462,6 +475,7 @@ async function ouvrirMenu() {
     case 'exporter': ctx.exporter(); break;
     case 'reglages': dialogueReglages(); break;
     case 'installer': dialogueInstallation(); break;
+    case 'guide': window.location.href = 'guide.html'; break;
     case 'livret':
       window.location.href = `livret.html?univers=${encodeURIComponent(ctx.partie ? ctx.partie.univers : ctx.cat.univers[0].id)}`;
       break;

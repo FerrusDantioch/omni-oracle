@@ -321,7 +321,7 @@ export function journaliser(partie, entree) {
  * Vérifie les seuils après un changement de Pression :
  * - seuil de rupture : la 1re fois qu'elle atteint 9 dans la mission, l'Oracle gagne 1 omni-point
  *   (rien dans un univers sans omni-points : l'événement est signalé avec un gain de 0) ;
- * - étau : la 1re fois qu'elle atteint 7, on signale que le rebondissement entre en jeu.
+ * - étau : la 1re fois qu'elle atteint 7, le rebondissement entre en jeu (tiré par rebondissementEtau).
  * Renvoie la liste des événements survenus.
  */
 function verifierSeuils(commun, partie, univers = null) {
@@ -496,14 +496,12 @@ export function contester(commun, partie, entree, idContestataire, { replique = 
 }
 
 /**
- * « Option à tester » (horreur) : la première fois que la Pression atteint 9, si le
- * rebondissement (roles.rebondissement, T6) n'a pas encore été tiré, on le tire tout de suite.
- * Seulement si l'univers propose l'option ET si elle est cochée dans la partie.
- * Renvoie l'entrée du journal du tirage, ou null (option absente ou décochée, déjà tiré).
+ * Tire le rebondissement de la mission (roles.rebondissement, T6) s'il n'est pas encore tiré
+ * (ou s'il a été ignoré) et le note au journal. `auto` : ce qui a déclenché le tirage.
+ * Renvoie l'entrée du journal, ou null s'il était déjà tiré.
  */
-export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAleatoire } = {}) {
+function tirerRebondissementLibre(catalogue, universId, partie, { de, auto }) {
   const u = catalogue.univ(universId);
-  if (!optionsUnivers(u).rebondissementAuSeuil || !partie.rebondissementAuSeuil) return null;
   const id = u.roles.rebondissement;
   partie.tirageMission ||= {};
   const etat = (partie.tirageMission[id] ||= { valeur: null, verrou: false });
@@ -512,11 +510,46 @@ export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAle
   const t = tirerTable(table, { de });
   const e = journaliser(partie, {
     type: 'tirage', table: table.id, titre: table.titre, valeur: t.valeur, plage: t.ligne.plage,
-    texte: t.ligne.texte, autres: t.ligne.autres || null, cible: null, contexte: 'mission', manuel: false, auto: 'seuil-rupture',
+    texte: t.ligne.texte, autres: t.ligne.autres || null, cible: null, contexte: 'mission', manuel: false, auto,
   });
   etat.valeur = t.valeur;
   etat.n = e.n;
   return e;
+}
+
+/**
+ * Étau (décision de Ferrus du 21/11/2026, remplace « signaler sans tirer ») : la première fois
+ * que la Pression atteint 7 dans la mission (événement « rebondissement »), le rebondissement
+ * est tiré s'il ne l'est pas encore. Dans tous les univers.
+ * - dePhysique : la personne joue avec son vrai dé ; rien n'est tiré à sa place.
+ * Renvoie { titre, tire, deja, aLancer } :
+ * - titre  : titre de la table du rebondissement (ex. « T6 — Rebondissement ») ;
+ * - tire   : entrée du journal du tirage fait maintenant (ou null) ;
+ * - deja   : { valeur, texte } du rebondissement déjà tiré (ou null) ;
+ * - aLancer : true si le rebondissement est à tirer avec le vrai dé.
+ */
+export function rebondissementEtau(catalogue, universId, partie, { de = deAleatoire, dePhysique = false } = {}) {
+  const u = catalogue.univ(universId);
+  const table = catalogue.table(universId, u.roles.rebondissement);
+  const etat = partie.tirageMission?.[table.id];
+  if (etat?.valeur) {
+    const t = tirerTable(table, { valeur: etat.valeur });
+    return { titre: table.titre, tire: null, deja: { valeur: t.valeur, texte: t.ligne.texte }, aLancer: false };
+  }
+  if (dePhysique) return { titre: table.titre, tire: null, deja: null, aLancer: true };
+  return { titre: table.titre, tire: tirerRebondissementLibre(catalogue, universId, partie, { de, auto: 'etau' }), deja: null, aLancer: false };
+}
+
+/**
+ * « Option à tester » (horreur) : la première fois que la Pression atteint 9, si le
+ * rebondissement (roles.rebondissement, T6) n'a pas encore été tiré, on le tire tout de suite.
+ * Seulement si l'univers propose l'option ET si elle est cochée dans la partie.
+ * Renvoie l'entrée du journal du tirage, ou null (option absente ou décochée, déjà tiré).
+ */
+export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAleatoire } = {}) {
+  const u = catalogue.univ(universId);
+  if (!optionsUnivers(u).rebondissementAuSeuil || !partie.rebondissementAuSeuil) return null;
+  return tirerRebondissementLibre(catalogue, universId, partie, { de, auto: 'seuil-rupture' });
 }
 
 // --- Rappel de sauvegarde --------------------------------------------------------------
