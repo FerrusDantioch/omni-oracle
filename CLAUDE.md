@@ -174,9 +174,9 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 25. **Table de folie** (`sources/06-horreur-table-de-folie.md`, recopiée du PDF de Ferrus du
     21/11/2026) : intertitres en capitales et « -1 » avec un tiret simple, comme sur le PDF.
     Option « la folie s'aggrave avec l'accumulation » codée, décochée par défaut (case de la
-    partie, dans la fiche). En attente de confirmation : le point de folie qu'on vient de gagner
-    compte dans le « 1d20 + points de folie » ; « Relancer » un effet de folie ne change ni les
-    chocs ni les points de folie.
+    partie, dans la fiche). Confirmé par Ferrus le 21/11/2026 : le point de folie qu'on vient de
+    gagner compte dans le « 1d20 + points de folie » ; « Relancer » un effet de folie ne change ni
+    les chocs ni les points de folie (testé dans `tests/moteur.test.mjs`).
 26. **Livret Horreur** : la partie 1 reprend le tronc commun tel quel (omni-points, contestation) ;
     la section 0 de la partie 2 dit ce qui change. La fiche imprimée suit l'univers (pas de ligne
     omni-points, rubriques d'enquête, chocs et folie).
