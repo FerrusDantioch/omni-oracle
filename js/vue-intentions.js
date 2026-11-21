@@ -5,7 +5,7 @@ import * as M from './moteur.js';
 import { h, remplacer, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { saisieDes, essayer, ecarter } from './actions.js';
-import { actionsSuggestion } from './composants.js';
+import { actionsSuggestion, boutonsChocs } from './composants.js';
 
 const signe = (n) => (n < 0 ? `− ${-n}` : `+ ${n}`);
 
@@ -164,7 +164,10 @@ export function creerVueIntentions(ctx) {
         }),
         ignorer: () => ignorer(e, 'dernier'),
         afficher: { titre: e.nom || prof.nom, texte: e.action },
-      }));
+      }),
+      // Ex. M1 « Terrorise : 1 point de choc à une cible » : le MJ choisit la cible.
+      (tE.actionsChoc || []).includes(e.action) && M.optionsUnivers(ctx.univ).chocs
+        && boutonsChocs(ctx, { cle: 'intention', nombres: [1], motif: e.action }));
     }
     return carte;
   }

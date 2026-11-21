@@ -5,7 +5,8 @@ import { h, remplacer, riche, animerResultat, annoncer } from './ui.js';
 import { texteBrut } from './texte.js';
 import { autresColonnes } from './composants.js';
 import { tirerEtNoter, ecarter } from './actions.js';
-import { actionsSuggestion } from './composants.js';
+import { actionsSuggestion, boutonsChocs } from './composants.js';
+import * as M from './moteur.js';
 
 /** Texte sans accents ni majuscules, pour une recherche tolérante (« evenement » trouve « événement »). */
 const simplifier = (t) => texteBrut(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -21,6 +22,42 @@ export function creerVueTables(ctx) {
     ecran.animer = table.id;
     ctx.enregistrer();
     ctx.annoncerResultat(`${table.titre} (${e.valeur}) : ${texteBrut(e.texte)}`);
+  }
+
+  /**
+   * Ce que l'univers propose en plus après un tirage sur cette table :
+   * - table des chocs (ex. C1) : rappel « 1 point de choc (2 si… atroce) » et boutons +1 / +2 ;
+   * - table liée à une rubrique de la fiche (ex. I1 → indices) : « Noter dans … ».
+   */
+  function suites(table, e) {
+    const o = M.optionsUnivers(ctx.univ);
+    const rubrique = o.fiche.find((r) => r.table === table.id);
+    return [
+      o.chocs && o.chocs.table === table.id && [
+        h('p', { class: 'petit rappel-choc' }, h('strong', {}, 'Rappel : '), o.chocs.rappel, '.'),
+        boutonsChocs(ctx, { cle: `tables-${table.id}`, nombres: [1, 2], motif: table.titre }),
+      ],
+      rubrique && h('div', { class: 'rangee' }, h('button', {
+        type: 'button', class: 'bouton', 'data-cle': `tables-${table.id}-noter`,
+        onclick: () => {
+          ctx.partie.fiche[rubrique.id] ||= [];
+          ctx.partie.fiche[rubrique.id].push(Object.fromEntries(rubrique.champs.map((c, i) => [c.cle, i === 0 ? texteBrut(e.texte) : ''])));
+          ctx.enregistrer();
+          annoncer(`Noté dans « ${rubrique.titre} » (fiche de suivi).`);
+        },
+      }, `Noter dans « ${rubrique.titre} »`)),
+    ];
+  }
+
+  /** Lignes de la table, avec leurs intertitres (ex. groupes de la table de folie). */
+  function lignesAvecIntertitres(table, lignes, motif, ligneHTML) {
+    const out = [];
+    for (const l of lignes) {
+      const g = !motif && (table.groupes || []).find((x) => x.avant === l.plage);
+      if (g) out.push(h('li', { class: 'intertitre' }, riche(g.texte)));
+      out.push(ligneHTML(l));
+    }
+    return out;
   }
 
   function blocTable(table, motif) {
@@ -39,6 +76,7 @@ export function creerVueTables(ctx) {
     if (e) {
       const res = h('div', { class: 'resultat', 'aria-live': 'polite' },
         h('p', { class: 'resultat-detail' }, e.manuel ? `Ligne choisie : ${e.plage}` : `d20 : ${e.valeur}`),
+        table.groupes && h('p', { class: 'petit' }, riche(M.groupeDe(table, { plage: e.plage })?.texte || '')),
         h('p', {}, riche(e.texte)),
         e.autres && autresColonnes(table, { autres: e.autres }));
       if (ecran.animer === table.id) animerResultat(res);
@@ -52,12 +90,12 @@ export function creerVueTables(ctx) {
           annoncer('Résultat ignoré.');
         },
         afficher: { titre: table.titre, texte: e.texte },
-      }));
+      }), ...suites(table, e).flat(Infinity).filter(Boolean));
     }
     // Résultat masqué (écran visible des joueurs) : on ne montre pas quelle ligne est sortie
     // tant qu'il n'a pas été révélé.
     const marquer = e && (!ctx.reglages.secret || ctx.reveles.has(`j-${e.n}`));
-    details.append(h('ol', { class: 'lignes-table' }, lignes.map((l) => h('li', { class: marquer && e.plage === l.plage ? 'obtenue' : '' },
+    details.append(h('ol', { class: 'lignes-table' }, lignesAvecIntertitres(table, lignes, motif, (l) => h('li', { class: marquer && e.plage === l.plage ? 'obtenue' : '' },
       h('span', { class: 'plage' }, l.plage),
       h('div', { class: 'ligne-texte' },
         h('p', {}, riche(l.texte), marquer && e.plage === l.plage && h('strong', {}, ' ◀ tiré')),
@@ -75,7 +113,9 @@ export function creerVueTables(ctx) {
 
   function rendreListe(zone) {
     const motif = simplifier(ecran.recherche.trim());
-    const tables = ctx.univ.tables.map((t) => ctx.cat.table(ctx.univ.id, t.id));
+    // Tables à tirer au d20. Les grilles de profils (F4, M1) se jouent dans « Intentions » et
+    // les paliers de Pression dans « Jouer » : elles n'ont pas de ligne à tirer ici.
+    const tables = ctx.univ.tables.map((t) => ctx.cat.table(ctx.univ.id, t.id)).filter((t) => t.de === 'd20' && t.type !== 'grille');
     const blocs = tables.map((t) => blocTable(t, motif)).filter(Boolean);
     remplacer(zone, blocs.length ? blocs : h('p', { class: 'carte discret' }, `Aucune ligne ne contient « ${ecran.recherche.trim()} ».`));
   }

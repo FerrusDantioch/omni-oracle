@@ -35,6 +35,27 @@ async function choisirTheme(page, theme) {
   await page.addInitScript(`window.__contraste = (${OUTILS_CONTRASTE.toString()})();`);
 }
 
+/** Textes affichés dont le contraste est sous 4,5:1 (formule WCAG), préfixés par `ou`. */
+async function fautesDeContraste(page, ou) {
+  const f = await page.evaluate(() => {
+    const { vers, ratio, fond } = window.__contraste;
+    const res = [];
+    const marcheur = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (marcheur.nextNode()) {
+      const n = marcheur.currentNode;
+      const el = n.parentElement;
+      if (!n.textContent.trim() || !el || el.closest('[hidden], [aria-hidden="true"], .annonce, option')) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue;
+      if (el.closest('button:disabled, input:disabled')) continue; // éléments désactivés : hors norme
+      const rapport = ratio(vers(getComputedStyle(el).color), fond(el));
+      if (rapport < 4.5) res.push(`« ${n.textContent.trim().slice(0, 40)} » : ${rapport.toFixed(2)}`);
+    }
+    return res;
+  });
+  return f.map((x) => `${ou} ${x}`);
+}
+
 for (const theme of THEMES) {
   test(`thème ${theme} : appliqué avant l'affichage`, async ({ page, serveur }) => {
     await choisirTheme(page, theme);
@@ -82,25 +103,7 @@ for (const theme of THEMES) {
     await page.getByRole('button', { name: 'Lancer le d20 de scène' }).click();
     await page.getByRole('button', { name: 'Interroger l\'oracle' }).click();
     const fautes = [];
-    const verifier = async (ou) => {
-      const f = await page.evaluate(() => {
-        const { vers, ratio, fond } = window.__contraste;
-        const res = [];
-        const marcheur = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-        while (marcheur.nextNode()) {
-          const n = marcheur.currentNode;
-          const el = n.parentElement;
-          if (!n.textContent.trim() || !el || el.closest('[hidden], [aria-hidden="true"], .annonce, option')) continue;
-          const r = el.getBoundingClientRect();
-          if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue;
-          if (el.closest('button:disabled, input:disabled')) continue; // éléments désactivés : hors norme
-          const rapport = ratio(vers(getComputedStyle(el).color), fond(el));
-          if (rapport < 4.5) res.push(`« ${n.textContent.trim().slice(0, 40)} » : ${rapport.toFixed(2)}`);
-        }
-        return res;
-      });
-      fautes.push(...f.map((x) => `${ou} ${x}`));
-    };
+    const verifier = async (ou) => { fautes.push(...await fautesDeContraste(page, ou)); };
     await verifier('Jouer');
     for (const nom of ['Mission', 'Vaisseaux', 'Tables', 'Journal']) {
       await onglet(page, nom);
@@ -203,3 +206,31 @@ test('luminosité : « Annuler » rétablit la luminosité précédente', async 
   await page.getByRole('button', { name: 'Annuler' }).click();
   await expect(page.locator('html')).not.toHaveAttribute('data-luminosite', /.*/);
 });
+
+for (const theme of THEMES) {
+  test(`thème ${theme} : contrastes des écrans de l'horreur (chocs, folie) et de la fantasy`, async ({ page, serveur }) => {
+    await choisirTheme(page, theme);
+    await page.goto(serveur.url);
+    await creerPartie(page, { univers: 'Horreur / enquête', mode: 'Duo', pjs: ['Ada', 'Bo'] });
+    const fautes = [];
+    await onglet(page, 'Fiche');
+    for (let i = 0; i < 5; i++) await page.locator('[data-cle="fiche-pj1-chocs-plus"]').click();
+    fautes.push(...await fautesDeContraste(page, 'Alerte'));
+    await page.getByRole('dialog').getByRole('button', { name: 'Plus tard' }).click();
+    fautes.push(...await fautesDeContraste(page, 'Fiche (alerte)'));
+    await page.locator('[data-cle="fiche-pj1-convertir"]').click();
+    fautes.push(...await fautesDeContraste(page, 'Fiche (folie)'));
+    await onglet(page, 'Tables');
+    await page.locator('[data-table="folie"] summary').click();
+    await page.locator('[data-table="C1"] summary').click();
+    await page.locator('[data-cle="tables-C1-tirer"]').click();
+    fautes.push(...await fautesDeContraste(page, 'Tables'));
+    await page.getByRole('button', { name: /Menu/ }).click();
+    await page.getByRole('button', { name: 'Mes parties' }).click();
+    await creerPartie(page, { univers: 'Fantasy' });
+    await onglet(page, 'Rencontres');
+    await page.getByRole('button', { name: 'Nouvelle rencontre' }).click();
+    fautes.push(...await fautesDeContraste(page, 'Rencontres'));
+    expect(fautes).toEqual([]);
+  });
+}

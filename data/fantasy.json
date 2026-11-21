@@ -23,10 +23,19 @@
     },
     "rencontres": {
       "type": "F1",
-      "attitude": "F2"
+      "attitude": "F2",
+      "onglet": "Rencontres",
+      "titre": "Rencontre",
+      "question": "Le groupe rencontré accepte la proposition ?"
     }
   },
   "options": {
+    "libelles": {
+      "mission": {
+        "nom": "quête",
+        "feminin": true
+      }
+    },
     "profils": [
       "F4"
     ],

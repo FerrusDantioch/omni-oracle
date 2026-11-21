@@ -3,6 +3,7 @@
 import * as M from './moteur.js';
 import { h, riche, afficherAuxJoueurs } from './ui.js';
 import { texteBrut } from './texte.js';
+import { donnerChocs } from './actions.js';
 
 /** Première valeur d'une plage (« 5-8 » → 5), pour choisir une ligne à la main. */
 export function valeurDePlage(plage) {
@@ -28,6 +29,20 @@ export function actionsSuggestion({ cle, relancer = null, ignorer = null, affich
     relancer && h('button', { type: 'button', class: 'bouton', 'data-cle': `${cle}-relancer`, onclick: relancer }, 'Relancer'),
     ignorer && h('button', { type: 'button', class: 'bouton', 'data-cle': `${cle}-ignorer`, onclick: ignorer }, 'Ignorer'),
     afficher && h('button', { type: 'button', class: 'bouton', 'data-cle': `${cle}-afficher`, onclick: () => afficherAuxJoueurs(afficher) }, 'Afficher aux joueurs'));
+}
+
+/**
+ * Boutons « +1 choc à Ada », « +2 chocs à Ada »… pour chaque PJ (univers avec chocs).
+ * - nombres : ex. [1, 2] pour C1 (1 point de choc, 2 si l'événement est atroce)
+ * - pour : liste d'id de PJ (par défaut tous)
+ */
+export function boutonsChocs(ctx, { cle, nombres = [1], pour = null, motif = '' }) {
+  const pjs = ctx.partie.pjs.filter((pj) => !pour || pour.includes(pj.id));
+  if (!pjs.length) return null;
+  return h('div', { class: 'rangee boutons-chocs' }, pjs.flatMap((pj) => nombres.map((n) => h('button', {
+    type: 'button', class: 'bouton', 'data-cle': `${cle}-choc-${pj.id}-${n}`,
+    onclick: () => donnerChocs(ctx, pj.id, n, { motif }),
+  }, `+${n} choc${n > 1 ? 's' : ''} à ${pj.nom}`))));
 }
 
 /** Colonnes supplémentaires d'une ligne (ex. statistiques d'un vaisseau), avec leur titre. */

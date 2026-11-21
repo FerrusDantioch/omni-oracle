@@ -657,3 +657,88 @@ test('parties de la version 0.2.1 : toujours valides avec les quatre univers', (
   }
   assert.equal(fichier.parties[0].journal.filter((e) => M.typeEntree(e) === 'scene-debut').length, 2);
 });
+
+describe('chocs et folie (horreur)', () => {
+  const horreur = cat.univ('horreur-enquete');
+  const partie = () => M.creerPartie(commun, horreur, { mode: 'duo', pjs: [{ nom: 'Ada' }, { nom: 'Bo' }] });
+
+  test('les chocs s\'ajoutent ; l\'alerte arrive à 5', () => {
+    const p = partie();
+    assert.deepEqual(M.ajouterChocs(horreur, p, 'pj1', 2), { avant: 0, chocs: 2, alerte: false });
+    assert.equal(M.ajouterChocs(horreur, p, 'pj1', 3).alerte, true);
+    assert.equal(M.ajouterChocs(horreur, p, 'pj1', -9).chocs, 0);
+    assert.equal(p.journal.filter((e) => e.type === 'choc').length, 3);
+    assert.throws(() => M.ajouterChocs(cyber, p, 'pj1', 1), /pas de points de choc/);
+  });
+
+  test('5 chocs = 1 point de folie + un jet sur la table de folie', () => {
+    const p = partie();
+    assert.throws(() => M.convertirFolie(cat, 'horreur-enquete', p, 'pj1', { des: 3 }), /Il faut 5/);
+    M.ajouterChocs(horreur, p, 'pj1', 6);
+    const e = M.convertirFolie(cat, 'horreur-enquete', p, 'pj1', { des: 3 });
+    assert.equal(p.pjs[0].chocs, 1);
+    assert.equal(p.pjs[0].folie, 1);
+    assert.equal(e.type, 'folie');
+    assert.equal(e.conversion, true);
+    assert.equal(e.nom, '**Cri incontrôlable**');
+    assert.equal(e.texte, 'Un hurlement lui échappe. Les ennemis ou PNJ hostiles des environs sont alertés.');
+    assert.equal(e.groupe, '**CHOC IMMÉDIAT — 1-7 · dure jusqu\'à la fin de la scène sauf indication**');
+  });
+
+  test('effet 11 (transfert de peur) : l\'allié visé peut prendre 1 point de choc', () => {
+    const p = partie();
+    const e = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 11 });
+    assert.equal(e.chocAllie, 1);
+    assert.equal(e.groupe, '**TRAUMATISME MARQUANT — 8-14 · dure jusqu\'à la fin de la session sauf indication**');
+    assert.equal(M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 15 }).groupe, '**FRACTURE MENTALE — 15-20 · conséquences durables, à discuter avec le MJ**');
+  });
+
+  test('option « la folie s\'aggrave » : 1d20 + points de folie, au-delà de 20 : 21-22 et 23+', () => {
+    const p = partie();
+    p.pjs[0].folie = 2;
+    assert.equal(M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18 }).total, 18); // option décochée
+    const a = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18, aggravation: true });
+    assert.equal(a.total, 20);
+    assert.equal(a.nom, '**Effondrement**');
+    const b = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 19, aggravation: true });
+    assert.equal(b.plage, '21-22');
+    assert.equal(b.nom, '**Crise de folie passagère**');
+    assert.equal(b.texte, 'le MJ contrôle le personnage pendant 1d4 tours.');
+    p.pjs[0].folie = 5;
+    const c = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18, aggravation: true });
+    assert.equal(c.plage, '23+');
+    assert.equal(c.nom, '**Folie profonde**');
+  });
+
+  test('vocabulaire : quête (fantasy), mystère (horreur), mission ailleurs', () => {
+    assert.equal(M.vocabulaire(cyber).Suivante, 'Mission suivante');
+    assert.equal(M.vocabulaire(cat.univ('fantasy')).toute, 'toute la quête');
+    const v = M.vocabulaire(horreur);
+    assert.equal(v.Nom, 'Mystère');
+    assert.equal(v.laSuivante, 'le mystère suivant');
+    assert.equal(v.deLaNouvelle, 'du nouveau mystère');
+    assert.equal(v.toute, 'tout le mystère');
+  });
+
+  test('rencontres en fantasy : F1 puis F2 ; une bande de brigands compte 1d4+1 membres', () => {
+    const r = M.rencontreVaisseau(cat, 'fantasy', { de: des(4, 3, 8) });
+    assert.equal(r.type.ligne.texte, 'Brigands (bande de 1d4+1)');
+    assert.equal(r.groupe.total, 4);
+    assert.equal(r.attitude.ligne.texte.startsWith('**Neutre et méfiant**'), true);
+    assert.equal(r.vraisemblance, 'incertain');
+    const blesse = M.rencontreVaisseau(cat, 'fantasy', { de: des(10, 13) });
+    assert.equal(blesse.attitude.ligne.attitude, null);
+    assert.equal(blesse.vraisemblance, 'incertain');
+    assert.throws(() => M.rencontreVaisseau(cat, 'horreur-enquete'));
+  });
+});
+
+test('journal : les chocs ne remplacent pas le numéro de l\'entrée', () => {
+  const horreur = cat.univ('horreur-enquete');
+  const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+  M.journaliser(p, { type: 'note', texte: 'x' });
+  M.ajouterChocs(horreur, p, 'pj1', 2);
+  M.ajusterFolie(horreur, p, 'pj1', 1);
+  assert.deepEqual(p.journal.map((e) => e.n), [1, 2, 3]);
+  assert.equal(p.journal[1].nb, 2);
+});

@@ -23,6 +23,12 @@
     }
   },
   "options": {
+    "libelles": {
+      "mission": {
+        "nom": "mystère",
+        "feminin": false
+      }
+    },
     "omniPoints": false,
     "contestation": false,
     "paliers": "paliers",
@@ -1499,7 +1505,11 @@
           "seuil": 7,
           "valeur": -2
         }
-      }
+      },
+      "actionsChoc": [
+        "Terrorise : 1 point de choc à une cible, sans attaque",
+        "Terrorise : 1 point de choc à une cible"
+      ]
     },
     {
       "id": "folie",
@@ -1597,7 +1607,8 @@
           "autres": [
             "Il accuse un allié. Conflit en RP ; l'allié visé : volonté 15 ou 1 point de choc."
           ],
-          "nom": "Transfert de peur"
+          "nom": "Transfert de peur",
+          "chocAllie": 1
         },
         {
           "plage": "12",
@@ -1684,6 +1695,20 @@
         {
           "avant": "15",
           "texte": "**FRACTURE MENTALE — 15-20 · conséquences durables, à discuter avec le MJ**"
+        }
+      ],
+      "aggravation": [
+        {
+          "plage": "21-22",
+          "min": 21,
+          "max": 22,
+          "texte": "Crise de folie passagère : le MJ contrôle le personnage pendant 1d4 tours."
+        },
+        {
+          "plage": "23+",
+          "min": 23,
+          "max": null,
+          "texte": "Folie profonde : le personnage sombre ; son sort est entre les mains du MJ (retrait de la scène ou de la campagne, ou arc narratif de guérison)."
         }
       ]
     }

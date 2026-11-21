@@ -159,7 +159,27 @@ for (const u of univers) {
     if (['fils', 'pnjs', 'menaces', 'lieux', 'scenes'].includes(r.id)) erreur(`${u.id} : la rubrique « ${r.id} » existe déjà dans la fiche`);
     if (r.table) table(r.table, 'fiche.table');
   }
-  if (o.chocs) { table(o.chocs.table, 'chocs.table'); table(o.chocs.folie, 'chocs.folie'); }
+  if (o.chocs) {
+    table(o.chocs.table, 'chocs.table');
+    const folie = table(o.chocs.folie, 'chocs.folie');
+    // Option « la folie s'aggrave » : chaque résultat au-delà de 20 est recopié de la source.
+    const lignesSource = u.sections.flatMap((s) => s.texte);
+    for (const a of folie?.aggravation || []) {
+      if (!lignesSource.includes(`- ${a.plage} · ${a.texte}`)) erreur(`${u.id} : aggravation « ${a.plage} » absente du texte des règles`);
+    }
+  }
+  // Actions qui donnent un point de choc (ex. M1 « Terrorise ») : elles existent dans la table.
+  for (const t of u.tables.filter((x) => x.actionsChoc)) {
+    for (const a of t.actionsChoc) {
+      if (!t.lignes.some((l) => (l.autres || []).includes(a))) erreur(`${u.id} / ${t.id} : action « ${a} » introuvable dans la table`);
+    }
+  }
+  for (const v of Object.values(o.libelles || {})) {
+    if (!v.nom || typeof v.feminin !== 'boolean') erreur(`${u.id} : libellé mal décrit (nom, feminin)`);
+  }
+  if (u.roles.rencontres) {
+    for (const c of ['type', 'attitude', 'onglet', 'titre', 'question']) if (!u.roles.rencontres[c]) erreur(`${u.id} : roles.rencontres.${c} manquant`);
+  }
   if (o.omniPoints === false && u.omniPointsPJ !== 0) erreur(`${u.id} : sans omni-points, omniPointsPJ doit valoir 0`);
 }
 

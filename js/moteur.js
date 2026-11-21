@@ -202,6 +202,35 @@ export function optionsUnivers(univers) {
   };
 }
 
+/**
+ * Mot qui remplace « mission » dans l'interface (options.libelles.mission = { nom, feminin },
+ * ex. « quête » en fantasy, « mystère » en horreur), avec ses accords tout faits.
+ */
+export function vocabulaire(univers) {
+  const v = optionsUnivers(univers).libelles.mission || { nom: 'mission', feminin: true };
+  const f = v.feminin !== false;
+  const n = v.nom;
+  const voyelle = /^[aeiouyéèêh]/i.test(n);
+  const maj = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const la = voyelle ? `l'${n}` : `${f ? 'la' : 'le'} ${n}`;
+  return {
+    nom: n,
+    Nom: maj(n),
+    la,
+    de: voyelle ? `de l'${n}` : `${f ? 'de la' : 'du'} ${n}`,
+    toute: `${f ? 'toute' : 'tout'} ${la}`,
+    nouvelle: `${f ? 'nouvelle' : (voyelle ? 'nouvel' : 'nouveau')} ${n}`,
+    suivante: `${n} ${f ? 'suivante' : 'suivant'}`,
+    Suivante: `${maj(n)} ${f ? 'suivante' : 'suivant'}`,
+    laSuivante: `${la} ${f ? 'suivante' : 'suivant'}`,
+    deLaNouvelle: f ? `de la nouvelle ${n}` : `du ${voyelle ? 'nouvel' : 'nouveau'} ${n}`,
+    sansNom: `${maj(n)} sans nom`,
+    tiree: f ? 'tirée' : 'tiré',
+    cette: `${f ? 'cette' : (voyelle ? 'cet' : 'ce')} ${n}`,
+    bonne: f ? 'Bonne' : 'Bon',
+  };
+}
+
 // --- Pression (section 3) -----------------------------------------------------------
 
 /** Paliers de Pression : ceux de l'univers s'il en a (ex. horreur), sinon ceux du tronc commun. */
@@ -463,6 +492,87 @@ export function contester(commun, partie, entree, idContestataire, { replique = 
   return { entree, evenements };
 }
 
+// --- Chocs et folie (horreur : options.chocs) -----------------------------------------
+
+function reglesChocs(univers) {
+  const o = optionsUnivers(univers).chocs;
+  if (!o) throw new Error('Cet univers n\'a pas de points de choc.');
+  return o;
+}
+
+/**
+ * Ajoute (ou retire, n < 0) des points de choc à un PJ. Renvoie le total et l'alerte
+ * « 5 chocs = 1 point de folie » quand le seuil est atteint.
+ */
+export function ajouterChocs(univers, partie, idPJ, n, { motif = '' } = {}) {
+  const o = reglesChocs(univers);
+  const pj = trouverPJ(partie, idPJ);
+  const avant = pj.chocs || 0;
+  pj.chocs = Math.max(0, avant + n);
+  if (pj.chocs !== avant) journaliser(partie, { type: 'choc', pj: idPJ, nb: pj.chocs - avant, total: pj.chocs, motif });
+  return { avant, chocs: pj.chocs, alerte: pj.chocs >= o.seuil };
+}
+
+/** Corrige à la main les points de folie d'un PJ (sans jet). */
+export function ajusterFolie(univers, partie, idPJ, n) {
+  reglesChocs(univers);
+  const pj = trouverPJ(partie, idPJ);
+  const avant = pj.folie || 0;
+  pj.folie = Math.max(0, avant + n);
+  if (pj.folie !== avant) journaliser(partie, { type: 'folie-points', pj: idPJ, nb: pj.folie - avant, total: pj.folie });
+  return pj.folie;
+}
+
+/** Intertitre d'une ligne de table (ex. « CHOC IMMÉDIAT — 1-7 · … » pour la folie), ou null. */
+export function groupeDe(table, ligne) {
+  let trouve = null;
+  for (const g of table.groupes || []) {
+    if (lirePlage(g.avant).min <= lirePlage(ligne.plage).min) trouve = g;
+  }
+  return trouve;
+}
+
+/**
+ * Jet sur la table de folie. Option « la folie s'aggrave avec l'accumulation » :
+ * 1d20 + le nombre total de points de folie du PJ ; au-delà de 20, résultats de
+ * `aggravation` (21-22, 23+). Inscrit au journal (type « folie ») et renvoie l'entrée.
+ */
+export function tirerFolie(catalogue, universId, partie, idPJ, { aggravation = false, des = null, de = deAleatoire } = {}) {
+  const o = reglesChocs(catalogue.univ(universId));
+  const table = catalogue.table(universId, o.folie);
+  const pj = trouverPJ(partie, idPJ);
+  const valeur = des ?? de(20);
+  if (!valeurD20Valide(valeur)) throw new Error('Un d20 donne un nombre entier de 1 à 20.');
+  const bonus = aggravation ? (pj.folie || 0) : 0;
+  const total = valeur + bonus;
+  const res = { type: 'folie', pj: idPJ, table: table.id, titre: table.titre, de: valeur, bonus, total, aggravation };
+  if (total <= 20) {
+    const ligne = ligneParValeur(table, total);
+    Object.assign(res, {
+      plage: ligne.plage, nom: ligne.texte, texte: (ligne.autres || [])[0] || '',
+      groupe: groupeDe(table, ligne)?.texte || null, chocAllie: ligne.chocAllie || 0,
+    });
+  } else {
+    const a = table.aggravation.find((x) => total >= x.min && (x.max === null || total <= x.max));
+    const [nom, ...reste] = a.texte.split(' : ');
+    Object.assign(res, { plage: a.plage, nom: `**${nom}**`, texte: reste.join(' : '), groupe: null, chocAllie: 0 });
+  }
+  return journaliser(partie, res);
+}
+
+/**
+ * 5 chocs = 1 point de folie + un jet sur la table de folie : retire les chocs, ajoute
+ * le point de folie, puis lance le jet. Renvoie l'entrée du journal du jet.
+ */
+export function convertirFolie(catalogue, universId, partie, idPJ, options = {}) {
+  const o = reglesChocs(catalogue.univ(universId));
+  const pj = trouverPJ(partie, idPJ);
+  if ((pj.chocs || 0) < o.seuil) throw new Error(`Il faut ${o.seuil} points de choc pour un point de folie.`);
+  pj.chocs -= o.seuil;
+  pj.folie = (pj.folie || 0) + 1;
+  return Object.assign(tirerFolie(catalogue, universId, partie, idPJ, options), { conversion: true });
+}
+
 // --- Intentions des PNJ (section 5) et des vaisseaux ennemis (E) ---------------------
 
 /**
@@ -543,18 +653,20 @@ export function genererPNJ(catalogue, universId, { verrous = {}, de = deAleatoir
 }
 
 /**
- * Rencontre de vaisseau (space opéra) : type (D1) puis attitude et état (D2).
- * - Chasseurs : escadrille de 1d4+1.
- * - Croiseur ou vaisseau-mère : escorte de chasseurs si un d20 supplémentaire donne 14 ou plus.
+ * Rencontre (roles.rencontres de l'univers) : type puis attitude et état.
+ * Space opéra (D1, D2) : chasseurs en escadrille de 1d4+1 ; croiseur ou vaisseau-mère :
+ * escorte de chasseurs si un d20 supplémentaire donne 14 ou plus.
+ * Fantasy (F1, F2) : une bande de brigands compte 1d4+1 membres (champ « groupe »).
  */
 export function rencontreVaisseau(catalogue, universId, { de = deAleatoire, valeurType = null, valeurAttitude = null } = {}) {
   const u = catalogue.univ(universId);
-  if (!u.roles.vaisseaux) throw new Error('Cet univers n\'a pas de rencontres de vaisseaux.');
-  const d1 = catalogue.table(universId, u.roles.vaisseaux.type);
-  const d2 = catalogue.table(universId, u.roles.vaisseaux.attitude);
+  if (!u.roles.rencontres) throw new Error('Cet univers n\'a pas de table de rencontres.');
+  const d1 = catalogue.table(universId, u.roles.rencontres.type);
+  const d2 = catalogue.table(universId, u.roles.rencontres.attitude);
   const type = tirerTable(d1, { valeur: valeurType, de });
   const res = { type };
   if (type.ligne.escadrille) res.escadrille = lancerFormule(type.ligne.escadrille, de);
+  if (type.ligne.groupe) res.groupe = lancerFormule(type.ligne.groupe, de);
   if (type.ligne.escorte) {
     const jet = de(20);
     const deploie = jet >= d1.escorte.seuil;

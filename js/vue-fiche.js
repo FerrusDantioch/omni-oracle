@@ -1,10 +1,15 @@
 // Onglet « Fiche » : la fiche de suivi modifiable (tronc commun, section 7).
 // Fils ouverts, PNJ, menaces, lieux, journal de scènes. Elle fait partie de la
 // partie : elle est enregistrée sur l'appareil et incluse dans l'export JSON.
+// Un univers peut ajouter des rubriques (options.fiche, ex. indices en horreur) et
+// un suivi des chocs et de la folie de chaque PJ (options.chocs).
 
 import * as M from './moteur.js';
-import { h, remplacer, champ, confirmer, annoncer } from './ui.js';
+import { h, remplacer, champ, confirmer, annoncer, caseACocher, riche } from './ui.js';
 import { ATTITUDES, optionsProfils } from './vue-pnj.js';
+import { convertirEnFolie, donnerChocs, ecarter, saisieDes, essayer } from './actions.js';
+import { actionsSuggestion, boutonsChocs } from './composants.js';
+import { texteBrut } from './texte.js';
 
 export function creerVueFiche(ctx) {
   const el = h('div', { class: 'vue-fiche' });
@@ -25,6 +30,7 @@ export function creerVueFiche(ctx) {
           rows: c.type === 'textarea' ? 2 : undefined, 'data-cle': `fiche-${id}-${i}-${c.cle}`,
         });
         ch.classList.add(`champ-${c.cle}`);
+        if (c.type === 'textarea') ch.classList.add('champ-large');
         const evenement = c.type === 'select' ? 'change' : 'input';
         ch.saisie.addEventListener(evenement, (e) => { o[c.cle] = e.target.value; ctx.enregistrerSansRendu(); });
         bloc.append(ch);
@@ -68,7 +74,7 @@ export function creerVueFiche(ctx) {
         h('div', { class: 'carte-entete' },
           h('h2', {}, 'Fiche de suivi'),
           h('button', { type: 'button', class: 'bouton', 'data-cle': 'fiche-exporter', onclick: () => ctx.exporter() }, 'Exporter la partie')),
-        h('p', { class: 'petit discret' }, `Mission : ${p.mission.nom || 'sans nom'} · scène ${p.scene.numero} · Pression ${p.pression}/10`,
+        h('p', { class: 'petit discret' }, `${ctx.voc.Nom} : ${p.mission.nom || 'sans nom'} · scène ${p.scene.numero} · Pression ${p.pression}/10`,
           // Univers sans omni-points (ex. horreur) : pas de ligne « Omni-points » sur la fiche.
           M.optionsUnivers(ctx.univ).omniPoints && ` · omni-points : ${p.pjs.map((x) => `${x.nom} ${x.omni}`).join(', ')}, Oracle ${p.oracle.omni}`,
           ` · seuil de rupture (9) ${p.seuilAtteint ? 'déjà atteint' : 'pas encore atteint'}.`),
@@ -121,13 +127,120 @@ export function creerVueFiche(ctx) {
         champs: [{ cle: 'nom', etiquette: 'Nom' }, { cle: 'detail', etiquette: 'Détail marquant' }],
         nomElement: (o, i) => o.nom || `lieu ${i + 1}`,
       }),
+      // Rubriques propres à l'univers (ex. horreur : indices, suspects et témoins, chronologie).
+      M.optionsUnivers(ctx.univ).fiche.map((r) => {
+        f[r.id] ||= [];
+        const champs = r.champs.map((c) => (c.type === 'attitude' ? { ...c, type: 'select', options: ATTITUDES } : c));
+        return listeEditable({
+          id: r.id, titre: r.titre, ajout: r.ajout, aide: r.aide, liste: f[r.id],
+          nouveau: () => Object.fromEntries(r.champs.map((c) => [c.cle, c.type === 'attitude' ? 'neutre' : ''])),
+          champs,
+          nomElement: (o, i) => o[r.champs[0].cle] || `${r.titre.toLowerCase()} ${i + 1}`,
+        });
+      }),
+      carteChocs(),
       listeEditable({
         id: 'scenes', titre: 'Journal de scènes', ajout: 'Ajouter une ligne', aide: 'Une ligne par scène (ce qui s\'est passé). Remplie à chaque fin de scène.',
         liste: f.scenes, nouveau: () => ({ numero: p.scene.numero, mission: p.mission.numero, texte: '' }),
-        champs: [{ cle: 'texte', etiquette: (o) => `Mission ${o.mission ?? 1} · scène ${o.numero}`, type: 'textarea' }],
+        champs: [{ cle: 'texte', etiquette: (o) => `${ctx.voc.Nom} ${o.mission ?? 1} · scène ${o.numero}`, type: 'textarea' }],
         nomElement: (o) => `scène ${o.numero}`,
       }));
   }
 
-  return { el, actualiser: rendre };
+  // --- Chocs et folie (horreur) ---------------------------------------------------------
+  /** Petit compteur − valeur + (cibles de 44 px). */
+  function compteur(etiquette, valeur, cle, changer) {
+    return h('div', { class: 'champ' },
+      h('span', { class: 'etiquette-compteur', id: `etiq-${cle}` }, etiquette),
+      h('div', { class: 'compteur', role: 'group', 'aria-labelledby': `etiq-${cle}` },
+        h('button', { type: 'button', class: 'bouton', 'aria-label': `${etiquette} : moins 1`, 'data-cle': `${cle}-moins`, onclick: () => changer(-1) }, '−'),
+        h('output', { class: 'valeur-compteur', 'data-cle': `${cle}-valeur` }, String(valeur)),
+        h('button', { type: 'button', class: 'bouton', 'aria-label': `${etiquette} : plus 1`, 'data-cle': `${cle}-plus`, onclick: () => changer(+1) }, '+')));
+  }
+
+  /** Dernier jet de folie d'un PJ : effet, intertitre, et boutons du MJ. */
+  function resultatFolie(pj) {
+    const p = ctx.partie;
+    const e = p.journal.find((x) => x.n === pj.derniereFolie && !x.ecarte);
+    if (!e) return null;
+    const res = h('div', { class: 'resultat', 'aria-live': 'polite' },
+      h('p', { class: 'discret' }, `${e.titre} · d20 : ${e.de}${e.bonus ? ` + ${e.bonus} (points de folie) = ${e.total}` : ''}`),
+      e.groupe && h('p', { class: 'petit' }, riche(e.groupe)),
+      h('p', { class: 'resultat-titre' }, riche(e.nom)),
+      e.texte && h('p', {}, riche(e.texte)));
+    const autres = p.pjs.filter((x) => x.id !== pj.id).map((x) => x.id);
+    return [
+      ctx.resultat(res, { cle: `j-${e.n}` }),
+      actionsSuggestion({
+        cle: `folie-${pj.id}`,
+        // Relancer : nouveau jet, sans toucher aux chocs ni aux points de folie déjà comptés.
+        relancer: () => essayer(() => {
+          ecarter(ctx, e, 'relance');
+          pj.derniereFolie = M.tirerFolie(ctx.cat, ctx.univ.id, p, pj.id, { aggravation: !!p.folieAggravee }).n;
+          ctx.enregistrer();
+        }),
+        ignorer: () => { ecarter(ctx, e, 'ignore'); pj.derniereFolie = null; ctx.enregistrer(); annoncer('Effet de folie ignoré.'); },
+        afficher: { titre: `${pj.nom} · ${e.titre}`, texte: e.texte ? `${e.nom} — ${e.texte}` : e.nom },
+      }),
+      h('div', { class: 'rangee' },
+        h('button', {
+          type: 'button', class: 'bouton', 'data-cle': `folie-${pj.id}-sequelle`,
+          onclick: () => {
+            const ligne = `${texteBrut(e.nom)} : ${e.texte}`;
+            pj.sequelles = pj.sequelles ? `${pj.sequelles}\n${ligne}` : ligne;
+            ctx.enregistrer();
+            annoncer('Noté dans les séquelles en cours.');
+          },
+        }, 'Noter dans les séquelles')),
+      // Effet 11 (transfert de peur) : l'allié visé peut prendre 1 point de choc.
+      e.chocAllie > 0 && boutonsChocs(ctx, { cle: `folie-${pj.id}-allie`, nombres: [e.chocAllie], pour: autres, motif: 'transfert de peur' }),
+    ];
+  }
+
+  function carteChocs() {
+    const o = M.optionsUnivers(ctx.univ).chocs;
+    if (!o) return null;
+    const p = ctx.partie;
+    const folieTable = ctx.cat.table(ctx.univ.id, o.folie);
+    const option = ctx.univ.sections.find((s) => s.id === 'folie-aggravation');
+    const carte = h('section', { class: 'carte', 'aria-labelledby': 'titre-fiche-chocs', id: 'fiche-chocs' },
+      h('h2', { id: 'titre-fiche-chocs' }, 'Chocs et folie'),
+      h('p', { class: 'petit discret' }, `${o.alerte} + un jet sur la table « ${folieTable.titre} ».`),
+      caseACocher(`Option : ${option ? texteBrut(option.titre).replace(/^OPTION : /i, '').toLowerCase() : 'la folie s\'aggrave avec l\'accumulation'} (1d20 + points de folie)`, {
+        coche: !!p.folieAggravee, 'data-cle': 'folie-aggravation',
+        onchange: (v) => { p.folieAggravee = v; ctx.enregistrer(); },
+      }));
+    for (const pj of p.pjs) {
+      const chocs = pj.chocs || 0;
+      const des = saisieDes(ctx, 1, `Ton d20 de folie (${pj.nom})`);
+      const sequelles = champ('Séquelles en cours', { type: 'textarea', rows: 2, valeur: pj.sequelles || '', 'data-cle': `fiche-${pj.id}-sequelles` });
+      sequelles.saisie.addEventListener('input', (ev) => { pj.sequelles = ev.target.value; ctx.enregistrerSansRendu(); });
+      carte.append(h('div', { class: `ligne-fiche ligne-chocs${chocs >= o.seuil ? ' alerte' : ''}` },
+        h('h3', {}, pj.nom),
+        compteur('Points de choc', chocs, `fiche-${pj.id}-chocs`, (d) => (d > 0 ? donnerChocs(ctx, pj.id, d) : (M.ajouterChocs(ctx.univ, p, pj.id, d), ctx.enregistrer()))),
+        compteur('Points de folie', pj.folie || 0, `fiche-${pj.id}-folie`, (d) => { M.ajusterFolie(ctx.univ, p, pj.id, d); ctx.enregistrer(); }),
+        chocs >= o.seuil && h('div', { class: 'alerte-chocs' },
+          h('p', {}, h('strong', {}, `${o.alerte} : `), `${pj.nom} a ${chocs} points de choc.`),
+          des.el,
+          h('button', {
+            type: 'button', class: 'bouton bouton-accent', 'data-cle': `fiche-${pj.id}-convertir`,
+            onclick: () => essayer(() => convertirEnFolie(ctx, pj.id, { des: des.lire()?.[0] ?? null })),
+          }, `Convertir ${o.seuil} chocs en 1 point de folie`)),
+        sequelles,
+        resultatFolie(pj)));
+    }
+    return carte;
+  }
+
+  return {
+    el,
+    actualiser() {
+      rendre();
+      // Demande d'un autre écran (conversion en folie) : montrer la carte des chocs.
+      if (ctx.demandeFiche === 'chocs') {
+        ctx.demandeFiche = null;
+        requestAnimationFrame(() => el.querySelector('#fiche-chocs')?.scrollIntoView({ block: 'start' }));
+      }
+    },
+  };
 }

@@ -179,7 +179,9 @@ img { max-width: 100%; height: auto; }
 }
 .tdb-jauge span.plein { background: var(--accent); }
 .tdb-scene strong { font-size: 1.3rem; }
-.tdb-omni { flex-wrap: wrap; }
+.tdb-omni, .tdb-chocs { flex-wrap: wrap; }
+.jeton.alerte { border: 2px solid var(--accent); }
+.alerte-jeton { font-weight: 800; }
 .jeton {
   min-height: 44px;
   padding: .3rem .7rem;
@@ -553,6 +555,8 @@ details[open] > summary { margin-bottom: .4rem; }
   border-top: 1px solid var(--trait);
 }
 .lignes-table li.obtenue { background: var(--accent-doux); border-radius: .4rem; }
+/* Intertitre (ex. « CHOC IMMÉDIAT — 1-7 · … » dans la table de folie) */
+.lignes-table li.intertitre { display: block; padding: .7rem 0 .3rem; border-top: 2px solid var(--accent); }
 .lignes-table .ligne-texte p { margin: 0; }
 .lignes-table .plage { margin-top: .5rem; }
 .lignes-table .bouton.petit { font-size: .9rem; padding: .4rem .7rem; }
@@ -565,7 +569,20 @@ details[open] > summary { margin-bottom: .4rem; }
   padding: .75rem 0;
   border-top: 1px solid var(--trait);
 }
-.ligne-fiche .champ-notes, .ligne-fiche .champ-consequence, .ligne-fiche .rangee { grid-column: 1 / -1; }
+.ligne-fiche .champ-notes, .ligne-fiche .champ-consequence, .ligne-fiche .rangee, .ligne-fiche .champ-large { grid-column: 1 / -1; }
+/* Chocs et folie (horreur) */
+.ligne-chocs > h3, .ligne-chocs > .alerte-chocs, .ligne-chocs > .resultat, .ligne-chocs > .masquable { grid-column: 1 / -1; }
+.ligne-chocs > h3 { margin: 0; }
+.etiquette-compteur { display: block; font-weight: 600; margin-bottom: .25rem; }
+.valeur-compteur { min-width: 2.5rem; text-align: center; font-size: 1.3rem; font-weight: 700; }
+.alerte-chocs {
+  margin-top: .5rem;
+  padding: .6rem .8rem;
+  border: 2px solid var(--accent);
+  border-radius: .6rem;
+}
+.alerte-chocs p { margin-top: 0; }
+.rappel-choc { margin-top: .75rem; }
 .ligne-fiche .rangee { margin-top: 0; }
 
 /* --- Résultats masqués (écran visible des joueurs) et suggestions du MJ ------------------- */
