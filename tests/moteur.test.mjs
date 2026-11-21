@@ -742,3 +742,24 @@ test('journal : les chocs ne remplacent pas le numéro de l\'entrée', () => {
   assert.deepEqual(p.journal.map((e) => e.n), [1, 2, 3]);
   assert.equal(p.journal[1].nb, 2);
 });
+
+test('option à tester (horreur) : au seuil de rupture, le rebondissement est tiré s\'il ne l\'est pas', () => {
+  const horreur = cat.univ('horreur-enquete');
+  assert.equal(M.optionsUnivers(horreur).rebondissementAuSeuil, true);
+  assert.equal(M.optionsUnivers(cyber).rebondissementAuSeuil, false);
+  const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+  // Décochée par défaut : rien.
+  assert.equal(M.rebondissementAuSeuil(cat, 'horreur-enquete', p, { de: des(5) }), null);
+  p.rebondissementAuSeuil = true;
+  const e = M.rebondissementAuSeuil(cat, 'horreur-enquete', p, { de: des(5) });
+  assert.equal(e.table, 'T6');
+  assert.equal(e.texte, cat.table('horreur-enquete', 'T6').lignes[4].texte);
+  assert.equal(p.tirageMission.T6.valeur, 5);
+  assert.equal(p.tirageMission.T6.n, e.n);
+  // Déjà tiré : on ne le retire pas.
+  assert.equal(M.rebondissementAuSeuil(cat, 'horreur-enquete', p, { de: des(9) }), null);
+  // Univers sans l'option : jamais, même si la case existait.
+  const c = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+  c.rebondissementAuSeuil = true;
+  assert.equal(M.rebondissementAuSeuil(cat, 'cyberpunk', c, { de: des(5) }), null);
+});

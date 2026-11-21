@@ -56,10 +56,11 @@ test('fantasy : onglet « Rencontres » (F1, F2), bande de brigands de 1d4+1', a
   await expect(page.locator('[data-cle="oracle-question"]')).toHaveValue('Le groupe rencontré accepte la proposition ?');
   await onglet(page, 'Journal');
   await expect(page.locator('.journal li').first()).toContainText('Rencontre : Brigands');
-  // Tables : F3 (salles de donjon) consultable et tirable ; F4 se joue dans « Intentions ».
+  // Tables : F3 (salles de donjon) tirable ; F4 à consulter seulement (il se joue dans « Intentions »).
   await onglet(page, 'Tables');
-  await expect(page.locator('[data-table="F3"]')).toHaveCount(1);
-  await expect(page.locator('[data-table="F4"]')).toHaveCount(0);
+  await expect(page.locator('[data-cle="tables-F3-tirer"]')).toHaveCount(1);
+  await expect(page.locator('[data-table="F4"]')).toHaveCount(1);
+  await expect(page.locator('[data-cle="tables-F4-tirer"]')).toHaveCount(0);
   expect(erreurs).toEqual([]);
 });
 
@@ -188,4 +189,55 @@ test('horreur sur téléphone : fiche et chocs sans débordement, cibles de 44 p
     .map((b) => ({ t: b.textContent.trim(), h: b.getBoundingClientRect().height, w: b.getBoundingClientRect().width }))
     .filter((b) => b.h < 44 || b.w < 44));
   expect(petits).toEqual([]);
+});
+
+test('horreur : option à tester, le rebondissement est tiré à la Pression 9 (case décochée par défaut)', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await creerPartie(page, { univers: 'Horreur / enquête', pjs: ['Ada'] });
+  await onglet(page, 'Mystère');
+  const option = page.locator('[data-cle="option-rebondissement-seuil"]');
+  await expect(option).not.toBeChecked();
+  await option.check();
+  for (let i = 0; i < 6; i++) {
+    await page.locator('[data-cle="tdb-plus"]').click();
+    if (i === 3) await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click(); // étau à 7
+  }
+  const dlg = page.getByRole('dialog');
+  await expect(dlg).toContainText('Option à tester : le rebondissement du mystère n\'était pas encore tiré, il l\'est maintenant (T6 — Révélation');
+  await dlg.getByRole('button', { name: 'Voir le mystère' }).click();
+  await expect(page.locator('[data-cle="mission-T6-ignorer"]')).toBeVisible();
+  await onglet(page, 'Journal');
+  await expect(page.locator('.journal li').filter({ hasText: 'T6 — Révélation' })).toHaveCount(1);
+});
+
+test('horreur : sans la case, la Pression 9 ne tire rien', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await creerPartie(page, { univers: 'Horreur / enquête', pjs: ['Ada'] });
+  for (let i = 0; i < 6; i++) {
+    await page.locator('[data-cle="tdb-plus"]').click();
+    if (i === 3) await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click();
+  }
+  await expect(page.getByRole('dialog')).not.toContainText('Option à tester');
+  await page.locator('.dialogue-actions').getByRole('button', { name: 'Fermer' }).click();
+  await onglet(page, 'Mystère');
+  await expect(page.locator('[data-cle="mission-T6-tirer"]')).toBeVisible();
+});
+
+test('Tables : grilles de profils et paliers à consulter, sans « Tirer »', async ({ page, serveur }) => {
+  await page.goto(serveur.url);
+  await creerPartie(page, { univers: 'Horreur / enquête', pjs: ['Ada'] });
+  await onglet(page, 'Tables');
+  for (const id of ['M1', 'paliers']) {
+    const bloc = page.locator(`[data-table="${id}"]`);
+    await bloc.locator('summary').click();
+    await expect(bloc.locator(`[data-cle="tables-${id}-tirer"]`)).toHaveCount(0);
+  }
+  await expect(page.locator('[data-table="M1"] tbody tr')).toHaveCount(3);
+  await expect(page.locator('[data-table="paliers"] tbody th')).toHaveText(['0-2 Calme trompeur', '3-4 Malaise', '5-6 Angoisse', '7-8 Terreur', '9-10 Rupture']);
+  // La recherche trouve aussi dans ces tables.
+  await page.getByLabel('Rechercher dans les tables').fill('accalmie');
+  await expect(page.locator('[data-table="M1"] tbody tr')).toHaveCount(1);
+  await page.getByLabel('Rechercher dans les tables').fill('');
+  await page.locator('[data-cle="tables-M1-intentions"]').click();
+  await expect(page.getByRole('heading', { name: 'Intentions des ennemis et des PNJ compagnons' })).toBeVisible();
 });

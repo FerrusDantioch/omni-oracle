@@ -224,6 +224,7 @@ for (const theme of THEMES) {
     await page.locator('[data-table="folie"] summary').click();
     await page.locator('[data-table="C1"] summary').click();
     await page.locator('[data-cle="tables-C1-tirer"]').click();
+    await page.locator('[data-table="M1"] summary').click();
     fautes.push(...await fautesDeContraste(page, 'Tables'));
     await page.getByRole('button', { name: /Menu/ }).click();
     await page.getByRole('button', { name: 'Mes parties' }).click();

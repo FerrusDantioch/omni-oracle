@@ -182,6 +182,8 @@ export function vraisemblancePourAttitude(commun, attitude) {
  * = comme le tronc commun. Le code lit ces options ; il ne teste jamais le nom d'un univers.
  * - omniPoints : false = aucun omni-point (ni PJ ni Oracle), pas de gain au seuil de rupture
  * - contestation : false = pas de contestation en duo (sans omni-points, jamais de contestation)
+ * - rebondissementAuSeuil : true = propose l'« option à tester » de la source (case décochée par
+ *   défaut, dans la partie) : à 9, tirer le rebondissement s'il ne l'est pas encore
  * - paliers : table de l'univers qui remplace les paliers de Pression du tronc commun
  * - profils : tables de profils d'intention ajoutées à celles du tronc commun
  * - fiche : rubriques en plus dans la fiche de suivi ; chocs : compteur de chocs par PJ
@@ -193,6 +195,7 @@ export function optionsUnivers(univers) {
   return {
     omniPoints,
     contestation: omniPoints && o.contestation !== false,
+    rebondissementAuSeuil: !!o.rebondissementAuSeuil,
     paliers: o.paliers || null,
     profils: o.profils || [],
     fiche: o.fiche || [],
@@ -490,6 +493,30 @@ export function contester(commun, partie, entree, idContestataire, { replique = 
   Object.assign(entree, r, { contestee: true, contestePar: pj.id, repliqueContestation: replique });
   journaliser(partie, { type: 'omni-pj', pj: pj.id, replique, motif: 'contestation', cible: entree.n, evenements });
   return { entree, evenements };
+}
+
+/**
+ * « Option à tester » (horreur) : la première fois que la Pression atteint 9, si le
+ * rebondissement (roles.rebondissement, T6) n'a pas encore été tiré, on le tire tout de suite.
+ * Seulement si l'univers propose l'option ET si elle est cochée dans la partie.
+ * Renvoie l'entrée du journal du tirage, ou null (option absente ou décochée, déjà tiré).
+ */
+export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAleatoire } = {}) {
+  const u = catalogue.univ(universId);
+  if (!optionsUnivers(u).rebondissementAuSeuil || !partie.rebondissementAuSeuil) return null;
+  const id = u.roles.rebondissement;
+  partie.tirageMission ||= {};
+  const etat = (partie.tirageMission[id] ||= { valeur: null, verrou: false });
+  if (etat.valeur) return null;
+  const table = catalogue.table(universId, id);
+  const t = tirerTable(table, { de });
+  const e = journaliser(partie, {
+    type: 'tirage', table: table.id, titre: table.titre, valeur: t.valeur, plage: t.ligne.plage,
+    texte: t.ligne.texte, autres: t.ligne.autres || null, cible: null, contexte: 'mission', manuel: false, auto: 'seuil-rupture',
+  });
+  etat.valeur = t.valeur;
+  etat.n = e.n;
+  return e;
 }
 
 // --- Chocs et folie (horreur : options.chocs) -----------------------------------------

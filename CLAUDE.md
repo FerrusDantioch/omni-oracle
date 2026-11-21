@@ -159,9 +159,11 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     gestion des sorts. F1 : pas de statistiques inventées ; « Brigands (bande de 1d4+1) » : le
     1d4+1 est lancé. F2, états sans attitude (Blessé ou affaibli, En fuite, Divisé, Abandonné) :
     « incertain » par défaut, comme D2.
-22. **Horreur** : ni omni-points ni contestation. Seuil de rupture : un petit message, aucun gain ;
-    l'« option à tester » (tirer le rebondissement à 9) n'est **pas** codée. Les profils de
-    compagnons du tronc commun restent disponibles. M1 : +4 si la menace est affaiblie.
+22. **Horreur** : ni omni-points ni contestation. Seuil de rupture : un petit message, aucun gain.
+    L'« option à tester » (à 9, tirer le rebondissement s'il ne l'est pas encore) est une case
+    de la partie, dans l'onglet Mystère, **décochée par défaut** (`options.rebondissementAuSeuil`,
+    `partie.rebondissementAuSeuil`). Les profils de compagnons du tronc commun restent
+    disponibles. M1 : +4 si la menace est affaiblie.
 23. **Vocabulaire** : « Quête » en fantasy, « Mystère » en horreur (onglet, boutons, titres) ;
     la question de clôture reste celle de la source (« L'affaire est-elle résolue ? »).
 24. **Chocs** : boutons +1 / +2 après C1 (rappel « 1 point de choc (2 si l'événement est
@@ -178,6 +180,8 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 26. **Livret Horreur** : la partie 1 reprend le tronc commun tel quel (omni-points, contestation) ;
     la section 0 de la partie 2 dit ce qui change. La fiche imprimée suit l'univers (pas de ligne
     omni-points, rubriques d'enquête, chocs et folie).
+27. **Onglet Tables** : les grilles de profils (F4, M1) et les paliers propres à l'univers y sont
+    consultables en lecture seule (sans « Tirer ») ; ils se jouent dans Intentions et Jouer.
 
 ## Tests
 
