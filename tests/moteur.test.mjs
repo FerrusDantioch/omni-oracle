@@ -685,6 +685,21 @@ describe('chocs et folie (horreur)', () => {
     assert.equal(e.groupe, '**CHOC IMMÉDIAT — 1-7 · dure jusqu\'à la fin de la scène sauf indication**');
   });
 
+  test('décisions de Ferrus (21/11/2026) : le point gagné compte dans l\'aggravation, relancer ne touche ni chocs ni folie', () => {
+    const p = partie();
+    M.ajouterChocs(horreur, p, 'pj1', 5);
+    // Option cochée : le point de folie qu'on vient de gagner compte (18 + 1 = 19).
+    const e = M.convertirFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18, aggravation: true });
+    assert.equal(p.pjs[0].folie, 1);
+    assert.equal(e.bonus, 1);
+    assert.equal(e.total, 19);
+    // « Relancer » refait seulement le jet : chocs et points de folie inchangés.
+    const r = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 4, aggravation: true });
+    assert.equal(r.total, 5);
+    assert.equal(p.pjs[0].chocs, 0);
+    assert.equal(p.pjs[0].folie, 1);
+  });
+
   test('effet 11 (transfert de peur) : l\'allié visé peut prendre 1 point de choc', () => {
     const p = partie();
     const e = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 11 });
