@@ -2,7 +2,7 @@
 
 ---
 
-## E. Table des effets de folie (1d20)
+## Table des effets de folie (1d20)
 *Règle : 5 points de choc accumulés = 1 point de folie + un jet sur cette table.*
 
 | d20 | Effet | Description |
