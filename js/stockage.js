@@ -6,6 +6,8 @@
 //   <prefixe>-courante  : id de la partie ouverte
 //   <prefixe>-reglages  : réglages de l'appareil (thème, vibration, dé physique…)
 
+import { noterSauvegarde } from './moteur.js';
+
 const CONFIG = globalThis.CONFIG_APP;
 const P = CONFIG.idStockage;
 const CLE_PARTIES = `${P}-parties`;
@@ -18,6 +20,7 @@ export const REGLAGES_PAR_DEFAUT = Object.freeze({
   dePhysique: false,    // saisir le résultat d'un vrai dé au lieu de le lancer
   secret: false,        // « Masquer les résultats (écran visible des joueurs) » : floutés, révélés au toucher
   luminosite: 100,      // en %, de 50 à 100 (100 = aucun assombrissement)
+  rappelSauvegarde: true, // bandeau « exporte ta partie » toutes les 5 scènes sans export
 });
 
 function lire(cle, defaut) {
@@ -95,8 +98,10 @@ function telecharger(nom, objet) {
 
 const aujourdhui = () => new Date().toISOString().slice(0, 10);
 
-/** Enregistre une partie dans un fichier .json (dossier Téléchargements). */
+/** Enregistre une partie dans un fichier .json (dossier Téléchargements) et note la date de l'export. */
 export function exporterPartie(partie) {
+  noterSauvegarde(partie);
+  enregistrerPartie(partie);
   telecharger(`oracle-${nomFichier(partie.mission?.nom)}-${aujourdhui()}.json`, {
     application: CONFIG.nom,
     type: 'partie',
@@ -106,15 +111,33 @@ export function exporterPartie(partie) {
   });
 }
 
-/** Enregistre toutes les parties dans un seul fichier .json. */
+/** Enregistre toutes les parties dans un seul fichier .json et note la date de l'export de chacune. */
 export function exporterTout() {
+  const quand = new Date().toISOString();
+  const parties = listerParties();
+  for (const p of parties) { noterSauvegarde(p, quand); enregistrerPartie(p); }
   telecharger(`oracle-toutes-les-parties-${aujourdhui()}.json`, {
     application: CONFIG.nom,
     type: 'parties',
     version: CONFIG.version,
-    exporte: new Date().toISOString(),
-    parties: listerParties(),
+    exporte: quand,
+    parties,
   });
+}
+
+/**
+ * Demande au navigateur de garder les données de l'Oracle (« stockage persistant ») : sans
+ * cela, un navigateur à court de place peut effacer les données d'un site. Rien n'est envoyé.
+ * Renvoie true si les données sont protégées, false sinon, null si le navigateur ne sait pas.
+ */
+export async function protegerStockage({ demander = true } = {}) {
+  try {
+    if (!navigator.storage || !navigator.storage.persisted) return null;
+    if (await navigator.storage.persisted()) return true;
+    return demander && navigator.storage.persist ? await navigator.storage.persist() : false;
+  } catch {
+    return null;
+  }
 }
 
 /** Vérifie qu'un objet ressemble bien à une partie de l'Oracle. Renvoie un message d'erreur ou null. */

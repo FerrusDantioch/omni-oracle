@@ -182,6 +182,11 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     omni-points, rubriques d'enquête, chocs et folie).
 27. **Onglet Tables** : les grilles de profils (F4, M1) et les paliers propres à l'univers y sont
     consultables en lecture seule (sans « Tirer ») ; ils se jouent dans Intentions et Jouer.
+28. **Rappel de sauvegarde** : bandeau discret dans l'onglet Jouer après 5 scènes terminées sans
+    export (`partie.sauvegarde = { quand, reporteA }`, absent = jamais exportée) ; « Plus tard »
+    le repousse de 5 scènes ; réglage pour le couper (activé par défaut). « Mes parties » montre
+    la date du dernier export. Stockage persistant demandé au navigateur lors d'un geste
+    (création de partie, export), état affiché dans les Réglages.
 
 ## Tests
 

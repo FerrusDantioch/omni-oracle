@@ -763,3 +763,37 @@ test('option à tester (horreur) : au seuil de rupture, le rebondissement est ti
   c.rebondissementAuSeuil = true;
   assert.equal(M.rebondissementAuSeuil(cat, 'cyberpunk', c, { de: des(5) }), null);
 });
+
+describe('rappel de sauvegarde', () => {
+  const finir = (p, n) => { for (let i = 0; i < n; i++) M.terminerScene(commun, p, 'neutre'); };
+
+  test('5 scènes terminées sans export : rappel ; « Plus tard » le repousse de 5 scènes', () => {
+    const p = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+    finir(p, 4);
+    assert.equal(M.rappelSauvegarde(p), 0);
+    finir(p, 1);
+    assert.equal(M.rappelSauvegarde(p), 5);
+    M.reporterSauvegarde(p);
+    assert.equal(M.rappelSauvegarde(p), 0);
+    finir(p, 4);
+    assert.equal(M.rappelSauvegarde(p), 0);
+    finir(p, 1);
+    assert.equal(M.rappelSauvegarde(p), 10);
+  });
+
+  test('un export remet le compte à zéro', () => {
+    const p = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+    finir(p, 6);
+    M.noterSauvegarde(p, '9999-01-01T00:00:00.000Z'); // export « après » toutes les scènes
+    assert.equal(M.scenesDepuisSauvegarde(p), 0);
+    assert.equal(M.rappelSauvegarde(p), 0);
+    assert.deepEqual(Object.keys(p.sauvegarde), ['quand']);
+  });
+
+  test('anciennes parties (0.2.1) : sans champ « sauvegarde », pas d\'erreur', () => {
+    for (const p of lire('tests/navigateur/donnees/parties-0.2.1.json').parties) {
+      assert.equal(p.sauvegarde, undefined);
+      assert.equal(M.rappelSauvegarde(p), 0);
+    }
+  });
+});

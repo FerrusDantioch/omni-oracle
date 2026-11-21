@@ -213,6 +213,14 @@ for (const theme of THEMES) {
     await page.goto(serveur.url);
     await creerPartie(page, { univers: 'Horreur / enquête', mode: 'Duo', pjs: ['Ada', 'Bo'] });
     const fautes = [];
+    // Rappel de sauvegarde (bandeau après 5 scènes sans export).
+    for (let i = 0; i < 5; i++) {
+      await page.locator('.vue-jouer [data-cle="scene-terminer"]').first().click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Terminer la scène' }).click();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    }
+    await expect(page.locator('.rappel-sauvegarde')).toBeVisible();
+    fautes.push(...await fautesDeContraste(page, 'Rappel de sauvegarde'));
     await onglet(page, 'Fiche');
     for (let i = 0; i < 5; i++) await page.locator('[data-cle="fiche-pj1-chocs-plus"]').click();
     fautes.push(...await fautesDeContraste(page, 'Alerte'));

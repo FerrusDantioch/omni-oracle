@@ -519,6 +519,32 @@ export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAle
   return e;
 }
 
+// --- Rappel de sauvegarde --------------------------------------------------------------
+// partie.sauvegarde = { quand: date du dernier export, reporteA: nombre de scènes } (facultatif :
+// absent = jamais exportée). Seules les scènes terminées après le dernier export comptent.
+
+/** Nombre de scènes terminées depuis le dernier export (ou depuis la création). */
+export function scenesDepuisSauvegarde(partie) {
+  const depuis = partie.sauvegarde?.quand || '';
+  return partie.journal.filter((e) => e.type === 'scene-fin' && (e.quand || '') > depuis).length;
+}
+
+/** Faut-il rappeler d'exporter ? Renvoie le nombre de scènes non sauvegardées, ou 0. */
+export function rappelSauvegarde(partie, seuil = 5) {
+  const n = scenesDepuisSauvegarde(partie);
+  return n >= (partie.sauvegarde?.reporteA ?? seuil) ? n : 0;
+}
+
+/** « Plus tard » : le rappel revient dans `seuil` scènes. */
+export function reporterSauvegarde(partie, seuil = 5) {
+  partie.sauvegarde = { ...(partie.sauvegarde || {}), reporteA: scenesDepuisSauvegarde(partie) + seuil };
+}
+
+/** La partie vient d'être exportée : le compte repart de zéro. */
+export function noterSauvegarde(partie, quand = new Date().toISOString()) {
+  partie.sauvegarde = { quand };
+}
+
 // --- Chocs et folie (horreur : options.chocs) -----------------------------------------
 
 function reglesChocs(univers) {
