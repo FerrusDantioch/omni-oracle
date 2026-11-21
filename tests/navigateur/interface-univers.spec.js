@@ -310,3 +310,40 @@ test('Tables : grilles de profils et paliers à consulter, sans « Tirer »', as
   await page.locator('[data-cle="tables-M1-intentions"]').click();
   await expect(page.getByRole('heading', { name: 'Intentions des ennemis et des PNJ compagnons' })).toBeVisible();
 });
+
+// --- Aucun « null », « false » ou « undefined » affiché par erreur (défaut corrigé en 0.3.4) ---
+for (const univers of ['Cyberpunk', 'Space opéra', 'Fantasy', 'Horreur / enquête']) {
+  test(`${univers} : aucun mot technique (null, false, undefined) affiché dans les onglets`, async ({ page, serveur }) => {
+    const motsTechniques = () => page.evaluate(() => {
+      const res = [];
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) {
+        const t = w.currentNode.textContent.trim();
+        if (/^(null|false|undefined|NaN)$/.test(t) || /\b(undefined|NaN)\b/.test(t)) res.push(`« ${t} » dans .${w.currentNode.parentElement.className}`);
+      }
+      return res;
+    });
+    await page.goto(serveur.url);
+    await creerPartie(page, { univers, pjs: ['Kei'] });
+    // Pression à 10 : la soupape rend la scène toujours altérée (cas des complications).
+    for (let i = 0; i < 7; i++) {
+      await page.locator('[data-cle="tdb-plus"]').click();
+      if (await page.locator('dialog[open]').count()) await page.keyboard.press('Escape');
+    }
+    const fautes = [];
+    for (const nom of (await page.locator('#onglets button').allTextContents()).map((t) => t.trim())) {
+      await onglet(page, nom);
+      // Les boutons principaux de l'onglet, pour faire apparaître des résultats.
+      for (const b of await page.locator('#contenu button.bouton-accent').all()) {
+        if (!(await b.isVisible()) || !(await b.isEnabled())) continue;
+        await b.click();
+        if (await page.locator('dialog[open]').count()) {
+          fautes.push(...(await motsTechniques()).map((f) => `${nom} (fenêtre) : ${f}`));
+          await page.keyboard.press('Escape');
+        }
+      }
+      fautes.push(...(await motsTechniques()).map((f) => `${nom} : ${f}`));
+    }
+    expect(fautes).toEqual([]);
+  });
+}

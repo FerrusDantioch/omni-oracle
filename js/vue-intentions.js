@@ -2,7 +2,7 @@
 // (tronc commun, section 5), et ce que fait un vaisseau ennemi (table E, space opéra).
 
 import * as M from './moteur.js';
-import { h, remplacer, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer } from './ui.js';
+import { h, remplacer, ajouter, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { saisieDes, essayer, ecarter } from './actions.js';
 import { actionsSuggestion, boutonsChocs } from './composants.js';
@@ -149,7 +149,7 @@ export function creerVueIntentions(ctx) {
         listeColonnes(tE.plages, prof.autres, e.plage),
         boutonsRelance(jouer));
       if (ecran.animer === 'pnj') animerResultat(res);
-      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
+      ajouter(carte, [ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
         cle: 'intention',
         // Nouveau d20, même profil et mêmes modificateurs que le résultat écarté.
         relancer: () => essayer(() => {
@@ -167,7 +167,7 @@ export function creerVueIntentions(ctx) {
       }),
       // Ex. M1 « Terrorise : 1 point de choc à une cible » : le MJ choisit la cible.
       (tE.actionsChoc || []).includes(e.action) && M.optionsUnivers(ctx.univ).chocs
-        && boutonsChocs(ctx, { cle: 'intention', nombres: [1], motif: e.action }));
+        && boutonsChocs(ctx, { cle: 'intention', nombres: [1], motif: e.action })]);
     }
     return carte;
   }

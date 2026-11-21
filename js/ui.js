@@ -22,7 +22,11 @@ export function h(tag, attrs = {}, ...enfants) {
   return el;
 }
 
-function ajouter(el, enfants) {
+/**
+ * Ajoute des enfants à un élément en ignorant false, null et undefined (à préférer à
+ * el.append(), qui afficherait le mot « null » ou « false » à l'écran).
+ */
+export function ajouter(el, enfants) {
   for (const e of enfants.flat(Infinity)) {
     if (e === false || e === null || e === undefined) continue;
     el.append(e instanceof Node ? e : String(e));

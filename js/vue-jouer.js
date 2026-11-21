@@ -1,7 +1,7 @@
 // Onglet « Jouer » : la scène en cours, l'oracle de question et le lanceur de dé.
 
 import * as M from './moteur.js';
-import { h, remplacer, riche, champ, choix, caseACocher, annoncer, vibrer, animerResultat } from './ui.js';
+import { h, remplacer, ajouter, riche, champ, choix, caseACocher, annoncer, vibrer, animerResultat } from './ui.js';
 import { texteBrut } from './texte.js';
 import {
   saisieDes, essayer, dialogueFinScene, tirerComplication, dialogueContester,
@@ -81,7 +81,8 @@ export function creerVueJouer(ctx) {
       });
       prevue.saisie.addEventListener('input', (e) => { ecran.prevue = e.target.value; });
       const des = saisieDes(ctx, 1, 'Ton d20 de scène');
-      carte.append(prevue, des.el, h('div', { class: 'rangee' },
+      // des.el est null sans le vrai dé : ajouter() l'ignore (append afficherait « null »).
+      ajouter(carte, [prevue, des.el, h('div', { class: 'rangee' },
         h('button', {
           type: 'button', class: 'bouton bouton-accent', 'data-cle': 'scene-lancer',
           onclick: () => essayer(() => {
@@ -100,7 +101,7 @@ export function creerVueJouer(ctx) {
             ctx.annoncerResultat(a.alteree ? `Scène ${a.type === 'modifiee' ? 'modifiée' : 'interrompue'}.` : 'La scène se joue comme prévu.');
           }),
         }, 'Lancer le d20 de scène'),
-        h('button', { type: 'button', class: 'bouton', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène')));
+        h('button', { type: 'button', class: 'bouton', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène'))]);
       return carte;
     }
 
@@ -112,7 +113,7 @@ export function creerVueJouer(ctx) {
         h('p', { class: 'resultat-detail' }, `d20 = ${a.de}, plus grand que la Pression (${a.pression}) : la scène se joue comme prévu.`));
     } else {
       const parite = a.de % 2 === 0 ? 'pair' : 'impair';
-      res.append(
+      ajouter(res, [
         h('p', { class: 'resultat-titre' }, a.type === 'modifiee' ? 'Scène modifiée' : 'Scène interrompue'),
         h('p', { class: 'resultat-detail' }, p.scene.soupape
           ? `Soupape (Pression ${a.pression}) : scène automatiquement altérée. d20 = ${a.de} (${parite}).`
@@ -122,11 +123,11 @@ export function creerVueJouer(ctx) {
           : 'C\'est cet événement qui se joue à la place :'),
         a.complication && h('div', { class: 'complication' }, h('strong', {}, `${a.complication.titre} (${a.complication.valeur}) : `), riche(a.complication.ligne.texte)),
         !a.complication && a.complicationIgnoree && h('p', { class: 'complication' }, 'Complication ignorée par le MJ : invente l\'élément, ou relance.'),
-        h('p', { class: 'petit discret' }, `Adapte la gravité de la complication au palier de Pression (${M.palier(ctx.commun, a.pression, ctx.univ).nom}).`));
+        h('p', { class: 'petit discret' }, `Adapte la gravité de la complication au palier de Pression (${M.palier(ctx.commun, a.pression, ctx.univ).nom}).`)]);
     }
     if (ecran.animer === 'scene') animerResultat(res);
     const cleScene = `scene-${p.mission.numero}-${p.scene.numero}-${(a.ecartees || []).length}`;
-    carte.append(ctx.resultat(res, { cle: cleScene }),
+    ajouter(carte, [ctx.resultat(res, { cle: cleScene }),
       a.alteree && actionsSuggestion({
         cle: 'scene-complication',
         relancer: () => changerComplication('relance'),
@@ -134,7 +135,7 @@ export function creerVueJouer(ctx) {
         afficher: a.complication && { titre: a.complication.titre, texte: a.complication.ligne.texte },
       }),
       h('div', { class: 'rangee' },
-      h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène')));
+      h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène'))]);
     return carte;
   }
 
