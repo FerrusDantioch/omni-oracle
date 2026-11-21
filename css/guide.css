@@ -139,6 +139,14 @@ tbody th { font-weight: 700; }
 /* Sur téléphone, un tableau de 3 colonnes ou plus garde une largeur lisible et défile. */
 @media (max-width: 32rem) {
   table:has(thead th:nth-child(3)) { min-width: 32rem; }
+  /* Ombre sur le bord quand il reste du tableau à voir (elle disparaît en bout de défilement). */
+  .bloc-table {
+    background:
+      linear-gradient(to right, var(--page) 40%, transparent) left center / 1.5rem 100% no-repeat local,
+      linear-gradient(to left, var(--page) 40%, transparent) right center / 1.5rem 100% no-repeat local,
+      linear-gradient(to right, var(--trait), transparent) left center / .75rem 100% no-repeat scroll,
+      linear-gradient(to left, var(--trait), transparent) right center / .75rem 100% no-repeat scroll;
+  }
 }
 
 /* --- Impression ----------------------------------------------------------------------- */

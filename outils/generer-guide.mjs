@@ -28,11 +28,13 @@ const echapper = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/
 
 /** Ancre d'un titre : minuscules, sans accents, mots reliés par des tirets. */
 function ancre(texte, dejaPrises) {
-  const base = texte
+  let base = texte
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'section';
+  // Une ancre qui commence par un chiffre (« 1. Choisis… ») gêne certains outils : on la préfixe.
+  if (/^\d/.test(base)) base = `section-${base}`;
   let id = base;
   for (let i = 2; dejaPrises.has(id); i++) id = `${base}-${i}`;
   dejaPrises.add(id);
@@ -150,7 +152,7 @@ export function genererGuide(markdown) {
     else if (b.niveau === 3 && entrees.length) entrees[entrees.length - 1].enfants.push(b);
   }
   const lien = (b) => `<a href="#${b.id}">${enLigne(b.texte)}</a>`;
-  const sommaire = '    <nav id="sommaire" class="sommaire" aria-labelledby="titre-sommaire">\n'
+  const sommaire = '    <nav id="sommaire" class="sommaire" aria-label="Sommaire du guide">\n'
     + '      <h2 id="titre-sommaire">Sommaire</h2>\n'
     + '      <ol>\n'
     + entrees.map(({ b, enfants }) => (enfants.length

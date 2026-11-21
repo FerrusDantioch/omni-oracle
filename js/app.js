@@ -185,12 +185,19 @@ function afficherAccueil() {
   $('tableau-de-bord').hidden = true;
   $('onglets').hidden = true;
   majTitre();
+  // Lien vers le guide : bien en vue tant qu'aucune partie n'est enregistrée sur l'appareil,
+  // puis plus discret, en bas de l'accueil.
+  const premiereFois = S.listerParties().length === 0;
+  const lienGuide = () => h('a', { href: 'guide.html', class: 'lien-guide', 'data-cle': 'accueil-guide' }, 'Première fois ? Lis le guide d\'utilisation');
   remplacer($('contenu'),
     h('div', { class: 'accueil-logo' },
       h('img', { src: 'assets/logo-omni-systeme.webp', alt: '', width: 72, height: 72 }),
-      h('p', {}, 'Ton MJ de poche pour jouer en solo ou en duo, ou pour aider un vrai MJ à improviser.')),
+      h('div', {},
+        h('p', {}, 'Ton MJ de poche pour jouer en solo ou en duo, ou pour aider un vrai MJ à improviser.'),
+        premiereFois && lienGuide())),
     carteNouvellePartie(),
-    carteMesParties());
+    carteMesParties(),
+    !premiereFois && h('p', { class: 'petit accueil-guide-bas' }, lienGuide()));
 }
 
 function carteNouvellePartie() {
@@ -450,6 +457,7 @@ async function ouvrirMenu() {
     enPartie && { id: 'mission', texte: ctx.voc.Suivante },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
     { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
+    { id: 'guide', texte: 'Guide d\'utilisation' },
     { id: 'livret', texte: 'Livret imprimable' },
     { id: 'installer', texte: 'Installer l\'application' },
     { id: 'apropos', texte: 'À propos' },
@@ -462,6 +470,7 @@ async function ouvrirMenu() {
     case 'exporter': ctx.exporter(); break;
     case 'reglages': dialogueReglages(); break;
     case 'installer': dialogueInstallation(); break;
+    case 'guide': window.location.href = 'guide.html'; break;
     case 'livret':
       window.location.href = `livret.html?univers=${encodeURIComponent(ctx.partie ? ctx.partie.univers : ctx.cat.univers[0].id)}`;
       break;

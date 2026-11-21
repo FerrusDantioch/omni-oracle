@@ -393,6 +393,9 @@ legend { font-weight: 600; padding: 0; margin-bottom: .35rem; }
 .accueil-logo { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .accueil-logo img { width: 72px; height: 72px; }
 .accueil-logo p { margin: 0; color: var(--discret); }
+/* Lien vers le guide d'utilisation (accueil) : assez haut pour le doigt. */
+.lien-guide { display: inline-flex; align-items: center; min-height: 44px; }
+.accueil-guide-bas { margin: .5rem 0 0; text-align: center; }
 
 /* --- Fenêtres ------------------------------------------------------------------------------- */
 .dialogue {
