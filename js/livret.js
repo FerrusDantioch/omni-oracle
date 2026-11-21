@@ -9,6 +9,7 @@
 
 import { chargerDonnees } from './donnees.js';
 import { rendreBloc, formaterEnLigne } from './texte.js';
+import { optionsUnivers, vocabulaire } from './moteur.js';
 
 const CONFIG = globalThis.CONFIG_APP;
 const $ = (id) => document.getElementById(id);
@@ -35,9 +36,12 @@ function tableHTML(table, { titreVisible = false } = {}) {
     el('thead', {}, el('tr', {}, table.colonnes.map((c) => el('th', { scope: 'col' }, formaterEnLigne(c))))),
     el('tbody', {}, table.lignes.map((l) => {
       const cellules = premiereColonnePlage ? [l.plage, l.texte, ...(l.autres || [])] : [l.texte, ...(l.autres || [])];
-      return el('tr', {}, cellules.map((c, i) => (i === 0
+      // Intertitre placé avant cette ligne (ex. « CHOC IMMÉDIAT — 1-7 · … » dans la table de folie).
+      const intertitres = (table.groupes || []).filter((g) => g.avant === l.plage).map((g) => el('tr', { class: 'intertitre' },
+        el('th', { colspan: String(table.colonnes.length), scope: 'colgroup' }, formaterEnLigne(g.texte))));
+      return [intertitres, el('tr', {}, cellules.map((c, i) => (i === 0
         ? el('th', { scope: 'row' }, formaterEnLigne(c))
-        : el('td', {}, formaterEnLigne(c)))));
+        : el('td', {}, formaterEnLigne(c)))))];
     })));
   return el('div', { class: 'bloc-table' }, t);
 }
@@ -63,8 +67,14 @@ function section(doc, s, cat, niveauBase) {
     titre, rendreBloc(s.texte, rendreTable));
 }
 
-/** Fiche de suivi à copier (tronc commun, section 7), mise en forme pour être remplie à la main. */
-function ficheDeSuivi() {
+/**
+ * Fiche de suivi à copier (tronc commun, section 7), mise en forme pour être remplie à la main.
+ * Elle suit les options de l'univers : mot « mission » (« quête », « mystère »), ligne des
+ * omni-points seulement s'il y en a, rubriques en plus (ex. indices) et chocs et folie.
+ */
+function ficheDeSuivi(u) {
+  const o = optionsUnivers(u);
+  const voc = vocabulaire(u);
   const lignesVides = (n, colonnes) => el('tbody', {}, Array.from({ length: n }, () => el('tr', {}, colonnes.map(() => el('td', {}, ' ')))));
   const tableau = (titre, colonnes, n) => el('div', { class: 'fiche-bloc' },
     el('h3', {}, titre),
@@ -72,19 +82,27 @@ function ficheDeSuivi() {
       el('thead', {}, el('tr', {}, colonnes.map((c) => el('th', { scope: 'col' }, c)))),
       lignesVides(n, colonnes)));
   const cases = (n) => el('span', { class: 'cases' }, Array.from({ length: n }, () => el('span', { class: 'case-vide' }, ' ')));
+  const etiquette = (c) => (c.type === 'attitude' ? `${c.etiquette} (hostile / neutre / amical)` : c.etiquette);
+  const chocs = o.chocs && el('div', { class: 'fiche-bloc' },
+    el('h3', {}, `Chocs et folie (${o.chocs.alerte} + un jet sur la table de folie)`),
+    el('table', { class: 'fiche-table fiche-chocs' },
+      el('thead', {}, el('tr', {}, ['PJ', 'Points de choc', 'Points de folie', 'Séquelles en cours'].map((c) => el('th', { scope: 'col' }, c)))),
+      el('tbody', {}, [1, 2, 3].map(() => el('tr', {}, el('td', {}, ' '), el('td', {}, cases(o.chocs.seuil)), el('td', {}, ' '), el('td', {}, ' '))))));
   return el('section', { class: 'fiche', 'aria-labelledby': 'titre-fiche' },
     el('h2', { id: 'titre-fiche' }, 'Fiche de suivi (à copier)'),
     el('div', { class: 'fiche-entete' },
-      el('p', {}, 'Mission : ', el('span', { class: 'ligne-a-remplir longue' }, ' ')),
+      el('p', {}, `${voc.Nom} : `, el('span', { class: 'ligne-a-remplir longue' }, ' ')),
       el('p', {}, 'Scène n° : ', el('span', { class: 'ligne-a-remplir' }, ' '), '  Pression : ', el('span', { class: 'ligne-a-remplir' }, ' '), ' /10'),
       el('p', { class: 'pression-piste' }, 'Pression : ',
         Array.from({ length: 11 }, (_, i) => el('span', { class: 'case-pression' }, String(i)))),
-      el('p', {}, 'Omni-points PJ : ', cases(3), '  PJ 2 : ', cases(3), '  Oracle : ', el('span', { class: 'ligne-a-remplir' }, ' ')),
+      o.omniPoints && el('p', {}, 'Omni-points PJ : ', cases(u.omniPointsPJ), '  PJ 2 : ', cases(u.omniPointsPJ), '  Oracle : ', el('span', { class: 'ligne-a-remplir' }, ' ')),
       el('p', {}, 'Seuil de rupture (9) déjà atteint : ', el('span', { class: 'case-vide' }, ' '))),
     tableau('Fils ouverts (une ligne par intrigue en cours)', ['Intrigue'], 6),
     tableau('PNJ', ['Nom', 'Rôle', 'Attitude (hostile / neutre / amical)', 'Profil', 'Notes'], 8),
     tableau('Menaces', ['Qui', 'Quoi', 'Ce qui arrive si on ne fait rien'], 5),
     tableau('Lieux', ['Nom', 'Détail marquant'], 5),
+    o.fiche.map((r) => tableau(r.aide ? `${r.titre} (${r.aide.replace(/\.$/, '').toLowerCase()})` : r.titre, r.champs.map(etiquette), 6)),
+    chocs,
     tableau('Journal (une ligne par scène)', ['Scène', 'Ce qui s\'est passé'], 12));
 }
 
@@ -119,7 +137,7 @@ function construire(cat, universId) {
       el('h2', { id: 'partie-univers' }, `Partie 2 — ${u.nom}`),
       presentationUnivers.map((s) => el('div', { class: 'presentation' }, rendreBloc(s.texte))),
       contenuUnivers.map((s) => section(u, s, cat, 3))),
-    ficheDeSuivi());
+    ficheDeSuivi(u));
 }
 
 async function demarrer() {

@@ -111,3 +111,58 @@ test('le menu de l\'application ouvre le livret de l\'univers de la partie', asy
   await page.getByRole('button', { name: 'Livret imprimable' }).click();
   await expect(page.locator('h1')).toHaveText('Oracle Omni-système — Space opéra');
 });
+
+test('livret Horreur / enquête : fiche sans omni-points, rubriques d\'enquête, chocs et folie', async ({ page, serveur }) => {
+  await page.goto(`${serveur.url}livret.html?univers=horreur-enquete`);
+  await expect(page.locator('body')).toHaveAttribute('data-pret', 'oui');
+  const fiche = page.locator('.fiche');
+  await expect(fiche).toContainText('Mystère :');
+  await expect(fiche).not.toContainText('Omni-points');
+  await expect(fiche).toContainText('Seuil de rupture (9)');
+  for (const titre of ['Indices trouvés (une ligne par indice, avec l\'endroit où il a été trouvé)', 'Suspects et témoins (nom, rôle, attitude, ce qu\'il cache)',
+    'Chronologie (ce qui s\'est passé, dans l\'ordre supposé des événements)', 'Chocs et folie (5 chocs = 1 point de folie + un jet sur la table de folie)']) {
+    await expect(fiche.getByRole('heading', { name: titre, exact: true })).toBeVisible();
+  }
+  await expect(fiche.locator('.fiche-chocs tbody tr').first().locator('.case-vide')).toHaveCount(5);
+  // Table de folie : ses trois intertitres, sur toute la largeur.
+  const folie = page.locator('.table-donnees', { hasText: 'Tremblements' });
+  await expect(folie.locator('tr.intertitre')).toHaveCount(3);
+  await expect(folie.locator('tr.intertitre th').first()).toHaveAttribute('colspan', '3');
+  await expect(page.getByRole('heading', { name: 'OPTION : LA FOLIE S\'AGGRAVE AVEC L\'ACCUMULATION' })).toBeVisible();
+});
+
+test('livret Fantasy : « Quête » et 3 omni-points sur la fiche', async ({ page, serveur }) => {
+  await page.goto(`${serveur.url}livret.html?univers=fantasy`);
+  await expect(page.locator('body')).toHaveAttribute('data-pret', 'oui');
+  const fiche = page.locator('.fiche');
+  await expect(fiche).toContainText('Quête :');
+  await expect(fiche.locator('p', { hasText: 'Omni-points PJ' }).locator('.case-vide')).toHaveCount(6);
+  await expect(fiche.getByRole('heading', { name: /Chocs et folie/ })).toHaveCount(0);
+});
+
+for (const id of ['fantasy', 'horreur-enquete']) {
+  test(`livret ${id} : A4, noir et blanc à l'impression`, async ({ page, serveur }) => {
+    await page.goto(`${serveur.url}livret.html?univers=${id}`);
+    await expect(page.locator('body')).toHaveAttribute('data-pret', 'oui');
+    const pdf = await page.pdf({ preferCSSPageSize: true });
+    const texte = pdf.toString('latin1');
+    expect((texte.match(/\/Type\s*\/Page[^s]/g) || []).length).toBeGreaterThan(5);
+    expect(texte).toMatch(/\/MediaBox\s*\[\s*0 0 59[45](\.\d+)? 84[12](\.\d+)?\s*\]/);
+    await page.emulateMedia({ media: 'print' });
+    const couleurs = await page.evaluate(() => {
+      const res = new Set();
+      for (const el of document.querySelectorAll('body, body *')) {
+        if (el.getClientRects().length === 0) continue;
+        const s = getComputedStyle(el);
+        for (const c of [s.color, s.backgroundColor, s.borderTopColor]) {
+          const m = c.match(/rgba?\(([^)]+)\)/);
+          if (!m) continue;
+          const [r, g, b, a = 1] = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+          if (a !== 0 && Math.max(r, g, b) - Math.min(r, g, b) > 40) res.add(c);
+        }
+      }
+      return [...res];
+    });
+    expect(couleurs).toEqual([]);
+  });
+}
