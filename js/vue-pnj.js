@@ -56,7 +56,7 @@ export function creerVueGenerateurPNJ(ctx) {
             },
           }, 'Tirer les trois')),
         intro && h('div', { class: 'regles' }, rendreBloc(intro.texte)),
-        n2.reference && h('p', { class: 'petit discret' }, `Le trait (${n2.id}) reprend la table ${n2.reference.table} de l'univers « ${ctx.cat.univ(n2.reference.univers).nom} », comme le prévoient les règles.`),
+        n2.reference && h('p', { class: 'petit discret' }, `Le trait (${n2.id}) reprend la table ${n2.reference.table} ${ctx.cat.origine(n2.reference)}, commune à tous les univers.`),
         h('div', { class: 'grille-tirages' }, Object.entries(tables).map(([k, t]) => tirageVerrouillable(ctx, {
           table: t, etat: pnj.tirages[k], cle: `pnj-${k}`,
           surTirage: (valeur) => { tirer(k, valeur); if (valeur === null) vibrer(); rendre(); },

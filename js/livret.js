@@ -51,7 +51,7 @@ function section(doc, s, cat, niveauBase) {
     const t = cat.table(doc.id, id);
     const bloc = tableHTML(t);
     if (t.reference) {
-      bloc.prepend(el('p', { class: 'renvoi' }, `(Table ${t.reference.table} de l'univers « ${cat.univ(t.reference.univers).nom} », reproduite ici.)`));
+      bloc.prepend(el('p', { class: 'renvoi' }, `(Table ${t.reference.table} ${cat.origine(t.reference)}, reproduite ici.)`));
     }
     return bloc;
   };

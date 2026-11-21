@@ -30,7 +30,7 @@ export function creerVueTables(ctx) {
     const details = h('details', { class: 'carte table-consultation', open: ouverte, 'data-table': table.id },
       h('summary', {}, h('span', { class: 'table-titre' }, table.titre), ' ',
         h('span', { class: 'discret petit' }, motif ? `${lignes.length} ligne${lignes.length > 1 ? 's' : ''} trouvée${lignes.length > 1 ? 's' : ''}` : `${table.lignes.length} lignes`)),
-      table.reference && h('p', { class: 'petit discret' }, `Reprend la table ${table.reference.table} de l'univers « ${ctx.cat.univ(table.reference.univers).nom} ».`),
+      table.reference && h('p', { class: 'petit discret' }, `Reprend la table ${table.reference.table} ${ctx.cat.origine(table.reference)}.`),
       h('div', { class: 'rangee' }, h('button', {
         type: 'button', class: 'bouton bouton-accent', 'data-cle': `tables-${table.id}-tirer`,
         onclick: () => noter(table, null),

@@ -20,11 +20,17 @@ for (const u of univers) {
     await expect(page.locator('h1')).toHaveText(`Oracle Omni-système — ${u.nom}`);
     await expect(page.locator('h1')).toHaveCount(1);
 
-    // Les tables attendues : celles du tronc commun, puis celles de l'univers (renvois résolus).
-    const tables = [...commun.tables, ...u.tables.map((t) => (t.reference
-      ? univers.find((x) => x.id === t.reference.univers).tables.find((x) => x.id === t.reference.table)
-      : t))];
-    const html = await page.locator('.table-donnees').evaluateAll((ts) => ts.map((t) => [...t.tBodies[0].rows].map((r) => [...r.cells].map((c) => c.textContent))));
+    // Les tables attendues, dans l'ordre où les sections les placent : tronc commun, puis
+    // univers (renvois résolus : N2 vient du tronc commun).
+    const docs = { commun, ...Object.fromEntries(univers.map((x) => [x.id, x])) };
+    const resoudre = (doc, id) => {
+      const t = doc.tables.find((x) => x.id === id);
+      return t.reference ? resoudre(docs[t.reference.univers], t.reference.table) : t;
+    };
+    const placees = (doc) => doc.sections.flatMap((s) => s.texte.map((l) => l.match(/^\{\{table (.+)\}\}$/)?.[1]).filter(Boolean)).map((id) => resoudre(doc, id));
+    const tables = [...placees(commun), ...placees(u)];
+    // Les intertitres (ex. groupes de la table de folie) ne sont pas des lignes de la table.
+    const html = await page.locator('.table-donnees').evaluateAll((ts) => ts.map((t) => [...t.tBodies[0].rows].filter((r) => !r.classList.contains('intertitre')).map((r) => [...r.cells].map((c) => c.textContent))));
     expect(html.length).toBe(tables.length);
     tables.forEach((t, i) => {
       expect(html[i].length, t.titre).toBe(t.lignes.length);

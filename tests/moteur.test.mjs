@@ -437,10 +437,29 @@ describe('Générateurs', () => {
     assert.equal(m2.T1.valeur, 1);
     assert.equal(m2.T2.valeur, 20);
   });
-  test('PNJ space opéra : le trait vient de la table N2 du cyberpunk', () => {
+  test('PNJ space opéra : le trait vient de la table N2 du tronc commun', () => {
     const pnj = M.genererPNJ(cat, 'space-opera', { de: des(1, 1, 1) });
     assert.equal(pnj.role.ligne.texte, 'Capitaine de croiseur');
     assert.equal(pnj.trait.ligne.texte, 'Méfiant : répond toujours par une question.');
+  });
+  test('N2 est commune : les quatre univers lisent la même table du tronc commun', () => {
+    const n2 = cat.table('commun', 'N2');
+    assert.equal(n2.lignes.length, 20);
+    for (const id of ['cyberpunk', 'space-opera', 'fantasy', 'horreur-enquete']) {
+      const t = cat.table(id, 'N2');
+      assert.deepEqual(t.reference, { univers: 'commun', table: 'N2' }, id);
+      assert.equal(t.lignes, n2.lignes, id);
+    }
+    assert.equal(cat.origine({ univers: 'commun', table: 'N2' }), 'du tronc commun');
+    assert.equal(M.genererPNJ(cat, 'fantasy', { de: des(4, 1, 1) }).role.ligne.texte, 'Magicien errant');
+    assert.equal(M.genererPNJ(cat, 'horreur-enquete', { de: des(20, 20, 20) }).trait.ligne.texte, cat.table('commun', 'N2').lignes[19].texte);
+  });
+  test('les quatre univers sont chargés, dans l\'ordre', () => {
+    assert.deepEqual(cat.univers.map((u) => u.id), ['cyberpunk', 'space-opera', 'fantasy', 'horreur-enquete']);
+    const q = M.tirerMission(cat, 'fantasy', { de: des(1, 1, 1, 1, 1, 1) });
+    assert.equal(q.T1.ligne.texte, 'Un messager épuisé s\'effondre à la taverne en portant un sceau royal brisé.');
+    const a = M.tirerMission(cat, 'horreur-enquete', { de: des(20, 20, 20, 20, 20, 20) });
+    assert.equal(a.T6.titre, 'T6 — Révélation');
   });
   test('clôture : degrés de l\'oracle → succès complet, partiel, échec', () => {
     assert.equal(M.issueCloture(cyber, 'oui-et').texte, 'succès complet.');

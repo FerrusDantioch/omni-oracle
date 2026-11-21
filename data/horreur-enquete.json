@@ -1,0 +1,1690 @@
+{
+  "format": 1,
+  "id": "horreur-enquete",
+  "nom": "Horreur / enquête",
+  "ordre": 4,
+  "source": "sources/05-variante-horreur-enquete.md",
+  "omniPointsPJ": 0,
+  "roles": {
+    "mission": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6"
+    ],
+    "rebondissement": "T6",
+    "complications": "C",
+    "pnj": {
+      "role": "N1",
+      "trait": "N2",
+      "motivation": "N3"
+    }
+  },
+  "options": {
+    "omniPoints": false,
+    "contestation": false,
+    "paliers": "paliers",
+    "profils": [
+      "M1"
+    ],
+    "fiche": [
+      {
+        "id": "indices",
+        "titre": "Indices trouvés",
+        "ajout": "Ajouter un indice",
+        "aide": "Une ligne par indice, avec l'endroit où il a été trouvé.",
+        "table": "I1",
+        "champs": [
+          {
+            "cle": "texte",
+            "etiquette": "Indice",
+            "type": "textarea"
+          },
+          {
+            "cle": "endroit",
+            "etiquette": "Endroit"
+          }
+        ]
+      },
+      {
+        "id": "suspects",
+        "titre": "Suspects et témoins",
+        "ajout": "Ajouter un suspect ou un témoin",
+        "aide": "Nom, rôle, attitude, ce qu'il cache.",
+        "champs": [
+          {
+            "cle": "nom",
+            "etiquette": "Nom"
+          },
+          {
+            "cle": "role",
+            "etiquette": "Rôle"
+          },
+          {
+            "cle": "attitude",
+            "etiquette": "Attitude",
+            "type": "attitude"
+          },
+          {
+            "cle": "cache",
+            "etiquette": "Ce qu'il cache",
+            "type": "textarea"
+          }
+        ]
+      },
+      {
+        "id": "chronologie",
+        "titre": "Chronologie",
+        "ajout": "Ajouter un événement",
+        "aide": "Ce qui s'est passé, dans l'ordre supposé des événements.",
+        "champs": [
+          {
+            "cle": "texte",
+            "etiquette": "Événement",
+            "type": "textarea"
+          }
+        ]
+      }
+    ],
+    "chocs": {
+      "seuil": 5,
+      "table": "C1",
+      "folie": "folie",
+      "rappel": "1 point de choc (2 si l'événement est particulièrement atroce)",
+      "alerte": "5 chocs = 1 point de folie"
+    }
+  },
+  "cloture": {
+    "question": "L'affaire est-elle résolue ?",
+    "issues": [
+      {
+        "libelle": "Oui, et… / Oui",
+        "reponses": [
+          "oui-et",
+          "oui"
+        ],
+        "texte": "affaire résolue, vérité établie."
+      },
+      {
+        "libelle": "Oui, mais… / Non, mais…",
+        "reponses": [
+          "oui-mais",
+          "non-mais"
+        ],
+        "texte": "résolution partielle (une partie de la vérité reste cachée, ou le mal n'est qu'apaisé)."
+      },
+      {
+        "libelle": "Non / Non, et…",
+        "reponses": [
+          "non",
+          "non-et"
+        ],
+        "texte": "l'affaire échoue, ou la menace persiste."
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "presentation",
+      "titre": null,
+      "niveau": 1,
+      "texte": [
+        "Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, fiche de suivi, duo), **avec les adaptations ci-dessous**. Elle ajoute des tables propres à l'horreur et à l'enquête : affaire, indices, sources de choc, manifestations, menaces."
+      ]
+    },
+    {
+      "id": "adaptations",
+      "titre": "0. Adaptations du tronc commun pour l'horreur",
+      "niveau": 1,
+      "texte": []
+    },
+    {
+      "id": "sans-omni-points",
+      "titre": "Pas d'omni-points",
+      "niveau": 2,
+      "texte": [
+        "Le livret Horreur / enquête ne prévoit pas d'omni-points, et la mécanique est facultative. Dans cette variante :",
+        "- **Aucun omni-point** pour les PJ **ni pour l'Oracle**.",
+        "- **Pas de contestation en duo** : le joueur qui pose la question interprète la réponse. L'autre joueur peut proposer une autre lecture, mais celui qui a posé la question tranche.",
+        "- **Seuil de rupture** (Pression 9) : il ne rapporte rien à l'Oracle, puisqu'il n'a pas d'omni-points. *Option à tester :* à 9, si le rebondissement de l'affaire n'a pas encore été tiré, tire-le immédiatement.",
+        "- Les autres règles de la Pression (évolution, **soupape à 10 puis retour à 7**) restent identiques."
+      ]
+    },
+    {
+      "id": "fiche-horreur",
+      "titre": "Fiche de suivi : champs supplémentaires",
+      "niveau": 2,
+      "texte": [
+        "En plus de la fiche du tronc commun (sans la ligne « Omni-points »), ajoute :",
+        "- **Indices trouvés** : une ligne par indice, avec l'endroit où il a été trouvé.",
+        "- **Suspects et témoins** : nom, rôle, attitude, ce qu'il cache.",
+        "- **Chronologie** : ce qui s'est passé, dans l'ordre supposé des événements.",
+        "- **Chocs et folie** de chaque PJ : points de choc (5 = 1 point de folie + jet sur la table de folie du livret), points de folie, séquelles en cours."
+      ]
+    },
+    {
+      "id": "pression-horreur",
+      "titre": "La Pression dans l'horreur",
+      "niveau": 2,
+      "texte": [
+        "Les paliers sont les mêmes (chance d'altération = Pression × 5 %), avec cette lecture :",
+        "{{table paliers}}"
+      ]
+    },
+    {
+      "id": "mission",
+      "titre": "A. Générer une affaire",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des tables T1 à T6 (ou choisis). Une affaire courte compte 3 à 5 scènes. Une enquête longue en compte 8 ou plus."
+      ]
+    },
+    {
+      "id": "deroule",
+      "titre": "Déroulé suggéré",
+      "niveau": 2,
+      "texte": [
+        "1. **Accroche** : la sollicitation, l'événement qui lance l'affaire.",
+        "2. **Terrain** : visiter le lieu, chercher des indices (table I1).",
+        "3. **Témoins** : interroger des PNJ (tables N1 à N3).",
+        "4. **Première manifestation** : une complication (table B) qui montre que quelque chose est vraiment à l'œuvre.",
+        "5. **Révélation** : le rebondissement (T6), à mi-parcours ou quand la Pression atteint 7.",
+        "6. **Confrontation** : face à la menace ou à la vérité.",
+        "7. **Dénouement** : ce qui reste, les séquelles."
+      ]
+    },
+    {
+      "id": "cloture",
+      "titre": "Clôture",
+      "niveau": 2,
+      "texte": [
+        "Pose l'oracle de question : « L'affaire est-elle résolue ? » Choisis la vraisemblance selon le nombre d'indices trouvés et la solidité de la piste.",
+        "- Oui, et… / Oui : affaire résolue, vérité établie.",
+        "- Oui, mais… / Non, mais… : résolution partielle (une partie de la vérité reste cachée, ou le mal n'est qu'apaisé).",
+        "- Non / Non, et… : l'affaire échoue, ou la menace persiste."
+      ]
+    },
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "niveau": 2,
+      "texte": [
+        "{{table T1}}"
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "niveau": 2,
+      "texte": [
+        "{{table T2}}"
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "niveau": 2,
+      "texte": [
+        "{{table T3}}"
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Menace",
+      "niveau": 2,
+      "texte": [
+        "{{table T4}}"
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Mobile ou secret",
+      "niveau": 2,
+      "texte": [
+        "{{table T5}}"
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Révélation",
+      "niveau": 2,
+      "texte": [
+        "{{table T6}}"
+      ]
+    },
+    {
+      "id": "complications",
+      "titre": "B. Manifestations et complications (table des scènes altérées)",
+      "niveau": 1,
+      "texte": [
+        "{{table C}}"
+      ]
+    },
+    {
+      "id": "pnj",
+      "titre": "C. Générer un PNJ (témoin, suspect, contact)",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des trois tables."
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "niveau": 2,
+      "texte": [
+        "{{table N1}}"
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "niveau": 2,
+      "texte": [
+        "Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).",
+        "{{table N2}}"
+      ]
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "niveau": 2,
+      "texte": [
+        "{{table N3}}"
+      ]
+    },
+    {
+      "id": "enquete",
+      "titre": "D. Enquête et horreur (ajouts propres au genre)",
+      "niveau": 1,
+      "texte": []
+    },
+    {
+      "id": "I1",
+      "titre": "I1 — Indice trouvé",
+      "niveau": 2,
+      "texte": [
+        "Quand le PJ réussit un jet d'**investigation** (ou que l'oracle répond « Oui » à « Trouve-t-il un indice ? »), tire ici. Note l'indice sur la fiche de suivi.",
+        "{{table I1}}"
+      ]
+    },
+    {
+      "id": "C1",
+      "titre": "C1 — Événement choquant",
+      "niveau": 2,
+      "texte": [
+        "Quand une scène devrait infliger un choc, tire ici ou choisis. Un événement inflige en général **1 point de choc** (2 s'il est particulièrement atroce, à l'appréciation). **5 points de choc = 1 point de folie + un jet sur la table de folie du livret** (1d20, non reproduite ici).",
+        "{{table C1}}"
+      ]
+    },
+    {
+      "id": "M1",
+      "titre": "M1 — Intentions d'une menace surnaturelle",
+      "niveau": 2,
+      "texte": [
+        "Les profils du tronc commun (Brute, Tacticien, Lâche, Fanatique, Professionnel) s'appliquent aux ennemis humains. Pour une menace surnaturelle, lance un d20 dans la colonne du profil. Les attaques et les dégâts se résolvent avec les règles du livret.",
+        "**Modificateurs au jet :**",
+        "- **−2** si la Pression est de 7 ou plus (la menace est enhardie).",
+        "- **+4** si la menace est affaiblie (rituel perturbé, symbole effacé, objet détruit).",
+        "{{table M1}}"
+      ]
+    },
+    {
+      "id": "folie",
+      "titre": "E. Table des effets de folie (1d20)",
+      "niveau": 1,
+      "texte": [
+        "*Règle : 5 points de choc accumulés = 1 point de folie + un jet sur cette table.*",
+        "{{table folie}}"
+      ],
+      "source": "sources/06-horreur-table-de-folie.md"
+    },
+    {
+      "id": "folie-aggravation",
+      "titre": "OPTION : LA FOLIE S'AGGRAVE AVEC L'ACCUMULATION",
+      "niveau": 2,
+      "texte": [
+        "Jet d'effet de folie = 1d20 + nombre total de points de folie du personnage. Au-delà de 20 :",
+        "- 21-22 · Crise de folie passagère : le MJ contrôle le personnage pendant 1d4 tours.",
+        "- 23+ · Folie profonde : le personnage sombre ; son sort est entre les mains du MJ (retrait de la scène ou de la campagne, ou arc narratif de guérison).",
+        "*Conseils au MJ : adapter l'effet tiré au contexte de la scène · annoncer l'existence de la table aux joueurs sans en révéler le contenu — l'inconnu fait partie de l'horreur.*"
+      ],
+      "source": "sources/06-horreur-table-de-folie.md"
+    }
+  ],
+  "tables": [
+    {
+      "id": "paliers",
+      "titre": "Paliers de Pression (horreur)",
+      "de": null,
+      "colonnes": [
+        "Pression",
+        "Chance d'altération",
+        "Dans l'horreur"
+      ],
+      "lignes": [
+        {
+          "texte": "**0-2 Calme trompeur**",
+          "autres": [
+            "0 à 10 %",
+            "Tout semble normal. Les témoins parlent, les lieux se visitent. Les complications, si elles arrivent, sont des détails qui dérangent à peine."
+          ],
+          "nom": "Calme trompeur",
+          "id": "calme-trompeur",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "texte": "**3-4 Malaise**",
+          "autres": [
+            "15 à 20 %",
+            "Quelque chose cloche : odeurs, bruits, regards, objets déplacés. Les complications sont des signes à interpréter."
+          ],
+          "nom": "Malaise",
+          "id": "malaise",
+          "min": 3,
+          "max": 4
+        },
+        {
+          "texte": "**5-6 Angoisse**",
+          "autres": [
+            "25 à 30 %",
+            "La menace se rapproche. Les complications ont un coût : un indice perdu, un allié perturbé, un lieu qui se ferme. Un point de choc est plausible."
+          ],
+          "nom": "Angoisse",
+          "id": "angoisse",
+          "min": 5,
+          "max": 6
+        },
+        {
+          "texte": "**7-8 Terreur**",
+          "autres": [
+            "35 à 40 %",
+            "La menace agit ouvertement. Les ennemis sont enhardis (−2 à leur jet d'intention). Les complications sont majeures et les chocs sont fréquents. Le rebondissement de l'affaire est tiré."
+          ],
+          "nom": "Terreur",
+          "id": "terreur",
+          "min": 7,
+          "max": 8
+        },
+        {
+          "texte": "**9-10 Rupture**",
+          "autres": [
+            "45 à 50 %",
+            "Plus de répit : chaque scène a une chance sur deux de dérailler. La menace frappe, les certitudes s'effondrent."
+          ],
+          "nom": "Rupture",
+          "id": "rupture",
+          "min": 9,
+          "max": 10
+        }
+      ]
+    },
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un client demande de retrouver sa sœur, disparue après avoir visité une maison abandonnée."
+        },
+        {
+          "plage": "2",
+          "texte": "Un cadavre est découvert sans trace de blessure, le visage figé dans la terreur."
+        },
+        {
+          "plage": "3",
+          "texte": "Plusieurs habitants d'un immeuble font le même cauchemar chaque nuit."
+        },
+        {
+          "plage": "4",
+          "texte": "Un ami proche appelle en pleine nuit, murmure de ne pas ouvrir la porte, puis raccroche."
+        },
+        {
+          "plage": "5",
+          "texte": "Un colis arrive chez le PJ, adressé à une personne décédée."
+        },
+        {
+          "plage": "6",
+          "texte": "Un vieux manuscrit trouvé chez un défunt contient des noms, dont celui du PJ."
+        },
+        {
+          "plage": "7",
+          "texte": "Un village isolé ne répond plus aux appels depuis trois jours."
+        },
+        {
+          "plage": "8",
+          "texte": "Des animaux fuient une forêt ou un quartier sans raison apparente."
+        },
+        {
+          "plage": "9",
+          "texte": "Un patient d'hôpital psychiatrique affirme connaître le PJ et la prochaine victime."
+        },
+        {
+          "plage": "10",
+          "texte": "Une série de disparitions suit le trajet d'une ancienne ligne de bus ou de train."
+        },
+        {
+          "plage": "11",
+          "texte": "Un enfant parle à quelqu'un que personne d'autre ne voit."
+        },
+        {
+          "plage": "12",
+          "texte": "Une lettre anonyme décrit une scène de crime avant qu'elle ne se produise."
+        },
+        {
+          "plage": "13",
+          "texte": "Une église est profanée, et le prêtre refuse de parler."
+        },
+        {
+          "plage": "14",
+          "texte": "Un héritage inattendu : une maison dont personne n'a jamais voulu."
+        },
+        {
+          "plage": "15",
+          "texte": "Un enregistrement trouvé montre un rituel, avec une voix que le PJ reconnaît."
+        },
+        {
+          "plage": "16",
+          "texte": "Un ancien camarade du PJ meurt dans des circonstances absurdes."
+        },
+        {
+          "plage": "17",
+          "texte": "Une famille voisine change de comportement du jour au lendemain."
+        },
+        {
+          "plage": "18",
+          "texte": "Un chantier déterre quelque chose qui n'aurait jamais dû revoir le jour."
+        },
+        {
+          "plage": "19",
+          "texte": "Un témoin d'un crime ancien refait surface, terrorisé, et demande une protection."
+        },
+        {
+          "plage": "20",
+          "texte": "Le PJ reconnaît, dans l'actualité, une scène qu'il a déjà rêvée."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Retrouver une personne disparue."
+        },
+        {
+          "plage": "2",
+          "texte": "Découvrir la cause d'une mort inexpliquée."
+        },
+        {
+          "plage": "3",
+          "texte": "Identifier l'auteur d'une série de crimes."
+        },
+        {
+          "plage": "4",
+          "texte": "Comprendre ce qui hante un lieu."
+        },
+        {
+          "plage": "5",
+          "texte": "Protéger un témoin ou une victime désignée."
+        },
+        {
+          "plage": "6",
+          "texte": "Récupérer un objet maudit ou un livre dangereux."
+        },
+        {
+          "plage": "7",
+          "texte": "Mettre fin à un rituel avant son achèvement."
+        },
+        {
+          "plage": "8",
+          "texte": "Prouver l'innocence d'un suspect."
+        },
+        {
+          "plage": "9",
+          "texte": "Fuir un lieu avant qu'il ne se referme."
+        },
+        {
+          "plage": "10",
+          "texte": "Infiltrer un groupe ou une secte."
+        },
+        {
+          "plage": "11",
+          "texte": "Retrouver la trace d'un ancien crime dissimulé."
+        },
+        {
+          "plage": "12",
+          "texte": "Transmettre un avertissement à quelqu'un qui refuse de l'entendre."
+        },
+        {
+          "plage": "13",
+          "texte": "Obtenir une confession."
+        },
+        {
+          "plage": "14",
+          "texte": "Libérer quelqu'un d'une possession ou d'une emprise."
+        },
+        {
+          "plage": "15",
+          "texte": "Retrouver des souvenirs perdus."
+        },
+        {
+          "plage": "16",
+          "texte": "Reconstituer la chronologie d'une nuit."
+        },
+        {
+          "plage": "17",
+          "texte": "Détruire, enterrer ou sceller la source du mal."
+        },
+        {
+          "plage": "18",
+          "texte": "Découvrir qui a engagé le PJ, et pourquoi."
+        },
+        {
+          "plage": "19",
+          "texte": "Survivre jusqu'à l'aube."
+        },
+        {
+          "plage": "20",
+          "texte": "Savoir ce qui s'est vraiment passé il y a vingt ans."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une maison de campagne isolée, aux volets clos."
+        },
+        {
+          "plage": "2",
+          "texte": "Un hôpital psychiatrique désaffecté."
+        },
+        {
+          "plage": "3",
+          "texte": "Un immeuble où tous les voisins se connaissent un peu trop."
+        },
+        {
+          "plage": "4",
+          "texte": "Une église aux vitraux brisés."
+        },
+        {
+          "plage": "5",
+          "texte": "Une forêt où le téléphone ne passe plus."
+        },
+        {
+          "plage": "6",
+          "texte": "Un manoir hérité, aux pièces fermées à clé."
+        },
+        {
+          "plage": "7",
+          "texte": "Un sous-sol de morgue ou de cave."
+        },
+        {
+          "plage": "8",
+          "texte": "Un motel de bord de route, aux chambres identiques."
+        },
+        {
+          "plage": "9",
+          "texte": "Une école ou un orphelinat fermé depuis des années."
+        },
+        {
+          "plage": "10",
+          "texte": "Une ville portuaire sous la brume."
+        },
+        {
+          "plage": "11",
+          "texte": "Un cimetière de campagne."
+        },
+        {
+          "plage": "12",
+          "texte": "Une bibliothèque universitaire, après la fermeture."
+        },
+        {
+          "plage": "13",
+          "texte": "Une ferme où le bétail ne bouge plus."
+        },
+        {
+          "plage": "14",
+          "texte": "Un tunnel ou un parking souterrain mal éclairé."
+        },
+        {
+          "plage": "15",
+          "texte": "Un appartement témoin où quelque chose cloche."
+        },
+        {
+          "plage": "16",
+          "texte": "Un théâtre ou un cinéma abandonné."
+        },
+        {
+          "plage": "17",
+          "texte": "Une usine ou un entrepôt plongé dans le noir."
+        },
+        {
+          "plage": "18",
+          "texte": "Un village figé, comme si tout le monde était parti en une minute."
+        },
+        {
+          "plage": "19",
+          "texte": "Un commissariat à la nuit tombée, vide ou presque."
+        },
+        {
+          "plage": "20",
+          "texte": "Un lieu qui n'existe pas sur les cartes, ou qui change de place."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Menace",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un tueur en série méthodique, qui laisse des signatures."
+        },
+        {
+          "plage": "2",
+          "texte": "Une secte qui prépare un rituel."
+        },
+        {
+          "plage": "3",
+          "texte": "Une entité liée à un lieu, qui punit ceux qui y entrent."
+        },
+        {
+          "plage": "4",
+          "texte": "Un esprit qui cherche justice ou vengeance."
+        },
+        {
+          "plage": "5",
+          "texte": "Un proche manipulé ou possédé."
+        },
+        {
+          "plage": "6",
+          "texte": "Un notable respecté qui cache des crimes."
+        },
+        {
+          "plage": "7",
+          "texte": "Une créature qui prend l'apparence de personnes connues."
+        },
+        {
+          "plage": "8",
+          "texte": "Un médecin ou un chercheur obsédé par une expérience."
+        },
+        {
+          "plage": "9",
+          "texte": "Un groupe de villageois qui protège un secret ancien."
+        },
+        {
+          "plage": "10",
+          "texte": "Une présence qui se nourrit de la peur."
+        },
+        {
+          "plage": "11",
+          "texte": "Un fantôme enfermé dans un objet."
+        },
+        {
+          "plage": "12",
+          "texte": "Un cultiste infiltré parmi les alliés du PJ."
+        },
+        {
+          "plage": "13",
+          "texte": "Un revenant lié à un serment ou à une dette."
+        },
+        {
+          "plage": "14",
+          "texte": "Un homme ordinaire, poussé à bout."
+        },
+        {
+          "plage": "15",
+          "texte": "Une entité qui ne frappe que ceux qui la regardent."
+        },
+        {
+          "plage": "16",
+          "texte": "Une malédiction héréditaire qui frappe une famille."
+        },
+        {
+          "plage": "17",
+          "texte": "Une créature née d'un traumatisme collectif."
+        },
+        {
+          "plage": "18",
+          "texte": "Un ancien prêtre ou gardien qui a trahi sa tâche."
+        },
+        {
+          "plage": "19",
+          "texte": "Un double du PJ, ou quelqu'un qui lui ressemble."
+        },
+        {
+          "plage": "20",
+          "texte": "Quelque chose qu'on n'ose pas nommer et que personne ne décrit de la même façon."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Mobile ou secret",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un crime ancien enterré par une famille ou par une ville."
+        },
+        {
+          "plage": "2",
+          "texte": "Une dette envers une entité ou un culte."
+        },
+        {
+          "plage": "3",
+          "texte": "Un pacte passé par un proche du PJ."
+        },
+        {
+          "plage": "4",
+          "texte": "Un sacrifice nécessaire pour maintenir un équilibre."
+        },
+        {
+          "plage": "5",
+          "texte": "Un expérimentateur qui voulait vaincre la mort."
+        },
+        {
+          "plage": "6",
+          "texte": "Une promesse non tenue."
+        },
+        {
+          "plage": "7",
+          "texte": "Un lieu bâti sur quelque chose qu'il ne fallait pas déranger."
+        },
+        {
+          "plage": "8",
+          "texte": "Un enfant, ou un ancien enfant, qui a vu ce qu'il n'aurait pas dû."
+        },
+        {
+          "plage": "9",
+          "texte": "Un secret de naissance ou de filiation."
+        },
+        {
+          "plage": "10",
+          "texte": "Une faute médicale ou une erreur judiciaire."
+        },
+        {
+          "plage": "11",
+          "texte": "Un rituel de protection qui s'est retourné contre ceux qu'il protégeait."
+        },
+        {
+          "plage": "12",
+          "texte": "La vengeance d'un groupe de victimes oubliées."
+        },
+        {
+          "plage": "13",
+          "texte": "Un objet dont l'histoire a été effacée."
+        },
+        {
+          "plage": "14",
+          "texte": "Un nom prononcé trop souvent."
+        },
+        {
+          "plage": "15",
+          "texte": "Un faux coupable laissé en prison."
+        },
+        {
+          "plage": "16",
+          "texte": "Un voyage ou une mission qui a mal tourné il y a longtemps."
+        },
+        {
+          "plage": "17",
+          "texte": "Une vérité que le PJ refuse de voir."
+        },
+        {
+          "plage": "18",
+          "texte": "Un témoin qui a menti par peur."
+        },
+        {
+          "plage": "19",
+          "texte": "Un contrat ancien, signé dans le sang ou à l'encre."
+        },
+        {
+          "plage": "20",
+          "texte": "Une chose endormie, réveillée par accident."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Révélation",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Le client est lié à l'affaire, et il le savait."
+        },
+        {
+          "plage": "2",
+          "texte": "La disparue est vivante, et elle a choisi de partir."
+        },
+        {
+          "plage": "3",
+          "texte": "La menace est un proche du PJ."
+        },
+        {
+          "plage": "4",
+          "texte": "Le lieu est connu du PJ depuis son enfance."
+        },
+        {
+          "plage": "5",
+          "texte": "La première victime avait tout compris."
+        },
+        {
+          "plage": "6",
+          "texte": "Le coupable est celui qui avait donné toutes les pistes."
+        },
+        {
+          "plage": "7",
+          "texte": "Les indices ont été mis en scène pour détourner l'attention."
+        },
+        {
+          "plage": "8",
+          "texte": "Le rituel est déjà accompli : il faut gérer les conséquences."
+        },
+        {
+          "plage": "9",
+          "texte": "Un allié est possédé, manipulé ou épuisé à l'excès."
+        },
+        {
+          "plage": "10",
+          "texte": "La police est impliquée, ou le sera bientôt."
+        },
+        {
+          "plage": "11",
+          "texte": "Le PJ est déjà marqué (rêve, signe, objet)."
+        },
+        {
+          "plage": "12",
+          "texte": "L'entité n'est pas hostile, mais mal comprise."
+        },
+        {
+          "plage": "13",
+          "texte": "Les souvenirs du PJ sont faux ou incomplets."
+        },
+        {
+          "plage": "14",
+          "texte": "L'entité était déjà là bien avant l'affaire."
+        },
+        {
+          "plage": "15",
+          "texte": "Le témoin clé est mort, ou n'a jamais existé."
+        },
+        {
+          "plage": "16",
+          "texte": "Les événements recommencent à la même date."
+        },
+        {
+          "plage": "17",
+          "texte": "La menace est multiple, pas unique."
+        },
+        {
+          "plage": "18",
+          "texte": "Le remède est pire que le mal."
+        },
+        {
+          "plage": "19",
+          "texte": "Un survivant du passé revient, changé."
+        },
+        {
+          "plage": "20",
+          "texte": "L'affaire n'est que le début d'un phénomène bien plus vaste."
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "titre": "Manifestations et complications",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un bruit étrange résonne derrière une porte."
+        },
+        {
+          "plage": "2",
+          "texte": "Une lumière s'éteint ou clignote, puis revient."
+        },
+        {
+          "plage": "3",
+          "texte": "Un téléphone sonne : personne ne répond."
+        },
+        {
+          "plage": "4",
+          "texte": "Un PNJ se tait brusquement au milieu d'une phrase."
+        },
+        {
+          "plage": "5",
+          "texte": "Un objet déplacé revient à sa place d'origine."
+        },
+        {
+          "plage": "6",
+          "texte": "Une odeur de brûlé, de terre ou de sang envahit la pièce."
+        },
+        {
+          "plage": "7",
+          "texte": "Une porte se verrouille de l'extérieur."
+        },
+        {
+          "plage": "8",
+          "texte": "Une silhouette suit le PJ à distance."
+        },
+        {
+          "plage": "9",
+          "texte": "Le véhicule ou la batterie tombe en panne au pire moment."
+        },
+        {
+          "plage": "10",
+          "texte": "Une voix familière appelle le PJ depuis une pièce vide."
+        },
+        {
+          "plage": "11",
+          "texte": "Un témoin change de version ou disparaît."
+        },
+        {
+          "plage": "12",
+          "texte": "Un allié se comporte de façon étrange."
+        },
+        {
+          "plage": "13",
+          "texte": "Un message anonyme prévient le PJ qu'il est observé."
+        },
+        {
+          "plage": "14",
+          "texte": "Un animal crie, fuit ou fixe le vide."
+        },
+        {
+          "plage": "15",
+          "texte": "La police ou des curieux arrivent sur place."
+        },
+        {
+          "plage": "16",
+          "texte": "Un cauchemar ou un rêve prémonitoire trouble le sommeil du PJ."
+        },
+        {
+          "plage": "17",
+          "texte": "Une ancienne connaissance surgit avec une information."
+        },
+        {
+          "plage": "18",
+          "texte": "Une pluie, un brouillard ou une panne de courant isole le lieu."
+        },
+        {
+          "plage": "19",
+          "texte": "Un objet ou un document utile disparaît."
+        },
+        {
+          "plage": "20",
+          "texte": "Une opportunité inattendue : un voisin parle, une porte reste ouverte, un témoin craque."
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Voisin curieux"
+        },
+        {
+          "plage": "2",
+          "texte": "Policier ou gendarme"
+        },
+        {
+          "plage": "3",
+          "texte": "Médecin ou infirmier"
+        },
+        {
+          "plage": "4",
+          "texte": "Prêtre ou religieux"
+        },
+        {
+          "plage": "5",
+          "texte": "Journaliste"
+        },
+        {
+          "plage": "6",
+          "texte": "Ancien de la région"
+        },
+        {
+          "plage": "7",
+          "texte": "Enfant ou adolescent"
+        },
+        {
+          "plage": "8",
+          "texte": "Collègue ou employeur de la victime"
+        },
+        {
+          "plage": "9",
+          "texte": "Proche de la victime"
+        },
+        {
+          "plage": "10",
+          "texte": "Chercheur ou universitaire"
+        },
+        {
+          "plage": "11",
+          "texte": "Antiquaire ou libraire"
+        },
+        {
+          "plage": "12",
+          "texte": "Patron de bar ou commerçant"
+        },
+        {
+          "plage": "13",
+          "texte": "Gardien ou concierge"
+        },
+        {
+          "plage": "14",
+          "texte": "Personnage au passé trouble"
+        },
+        {
+          "plage": "15",
+          "texte": "Médium ou guérisseur"
+        },
+        {
+          "plage": "16",
+          "texte": "Avocat ou notaire"
+        },
+        {
+          "plage": "17",
+          "texte": "Sans-abri ou marginal"
+        },
+        {
+          "plage": "18",
+          "texte": "Employé de morgue ou de pompes funèbres"
+        },
+        {
+          "plage": "19",
+          "texte": "Membre d'un groupe étrange"
+        },
+        {
+          "plage": "20",
+          "texte": "Quelqu'un dont personne ne se souvient d'avoir fait la connaissance"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "reference": {
+        "univers": "commun",
+        "table": "N2"
+      }
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Veut protéger sa famille."
+        },
+        {
+          "plage": "2",
+          "texte": "Veut cacher ce qu'il a vu."
+        },
+        {
+          "plage": "3",
+          "texte": "Veut que l'affaire reste enterrée."
+        },
+        {
+          "plage": "4",
+          "texte": "Cherche à comprendre ce qui s'est passé."
+        },
+        {
+          "plage": "5",
+          "texte": "Cherche à se venger."
+        },
+        {
+          "plage": "6",
+          "texte": "A peur et veut partir."
+        },
+        {
+          "plage": "7",
+          "texte": "Obéit à quelqu'un d'autre sans savoir pourquoi."
+        },
+        {
+          "plage": "8",
+          "texte": "Veut de l'argent pour parler."
+        },
+        {
+          "plage": "9",
+          "texte": "Se croit coupable."
+        },
+        {
+          "plage": "10",
+          "texte": "Veut se rendre utile pour se faire accepter."
+        },
+        {
+          "plage": "11",
+          "texte": "Est lié à la menace, à son insu."
+        },
+        {
+          "plage": "12",
+          "texte": "Protège un secret de famille."
+        },
+        {
+          "plage": "13",
+          "texte": "Veut rester seul."
+        },
+        {
+          "plage": "14",
+          "texte": "Cherche à attirer l'attention."
+        },
+        {
+          "plage": "15",
+          "texte": "Veut prouver sa foi."
+        },
+        {
+          "plage": "16",
+          "texte": "Est persuadé d'être le suivant."
+        },
+        {
+          "plage": "17",
+          "texte": "A déjà perdu quelqu'un dans cette affaire."
+        },
+        {
+          "plage": "18",
+          "texte": "Veut aider, mais cache une partie de la vérité."
+        },
+        {
+          "plage": "19",
+          "texte": "Teste le PJ pour savoir s'il est digne de confiance."
+        },
+        {
+          "plage": "20",
+          "texte": "Joue un rôle sans le savoir : il est manipulé ou possédé."
+        }
+      ]
+    },
+    {
+      "id": "I1",
+      "titre": "I1 — Indice trouvé",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un objet personnel de la victime, déplacé ou caché."
+        },
+        {
+          "plage": "2",
+          "texte": "Une photo ou une vidéo, avec un détail hors du cadre."
+        },
+        {
+          "plage": "3",
+          "texte": "Un témoignage fragmentaire et contradictoire."
+        },
+        {
+          "plage": "4",
+          "texte": "Un journal ou une lettre aux pages arrachées."
+        },
+        {
+          "plage": "5",
+          "texte": "Un symbole peint, gravé ou tracé (lié à l'occulte)."
+        },
+        {
+          "plage": "6",
+          "texte": "Une trace physique : empreinte, sang, cheveu, tissu."
+        },
+        {
+          "plage": "7",
+          "texte": "Un appel, un message ou un enregistrement."
+        },
+        {
+          "plage": "8",
+          "texte": "Un document officiel (acte, rapport, registre) avec une incohérence."
+        },
+        {
+          "plage": "9",
+          "texte": "Une odeur, un bruit ou une température qui ne s'explique pas."
+        },
+        {
+          "plage": "10",
+          "texte": "Un objet ancien, d'origine incertaine."
+        },
+        {
+          "plage": "11",
+          "texte": "Un plan, une carte ou une adresse notés à la hâte."
+        },
+        {
+          "plage": "12",
+          "texte": "Une bague, un bijou ou un insigne appartenant à un groupe."
+        },
+        {
+          "plage": "13",
+          "texte": "Un animal qui réagit de façon étrange."
+        },
+        {
+          "plage": "14",
+          "texte": "Un témoin ou une victime qui dit « je vous attendais »."
+        },
+        {
+          "plage": "15",
+          "texte": "Une pièce close ou un compartiment caché."
+        },
+        {
+          "plage": "16",
+          "texte": "Un livre, un rituel ou une formule (jet d'occulte)."
+        },
+        {
+          "plage": "17",
+          "texte": "Une coïncidence de dates (anniversaire, phase de lune)."
+        },
+        {
+          "plage": "18",
+          "texte": "Un faux indice : plausible, mais mensonger."
+        },
+        {
+          "plage": "19",
+          "texte": "Un indice qui désigne le PJ ou un proche."
+        },
+        {
+          "plage": "20",
+          "texte": "L'indice décisif : il relie deux éléments de l'affaire."
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "titre": "C1 — Événement choquant",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Découvrir un cadavre mutilé."
+        },
+        {
+          "plage": "2",
+          "texte": "Voir un proche en danger de mort."
+        },
+        {
+          "plage": "3",
+          "texte": "Entendre une voix qui vient de nulle part."
+        },
+        {
+          "plage": "4",
+          "texte": "Apercevoir l'entité, même un instant."
+        },
+        {
+          "plage": "5",
+          "texte": "Être enfermé dans une obscurité totale."
+        },
+        {
+          "plage": "6",
+          "texte": "Trouver un enregistrement de sa propre voix, qu'on n'a jamais fait."
+        },
+        {
+          "plage": "7",
+          "texte": "Découvrir une pièce secrète pleine de photos ou d'objets."
+        },
+        {
+          "plage": "8",
+          "texte": "Voir quelqu'un mourir devant soi."
+        },
+        {
+          "plage": "9",
+          "texte": "Assister à un rituel."
+        },
+        {
+          "plage": "10",
+          "texte": "Reconnaître un visage sur un cadavre ou un portrait."
+        },
+        {
+          "plage": "11",
+          "texte": "Être touché par quelque chose d'invisible."
+        },
+        {
+          "plage": "12",
+          "texte": "Se réveiller ailleurs, sans souvenir."
+        },
+        {
+          "plage": "13",
+          "texte": "Apprendre une vérité sur un proche."
+        },
+        {
+          "plage": "14",
+          "texte": "Voir son reflet agir seul."
+        },
+        {
+          "plage": "15",
+          "texte": "Être pourchassé dans le noir."
+        },
+        {
+          "plage": "16",
+          "texte": "Trouver un enfant, un animal ou un innocent mort ou terrifié."
+        },
+        {
+          "plage": "17",
+          "texte": "Subir une hallucination troublante."
+        },
+        {
+          "plage": "18",
+          "texte": "Perdre un allié."
+        },
+        {
+          "plage": "19",
+          "texte": "Voir un lieu familier devenir étranger."
+        },
+        {
+          "plage": "20",
+          "texte": "Comprendre qu'on a fait partie du problème."
+        }
+      ]
+    },
+    {
+      "id": "M1",
+      "titre": "M1 — Intentions d'une menace surnaturelle",
+      "de": "d20",
+      "colonnes": [
+        "Profil",
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "lignes": [
+        {
+          "texte": "**Prédateur**",
+          "autres": [
+            "Attaque la cible la plus isolée",
+            "Attaque la cible la plus blessée",
+            "Isole une cible (sépare le groupe, bloque une issue)",
+            "Terrorise : 1 point de choc à une cible, sans attaque",
+            "Disparaît dans l'ombre et reviendra plus tard"
+          ],
+          "nom": "Prédateur",
+          "id": "predateur",
+          "compagnon": false
+        },
+        {
+          "texte": "**Manipulateur**",
+          "autres": [
+            "Imite une voix ou une apparence pour attirer une cible",
+            "Terrorise : 1 point de choc à une cible",
+            "Sème la discorde (fausse information, accusation)",
+            "Isole une cible",
+            "Se retire et observe"
+          ],
+          "nom": "Manipulateur",
+          "id": "manipulateur",
+          "compagnon": false
+        },
+        {
+          "texte": "**Entité liée à un lieu**",
+          "autres": [
+            "Se manifeste (phénomène visible ou sonore)",
+            "Terrorise : 1 point de choc à une cible",
+            "Verrouille le lieu (portes, lumières, issues)",
+            "Attaque celui qui franchit son seuil",
+            "Accalmie : ne réagit pas ce tour-ci"
+          ],
+          "nom": "Entité liée à un lieu",
+          "id": "entite-liee-a-un-lieu",
+          "compagnon": false
+        }
+      ],
+      "type": "grille",
+      "plages": [
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "modificateurs": {
+        "blesse": 4,
+        "pression": {
+          "seuil": 7,
+          "valeur": -2
+        }
+      }
+    },
+    {
+      "id": "folie",
+      "titre": "Effets de folie",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Effet",
+        "Description"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "**Tremblements**",
+          "autres": [
+            "Les mains tremblent sans pouvoir s'arrêter. -1 aux jets de dextérité."
+          ],
+          "nom": "Tremblements"
+        },
+        {
+          "plage": "2",
+          "texte": "**Regard vide**",
+          "autres": [
+            "Le personnage reste figé, absent. Il perd sa prochaine action."
+          ],
+          "nom": "Regard vide"
+        },
+        {
+          "plage": "3",
+          "texte": "**Cri incontrôlable**",
+          "autres": [
+            "Un hurlement lui échappe. Les ennemis ou PNJ hostiles des environs sont alertés."
+          ],
+          "nom": "Cri incontrôlable"
+        },
+        {
+          "plage": "4",
+          "texte": "**Déni**",
+          "autres": [
+            "Il refuse d'admettre ce qu'il voit. Désavantage au prochain jet d'investigation lié à la scène."
+          ],
+          "nom": "Déni"
+        },
+        {
+          "plage": "5",
+          "texte": "**Sanglots**",
+          "autres": [
+            "Crise de larmes incontrôlable. Désavantage au prochain jet social."
+          ],
+          "nom": "Sanglots"
+        },
+        {
+          "plage": "6",
+          "texte": "**Fuite éperdue**",
+          "autres": [
+            "Jet de volonté 15 pour rester, sinon il fuit pendant 1d4 tours (le MJ dirige la fuite)."
+          ],
+          "nom": "Fuite éperdue"
+        },
+        {
+          "plage": "7",
+          "texte": "**Paralysie de terreur**",
+          "autres": [
+            "Tétanisé sur place. Équivalent de l'état étourdi pendant 1 tour."
+          ],
+          "nom": "Paralysie de terreur"
+        },
+        {
+          "plage": "8",
+          "texte": "**Nausée**",
+          "autres": [
+            "Le corps lâche avant l'esprit. -1 à tous les jets pendant 1d4 tours."
+          ],
+          "nom": "Nausée"
+        },
+        {
+          "plage": "9",
+          "texte": "**Fixation morbide**",
+          "autres": [
+            "Incapable de quitter la source du choc des yeux. Jet de volonté 15 pour quitter la zone ou agir ailleurs."
+          ],
+          "nom": "Fixation morbide"
+        },
+        {
+          "plage": "10",
+          "texte": "**Rire nerveux**",
+          "autres": [
+            "Rire inapproprié et inquiétant. Désavantage aux interactions avec les PNJ présents."
+          ],
+          "nom": "Rire nerveux"
+        },
+        {
+          "plage": "11",
+          "texte": "**Transfert de peur**",
+          "autres": [
+            "Il accuse un allié. Conflit en RP ; l'allié visé : volonté 15 ou 1 point de choc."
+          ],
+          "nom": "Transfert de peur"
+        },
+        {
+          "plage": "12",
+          "texte": "**Mutisme**",
+          "autres": [
+            "Les mots ne sortent plus. Incapable de communiquer verbalement jusqu'à la fin de la scène."
+          ],
+          "nom": "Mutisme"
+        },
+        {
+          "plage": "13",
+          "texte": "**Flash-back**",
+          "autres": [
+            "Un traumatisme ancien refait surface. Désavantage aux jets de volonté."
+          ],
+          "nom": "Flash-back"
+        },
+        {
+          "plage": "14",
+          "texte": "**Hypervigilance**",
+          "autres": [
+            "Aux aguets mais à cran. +2 aux jets de perception, -2 aux jets de volonté."
+          ],
+          "nom": "Hypervigilance"
+        },
+        {
+          "plage": "15",
+          "texte": "**Hallucination brève**",
+          "autres": [
+            "Il voit ou entend ce qui n'existe pas. Le MJ donne une fausse information crédible, en privé si possible."
+          ],
+          "nom": "Hallucination brève"
+        },
+        {
+          "plage": "16",
+          "texte": "**Crise de rage**",
+          "autres": [
+            "Il s'en prend physiquement à la source du choc pendant 1d4 tours. Volonté 15 pour s'interrompre."
+          ],
+          "nom": "Crise de rage"
+        },
+        {
+          "plage": "17",
+          "texte": "**Amnésie partielle**",
+          "autres": [
+            "Son esprit efface les dernières minutes. Le MJ décide de ce qu'il en reste."
+          ],
+          "nom": "Amnésie partielle"
+        },
+        {
+          "plage": "18",
+          "texte": "**Dissociation**",
+          "autres": [
+            "Tout semble irréel, il flotte hors de son corps. Désavantage à tous les jets jusqu'à la fin de la scène."
+          ],
+          "nom": "Dissociation"
+        },
+        {
+          "plage": "19",
+          "texte": "**Phobie durable**",
+          "autres": [
+            "Peur panique liée à la scène. Permanent : désavantage en présence du stimulus, jusqu'à guérison (soins, rituel, temps)."
+          ],
+          "nom": "Phobie durable"
+        },
+        {
+          "plage": "20",
+          "texte": "**Effondrement**",
+          "autres": [
+            "Il s'évanouit. Inconscient 1d6 tours + une séquelle durable à définir avec le MJ au réveil."
+          ],
+          "nom": "Effondrement"
+        }
+      ],
+      "groupes": [
+        {
+          "avant": "1",
+          "texte": "**CHOC IMMÉDIAT — 1-7 · dure jusqu'à la fin de la scène sauf indication**"
+        },
+        {
+          "avant": "8",
+          "texte": "**TRAUMATISME MARQUANT — 8-14 · dure jusqu'à la fin de la session sauf indication**"
+        },
+        {
+          "avant": "15",
+          "texte": "**FRACTURE MENTALE — 15-20 · conséquences durables, à discuter avec le MJ**"
+        }
+      ]
+    }
+  ]
+}

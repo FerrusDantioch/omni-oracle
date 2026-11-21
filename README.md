@@ -117,8 +117,8 @@ et il est disponible hors ligne.
         { "plage": "2-3", "texte": "…", "autres": ["colonne 3"] }
       ]
     },
-    // Reprendre une table d'un autre univers (comme N2 du space opéra) :
-    { "id": "N2", "titre": "N2 — Trait", "de": "d20", "reference": { "univers": "cyberpunk", "table": "N2" } }
+    // Reprendre une table du tronc commun ou d'un autre univers (N2, commune à tous les univers) :
+    { "id": "N2", "titre": "N2 — Trait", "reference": { "univers": "commun", "table": "N2" } }
   ]
 }
 ```

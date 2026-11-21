@@ -1,6 +1,6 @@
 # Oracle Omni-Système — Variante Horreur / enquête (v0.1)
 
-Cette variante s'utilise avec le **tronc commun** du fichier `01-prototype-cyberpunk.md` (partie 1 : oracle de question, Pression, scènes, intentions, fiche de suivi, duo), **avec les adaptations ci-dessous**. Elle ajoute des tables propres à l'horreur et à l'enquête : affaire, indices, sources de choc, manifestations, menaces.
+Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, fiche de suivi, duo), **avec les adaptations ci-dessous**. Elle ajoute des tables propres à l'horreur et à l'enquête : affaire, indices, sources de choc, manifestations, menaces.
 
 ---
 
@@ -251,7 +251,7 @@ Tire un d20 dans chacune des trois tables.
 | 20 | Quelqu'un dont personne ne se souvient d'avoir fait la connaissance |
 
 ### N2 — Trait
-Identique à la table N2 du cyberpunk (traits universels, voir `01-prototype-cyberpunk.md`).
+Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).
 
 ### N3 — Motivation
 | d20 | Résultat |

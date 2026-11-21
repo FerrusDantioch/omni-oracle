@@ -112,7 +112,9 @@ export function creerCatalogue(commun, listeUnivers) {
     }
     return t;
   }
-  return { commun, univers, parId, table, univ: (id) => parId[id] };
+  /** D'où vient une table reprise : « du tronc commun » ou « de l'univers « Cyberpunk » ». */
+  const origine = (ref) => (ref.univers === 'commun' ? 'du tronc commun' : `de l'univers « ${parId[ref.univers].nom} »`);
+  return { commun, univers, parId, table, univ: (id) => parId[id], origine };
 }
 
 /** Tire une ligne dans une table d20 (ou prend la valeur imposée). */

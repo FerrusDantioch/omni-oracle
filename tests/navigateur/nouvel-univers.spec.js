@@ -10,7 +10,7 @@ test('un nouvel univers (fichier JSON seul) apparaît dans l\'application et le 
   const serveur = await demarrerServeur();
   const index = JSON.parse(fs.readFileSync(path.join(racine, 'data/univers.json'), 'utf8'));
   const modele = JSON.parse(fs.readFileSync(path.join(racine, 'data/cyberpunk.json'), 'utf8'));
-  const essai = { ...modele, id: 'essai', nom: 'Univers d\'essai', ordre: 3 };
+  const essai = { ...modele, id: 'essai', nom: 'Univers d\'essai', ordre: 99 };
   delete essai.source; // pas de fichier source pour cet univers fictif
   serveur.remplacer('data/essai.json', JSON.stringify(essai));
   serveur.remplacer('data/univers.json', JSON.stringify({ ...index, univers: [...index.univers, 'data/essai.json'] }));
@@ -28,7 +28,7 @@ test('un nouvel univers (fichier JSON seul) apparaît dans l\'application et le 
 
   await page.goto(`${serveur.url}livret.html?univers=essai`);
   await expect(page.locator('h1')).toHaveText('Oracle Omni-système — Univers d\'essai');
-  await expect(page.getByLabel('Univers').locator('option')).toHaveCount(3);
+  await expect(page.getByLabel('Univers').locator('option')).toHaveCount(index.univers.length + 1);
   expect(erreurs).toEqual([]);
   await serveur.fermer();
 });

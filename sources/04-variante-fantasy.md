@@ -1,6 +1,6 @@
 # Oracle Omni-Système — Variante Fantasy (v0.1)
 
-Cette variante s'utilise avec le **tronc commun** du fichier `01-prototype-cyberpunk.md` (partie 1 : oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Les règles du tronc commun ne changent pas. Seules changent les tables de contenu et quelques ajouts propres à la fantasy (rencontres de créatures, salles de donjon, profils d'intention supplémentaires).
+Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Les règles du tronc commun ne changent pas. Seules changent les tables de contenu et quelques ajouts propres à la fantasy (rencontres de créatures, salles de donjon, profils d'intention supplémentaires).
 
 **Omni-points (choix pour l'oracle) :** comme en cyberpunk et en space opéra, **3 par joueur et par mission**. L'Oracle commence à 0. *(Le livret Fantasy prévoit 1 omni-point par session attribué au hasard ; pour l'oracle solo/duo, on utilise 3 par mission afin que l'oracle soit utilisable.)* Comme dans le livret, un omni-point permet aussi de **récupérer une utilisation de sort** pour un magicien.
 
@@ -225,7 +225,7 @@ Tire un d20 dans chacune des trois tables.
 | 20 | Esprit, fée ou créature sous forme humaine |
 
 ### N2 — Trait
-Identique à la table N2 du cyberpunk (traits universels, voir `01-prototype-cyberpunk.md`).
+Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).
 
 ### N3 — Motivation
 | d20 | Résultat |

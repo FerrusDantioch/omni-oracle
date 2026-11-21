@@ -50,7 +50,11 @@ const index = lireJSON('data/univers.json');
 const commun = lireJSON(index.commun);
 const univers = index.univers.map(lireJSON);
 const tous = [commun, ...univers];
-const parId = Object.fromEntries(univers.map((u) => [u.id, u]));
+const parId = Object.fromEntries(tous.map((u) => [u.id, u]));
+// Tables reprises par un autre univers (ex. N2 du tronc commun) : elles peuvent ne
+// figurer dans aucune section de leur propre fichier.
+const reprises = new Set(tous.flatMap((d) => d.tables.filter((t) => t.reference).map((t) => `${t.reference.univers}/${t.reference.table}`)));
+const tableDe = (docId, tableId) => parId[docId]?.tables.find((x) => x.id === tableId);
 
 // --- 1 et 2 : structure et plages --------------------------------------------
 for (const doc of tous) {
@@ -79,7 +83,7 @@ for (const doc of tous) {
       }
     }
   }
-  for (const id of ids) if (!placees.has(id)) erreur(`${doc.id} : la table « ${id} » n'apparaît dans aucune section`);
+  for (const id of ids) if (!placees.has(id) && !reprises.has(`${doc.id}/${id}`)) erreur(`${doc.id} : la table « ${id} » n'apparaît dans aucune section`);
   // Rôles : chaque table nommée existe.
   const roles = JSON.stringify(doc.roles || {}).match(/"[A-Z]\d?"/g) || [];
   for (const r of roles) if (!ids.has(r.slice(1, -1))) erreur(`${doc.id} : rôle vers une table inconnue ${r}`);
@@ -87,7 +91,7 @@ for (const doc of tous) {
   for (const t of doc.tables) {
     const nom = `${doc.id} / ${t.titre}`;
     if (t.reference) {
-      const cible = parId[t.reference.univers]?.tables.find((x) => x.id === t.reference.table);
+      const cible = tableDe(t.reference.univers, t.reference.table);
       if (!cible) erreur(`${nom} : renvoi introuvable vers ${t.reference.univers}/${t.reference.table}`);
       else ok(`${t.titre} : reprend la table ${t.reference.table} de « ${parId[t.reference.univers].nom} »`);
       continue;
@@ -100,6 +104,9 @@ for (const doc of tous) {
       if (typeof l.texte !== 'string' || l.texte === '') erreur(`${nom} : ligne sans texte`);
       const attendu = t.colonnes.length - (t.de && t.type !== 'grille' ? 2 : 1);
       if ((l.autres || []).length !== attendu) erreur(`${nom} : nombre de colonnes incorrect (« ${l.texte} »)`);
+    }
+    for (const g of t.groupes || []) {
+      if (!t.lignes.some((l) => l.plage === g.avant)) erreur(`${nom} : intertitre placé avant une ligne inconnue « ${g.avant} »`);
     }
     if (t.de !== 'd20') { ok(`${t.titre} : ${t.lignes.length} lignes (pas de dé)`); continue; }
     if (t.type === 'grille') {
@@ -117,31 +124,81 @@ for (const doc of tous) {
   }
 }
 
+// --- Options d'univers (différences de règles, voir README) ----------------------
+const idsProfils = new Set(commun.tables.find((t) => t.id === 'intentions').lignes.map((l) => l.id));
+for (const u of univers) {
+  const o = u.options || {};
+  const table = (id, quoi) => {
+    const t = u.tables.find((x) => x.id === id);
+    if (!t) erreur(`${u.id} : options.${quoi} renvoie à une table inconnue « ${id} »`);
+    return t;
+  };
+  if (o.paliers) {
+    const t = table(o.paliers, 'paliers');
+    if (t) {
+      let attendu = commun.pression.min;
+      for (const l of t.lignes) {
+        if (!l.id || !l.nom || l.min !== attendu || !(l.max >= l.min)) erreur(`${u.id} : palier « ${l.texte} » mal décrit (id, nom, min, max)`);
+        attendu = l.max + 1;
+      }
+      if (attendu !== commun.pression.max + 1) erreur(`${u.id} : les paliers ne couvrent pas la Pression ${commun.pression.min} à ${commun.pression.max}`);
+      else ok(`${u.nom} : paliers de Pression propres à l'univers (${t.lignes.map((l) => l.nom).join(', ')})`);
+    }
+  }
+  for (const id of o.profils || []) {
+    const t = table(id, 'profils');
+    if (!t) continue;
+    if (t.type !== 'grille' || !t.modificateurs) erreur(`${u.id} : la table de profils « ${id} » doit être une grille avec ses modificateurs`);
+    for (const l of t.lignes) {
+      if (idsProfils.has(l.id)) erreur(`${u.id} : profil d'intention « ${l.id} » en double avec le tronc commun`);
+    }
+    ok(`${u.nom} : profils d'intention en plus (${t.lignes.map((l) => l.nom).join(', ')})`);
+  }
+  for (const r of o.fiche || []) {
+    if (!r.id || !r.titre || !Array.isArray(r.champs) || !r.champs.length) erreur(`${u.id} : rubrique de fiche mal décrite`);
+    if (['fils', 'pnjs', 'menaces', 'lieux', 'scenes'].includes(r.id)) erreur(`${u.id} : la rubrique « ${r.id} » existe déjà dans la fiche`);
+    if (r.table) table(r.table, 'fiche.table');
+  }
+  if (o.chocs) { table(o.chocs.table, 'chocs.table'); table(o.chocs.folie, 'chocs.folie'); }
+  if (o.omniPoints === false && u.omniPointsPJ !== 0) erreur(`${u.id} : sans omni-points, omniPointsPJ doit valoir 0`);
+}
+
 // --- 3 : fidélité aux sources --------------------------------------------------
 // On recompose le texte des sections (titres, lignes, tableaux) et on le compare
 // au fichier source, ligne par ligne. Sont ignorés dans la source : les lignes vides,
 // les séparateurs « --- », le titre du fichier (#), les titres « PARTIE … », et tout
 // ce qui suit « Notes de test ».
 
-function tableEnMarkdown(t) {
-  if (t.reference) return []; // la source ne contient qu'un renvoi en texte
+function tableEnMarkdown(t, source) {
+  if (t.reference) {
+    // Si la table d'origine vient de la même source (ex. N2 : tronc commun et cyberpunk
+    // partagent 01-prototype-cyberpunk.md), elle y est écrite en entier ; sinon la
+    // source ne contient qu'un renvoi en texte.
+    const doc = parId[t.reference.univers];
+    return doc.source === source ? tableEnMarkdown(tableDe(doc.id, t.reference.table), source) : [];
+  }
   const ligne = (cellules) => '| ' + cellules.join(' | ') + ' |';
   const out = [ligne(t.colonnes), '|' + '---|'.repeat(t.colonnes.length)];
   for (const l of t.lignes) {
+    for (const g of (t.groupes || []).filter((x) => x.avant === l.plage)) out.push(ligne(['', g.texte, ...Array(t.colonnes.length - 2).fill('')]));
     const premieres = t.de && t.type !== 'grille' ? [l.plage, l.texte] : [l.texte];
     out.push(ligne([...premieres, ...(l.autres || [])]));
   }
   return out;
 }
 
-function recomposer(doc) {
+// Une section peut venir d'une autre source que son univers (champ « source » de la
+// section : ex. la table de folie de l'horreur, recopiée d'un PDF de Ferrus).
+const sourceDe = (doc, s) => s.source || doc.source;
+
+function recomposer(doc, source) {
   const tables = Object.fromEntries(doc.tables.map((t) => [t.id, t]));
   const out = [];
-  for (const s of doc.sections) {
+  for (const s of doc.sections.filter((x) => sourceDe(doc, x) === source)) {
     if (s.titre) out.push('# ' + s.titre);
     for (const l of s.texte) {
       const m = l.match(/^\{\{table (.+)\}\}$/);
-      if (m) out.push(...tableEnMarkdown(tables[m[1]]));
+      if (m) out.push(...tableEnMarkdown(tables[m[1]], source));
       else out.push(l);
     }
   }
@@ -164,14 +221,16 @@ console.log('\nFidélité aux sources');
 const parSource = new Map();
 for (const doc of tous) {
   if (!doc.source) { console.log(`  (pas de source indiquée pour ${doc.nom} : contrôle de fidélité sauté)`); continue; }
-  if (!parSource.has(doc.source)) parSource.set(doc.source, []);
-  parSource.get(doc.source).push(doc);
+  for (const source of new Set(doc.sections.map((s) => sourceDe(doc, s)))) {
+    if (!parSource.has(source)) parSource.set(source, []);
+    if (!parSource.get(source).includes(doc)) parSource.get(source).push(doc);
+  }
 }
 for (const [source, docs] of parSource) {
   const chemin = path.join(racine, source);
   if (!fs.existsSync(chemin)) { console.log(`  (source ${source} absente : contrôle sauté)`); continue; }
   const attendu = normaliserSource(fs.readFileSync(chemin, 'utf8').split('\n'));
-  const obtenu = docs.flatMap(recomposer);
+  const obtenu = docs.flatMap((d) => recomposer(d, source));
   const n = Math.max(attendu.length, obtenu.length);
   let ecart = -1;
   for (let i = 0; i < n; i++) if (attendu[i] !== obtenu[i]) { ecart = i; break; }
