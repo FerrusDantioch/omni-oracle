@@ -50,7 +50,14 @@ permet aussi de récupérer une utilisation de sort » dans « Dépenser un omni
 
 Dans le **menu** : mes parties, modifier la partie, mission suivante, export, livret
 imprimable, réglages (thème Omni, Sombre, Clair ou Auto, luminosité, vibrations, vrai dé,
-« Masquer les résultats (écran visible des joueurs) »), installation, à propos.
+« Masquer les résultats (écran visible des joueurs) », rappel de sauvegarde), installation,
+à propos.
+
+**Rappel de sauvegarde** : après 5 scènes jouées sans export, un bandeau discret propose
+d'exporter la partie (« Plus tard » le repousse de 5 scènes). « Mes parties » indique la date
+du dernier export. L'application demande aussi au navigateur de garder ses données même s'il
+manque de place (« stockage persistant ») ; l'état est affiché dans les Réglages. Rien n'est
+envoyé nulle part.
 
 Chaque résultat de table (mission, rebondissement, PNJ, complication, intention, rencontre,
 onglet Tables) est une **suggestion** : le MJ a le dernier mot.

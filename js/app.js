@@ -68,7 +68,9 @@ const ctx = {
     S.enregistrerPartie(this.partie);
   },
   exporter() {
-    S.exporterPartie(this.partie);
+    S.exporterPartie(this.partie); // note aussi la date de l'export (rappel de sauvegarde)
+    S.protegerStockage();
+    actualiser();
     annoncer('Fichier de la partie enregistré.');
   },
   missionSuivante() { dialogueMissionSuivante(); },
@@ -254,6 +256,7 @@ function carteNouvellePartie() {
         });
         M.journaliser(partie, { type: 'mission', nom: partie.mission.nom });
         S.enregistrerPartie(partie);
+        S.protegerStockage(); // demandé au moment d'un geste de la personne
         ouvrirPartie(partie);
         annoncer(`Partie créée. ${M.vocabulaire(u).bonne} ${M.vocabulaire(u).nom} !`);
       },
@@ -277,9 +280,10 @@ function carteMesParties() {
           h('div', { class: 'titre-partie' }, p.mission?.nom || voc.sansNom),
           h('div', { class: 'petit discret' },
             `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${p.pjs.map((x) => x.nom).join(' et ')} · ${voc.nom} ${p.mission?.numero ?? 1}, scène ${p.scene.numero} · ${dateCourte(p.modifie)}`),
+          h('div', { class: 'petit discret' }, p.sauvegarde?.quand ? `Exportée le ${dateCourte(p.sauvegarde.quand)}` : 'Jamais exportée'),
           h('div', { class: 'rangee' },
             h('button', { type: 'button', class: 'bouton bouton-accent', onclick: () => ouvrirPartie(S.lirePartie(p.id)) }, 'Reprendre'),
-            h('button', { type: 'button', class: 'bouton', onclick: () => S.exporterPartie(p) }, 'Exporter'),
+            h('button', { type: 'button', class: 'bouton', onclick: () => { S.exporterPartie(p); afficherAccueil(); annoncer('Fichier de la partie enregistré.'); } }, 'Exporter'),
             h('button', {
               type: 'button', class: 'bouton bouton-discret',
               onclick: async () => {
@@ -294,7 +298,7 @@ function carteMesParties() {
     h('div', { class: 'rangee' },
       inputFichier,
       h('button', { type: 'button', class: 'bouton', onclick: () => inputFichier.click() }, 'Importer un fichier'),
-      parties.length > 0 && h('button', { type: 'button', class: 'bouton', onclick: () => S.exporterTout() }, 'Exporter toutes les parties')),
+      parties.length > 0 && h('button', { type: 'button', class: 'bouton', onclick: () => { S.exporterTout(); afficherAccueil(); annoncer('Fichier de toutes les parties enregistré.'); } }, 'Exporter toutes les parties')),
     h('p', { class: 'petit discret' }, 'Tes parties restent sur cet appareil. Exporte-les pour les sauvegarder ou pour changer d\'appareil.'));
 }
 
@@ -480,6 +484,15 @@ async function dialogueReglages() {
   })), avant, { onchange: (t) => T.appliquer(t) });
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
+  const rappel = caseACocher('Rappel de sauvegarde (après 5 scènes sans export)', { coche: ctx.reglages.rappelSauvegarde !== false });
+  const protection = h('p', { class: 'petit discret', 'data-cle': 'etat-stockage' }, 'Protection des données : vérification…');
+  S.protegerStockage({ demander: false }).then((ok) => {
+    protection.textContent = ok === true
+      ? 'Protection des données : le navigateur garde les parties de l\'Oracle même s\'il manque de place.'
+      : ok === false
+        ? 'Protection des données : pas encore accordée par le navigateur (installer l\'application aide). Exporte tes parties régulièrement.'
+        : 'Protection des données : ce navigateur ne la propose pas. Exporte tes parties régulièrement.';
+  });
   const secret = caseACocher('Masquer les résultats (écran visible des joueurs)', { coche: ctx.reglages.secret, 'aria-describedby': 'aide-masquer' });
   const aideSecret = h('p', { class: 'aide', id: 'aide-masquer' }, 'Les résultats sont floutés ; un toucher les révèle.');
   const lumAvant = ctx.reglages.luminosite ?? 100;
@@ -494,7 +507,7 @@ async function dialogueReglages() {
     h('p', { class: 'aide', id: 'aide-lum' }, 'Assombrit l\'application pour jouer le soir (100 % = normal). En dessous de 100 %, les textes secondaires deviennent moins contrastés, comme quand tu baisses la luminosité de l\'appareil.'));
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [theme, luminosite, vibration, dePhysique, secret, aideSecret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [theme, luminosite, vibration, dePhysique, secret, aideSecret, rappel, protection, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') { T.appliquer(avant); T.luminosite(lumAvant); return; }
@@ -504,6 +517,7 @@ async function dialogueReglages() {
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
   if (ctx.reglages.secret !== secret.saisie.checked) ctx.reveles.clear();
   ctx.reglages.secret = secret.saisie.checked;
+  ctx.reglages.rappelSauvegarde = rappel.saisie.checked;
   ctx.sauverReglages();
   if (ctx.partie) actualiser();
   annoncer('Réglages enregistrés.');

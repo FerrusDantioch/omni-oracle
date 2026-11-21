@@ -285,6 +285,22 @@ export function creerVueJouer(ctx) {
     return carte;
   }
 
+  /** Bandeau discret : « N scènes jouées depuis ta dernière sauvegarde ». */
+  function bandeauSauvegarde() {
+    if (ctx.reglages.rappelSauvegarde === false) return null;
+    const n = M.rappelSauvegarde(ctx.partie);
+    if (!n) return null;
+    return h('section', { class: 'rappel-sauvegarde', 'aria-labelledby': 'titre-rappel-sauvegarde' },
+      h('p', { id: 'titre-rappel-sauvegarde' }, h('strong', {}, `${n} scènes jouées depuis ta dernière sauvegarde.`),
+        ' Tes parties ne vivent que sur cet appareil : exporte-la pour ne rien perdre.'),
+      h('div', { class: 'rangee' },
+        h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'rappel-exporter', onclick: () => ctx.exporter() }, 'Exporter la partie'),
+        h('button', {
+          type: 'button', class: 'bouton', 'data-cle': 'rappel-plus-tard',
+          onclick: () => { M.reporterSauvegarde(ctx.partie); ctx.enregistrer(); annoncer('Rappel reporté de 5 scènes.'); },
+        }, 'Plus tard')));
+  }
+
   function rendre() {
     // Question préparée par un autre onglet (réaction d'un PNJ ou d'un vaisseau).
     const demande = ctx.demandeOracle;
@@ -294,6 +310,7 @@ export function creerVueJouer(ctx) {
       ecran.vraisemblance = demande.vraisemblance || ecran.vraisemblance;
     }
     remplacer(el,
+      bandeauSauvegarde(),
       h('div', { class: 'rangee option-de' }, caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', {
         coche: ctx.reglages.dePhysique, 'data-cle': 'de-physique',
         onchange: (v) => { ctx.reglages.dePhysique = v; ctx.sauverReglages(); rendre(); },
