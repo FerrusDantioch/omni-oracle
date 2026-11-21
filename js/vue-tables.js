@@ -1,10 +1,11 @@
 // Onglet « Tables » : consulter toutes les tables de l'univers, chercher un mot,
 // tirer un d20 sur une table ou prendre une ligne précise.
 
-import { h, remplacer, riche, animerResultat } from './ui.js';
+import { h, remplacer, riche, animerResultat, annoncer } from './ui.js';
 import { texteBrut } from './texte.js';
 import { autresColonnes } from './composants.js';
-import { tirerEtNoter } from './actions.js';
+import { tirerEtNoter, ecarter } from './actions.js';
+import { actionsSuggestion } from './composants.js';
 
 /** Texte sans accents ni majuscules, pour une recherche tolérante (« evenement » trouve « événement »). */
 const simplifier = (t) => texteBrut(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -41,9 +42,21 @@ export function creerVueTables(ctx) {
         h('p', {}, riche(e.texte)),
         e.autres && autresColonnes(table, { autres: e.autres }));
       if (ecran.animer === table.id) animerResultat(res);
-      details.append(ctx.resultat(res));
+      details.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
+        cle: `tables-${table.id}`,
+        relancer: () => { ecarter(ctx, e, 'relance'); noter(table, null); },
+        ignorer: () => {
+          ecarter(ctx, e, 'ignore');
+          delete ecran.derniers[table.id];
+          ctx.enregistrer();
+          annoncer('Résultat ignoré.');
+        },
+        afficher: { titre: table.titre, texte: e.texte },
+      }));
     }
-    const marquer = e && !ctx.reglages.secret; // en mode MJ, on ne montre pas quelle ligne est sortie
+    // Résultat masqué (écran visible des joueurs) : on ne montre pas quelle ligne est sortie
+    // tant qu'il n'a pas été révélé.
+    const marquer = e && (!ctx.reglages.secret || ctx.reveles.has(`j-${e.n}`));
     details.append(h('ol', { class: 'lignes-table' }, lignes.map((l) => h('li', { class: marquer && e.plage === l.plage ? 'obtenue' : '' },
       h('span', { class: 'plage' }, l.plage),
       h('div', { class: 'ligne-texte' },

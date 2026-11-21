@@ -4,7 +4,8 @@
 import * as M from './moteur.js';
 import { h, remplacer, riche, champ, vibrer, animerResultat, annoncer } from './ui.js';
 import { rendreBloc, texteBrut } from './texte.js';
-import { autresColonnes, valeurDePlage } from './composants.js';
+import { autresColonnes, valeurDePlage, actionsSuggestion } from './composants.js';
+import { ecarter } from './actions.js';
 
 const FAMILLES = { alien: 'aliens', humain: 'humains' };
 
@@ -89,7 +90,12 @@ export function creerVueVaisseaux(ctx) {
     if (r) {
       const res = h('div', { class: 'resultat', 'aria-live': 'polite' }, decrire(r));
       if (ecran.animer) animerResultat(res);
-      carte.append(ctx.resultat(res), h('div', { class: 'rangee' },
+      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
+        cle: 'vaisseau',
+        relancer: () => { ecarter(ctx, e, 'relance'); rencontre(); },
+        ignorer: () => { ecarter(ctx, e, 'ignore'); ecran.dernier = null; ctx.enregistrer(); annoncer('Rencontre ignorée.'); },
+        afficher: { titre: 'Rencontre', texte: `${r.type.ligne.texte} · ${r.attitude.ligne.texte.split(' : ')[0]}` },
+      }), h('div', { class: 'rangee' },
         h('button', {
           type: 'button', class: 'bouton', 'data-cle': 'vaisseau-reaction',
           onclick: () => ctx.preparerOracle({ question: 'Le vaisseau accepte la proposition ?', vraisemblance: r.vraisemblance }),

@@ -518,3 +518,19 @@ describe('Journal', () => {
     assert.equal(e.question, 'Est-il armé ?');
   });
 });
+
+test('journal : le début de scène garde son type (et les anciennes parties restent lisibles)', () => {
+  const p = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+  M.debuterScene(commun, p, { des: 2 });
+  const e = p.journal.at(-1);
+  assert.equal(e.type, 'scene-debut');
+  assert.equal(e.alteration, 'modifiee');
+  assert.equal(M.typeEntree(e), 'scene-debut');
+  // Entrées enregistrées par la version 0.2.1 (type écrasé par l'altération).
+  for (const ancien of ['modifiee', 'interrompue', null]) {
+    const v = { n: 1, type: ancien, prevue: '', de: 2, pression: 3, soupape: false, alteree: ancien !== null, complication: null, palier: 'vigilance' };
+    assert.equal(M.typeEntree(v), 'scene-debut');
+    assert.equal(M.alterationEntree(v), ancien);
+  }
+  assert.equal(M.typeEntree({ type: 'oracle' }), 'oracle');
+});

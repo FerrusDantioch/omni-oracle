@@ -37,7 +37,6 @@ const ONGLETS = [
   { id: 'journal', texte: 'Journal', creer: creerVueJournal },
 ];
 
-let compteurSecret = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -95,27 +94,34 @@ const ctx = {
     });
     if (r === 'mission') allerOnglet('mission');
   },
+  /** Résultats déjà révélés par un toucher (réglage « Masquer les résultats »), pour la séance. */
+  reveles: new Set(),
   /**
-   * Emballage des résultats. En mode assistant du MJ, le résultat est masqué
-   * et ne s'affiche qu'au toucher (pour tirer en secret devant les joueurs).
+   * Emballage des résultats. Avec le réglage « Masquer les résultats (écran visible
+   * des joueurs) », le résultat est flouté ; un toucher le révèle.
+   * - cle : identifiant stable du résultat (ex. n° du journal), pour qu'il reste
+   *   révélé quand l'écran se redessine.
    */
-  resultat(el) {
-    if (!this.reglages.secret) return el;
-    const id = `secret-${++compteurSecret}`;
-    const MASQUE = 'Résultat masqué : toucher pour voir';
-    const contenu = h('div', { id, hidden: true }, el);
-    const bouton = h('button', {
-      type: 'button', class: 'bouton bouton-secret', 'aria-expanded': 'false', 'aria-controls': id,
-      onclick: () => {
-        const montrer = contenu.hidden;
-        contenu.hidden = !montrer;
-        bouton.setAttribute('aria-expanded', String(montrer));
-        bouton.textContent = montrer ? 'Masquer le résultat' : MASQUE;
+  resultat(el, { cle = null } = {}) {
+    if (!this.reglages.secret || (cle !== null && this.reveles.has(cle))) return el;
+    const contenu = h('div', { class: 'masquable-contenu', inert: true, 'aria-hidden': 'true' }, el);
+    const bloc = h('div', { class: 'masquable masque' }, contenu);
+    bloc.append(h('button', {
+      type: 'button', class: 'bouton bouton-reveler', 'data-cle': cle !== null ? `reveler-${cle}` : null,
+      onclick: (ev) => {
+        // Résultat repérable : on le note révélé et on redessine (ex. la ligne tirée
+        // se marque aussi dans la liste de l'onglet Tables).
+        if (cle !== null) { this.reveles.add(cle); actualiser(); return; }
+        contenu.inert = false;
+        contenu.removeAttribute('aria-hidden');
+        bloc.classList.remove('masque');
+        ev.currentTarget.remove();
+        contenu.querySelector('button, [tabindex]')?.focus({ preventScroll: true });
       },
-    }, MASQUE);
-    return h('div', { class: 'secret' }, bouton, contenu);
+    }, h('span', {}, 'Résultat masqué : toucher pour révéler')));
+    return bloc;
   },
-  /** Annonce un résultat, sauf en mode assistant du MJ (il resterait visible à l'écran). */
+  /** Annonce un résultat, sauf s'il est masqué (il serait lu à voix haute). */
   annoncerResultat(message) {
     annoncer(this.reglages.secret ? 'Résultat tiré (masqué).' : message);
   },
@@ -141,14 +147,9 @@ function actualiser() {
 }
 
 // --- Démarrage -------------------------------------------------------------------------
-/** Pastille « Mode MJ » dans l'en-tête quand les résultats sont masqués. */
-function majModeMJ() {
-  $('badge-mj').hidden = !ctx.reglages.secret;
-}
 
 async function demarrer() {
   reglerVibration(ctx.reglages.vibration);
-  majModeMJ();
   $('bouton-menu').addEventListener('click', ouvrirMenu);
   initialiserPWA({ bouton: $('bouton-maj') });
   try {
@@ -419,7 +420,6 @@ async function ouvrirMenu() {
     enPartie && { id: 'modifier', texte: 'Modifier la partie' },
     enPartie && { id: 'mission', texte: 'Mission suivante' },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
-    { id: 'secret', texte: ctx.reglages.secret ? 'Mode assistant du MJ : activé (désactiver)' : 'Mode assistant du MJ (résultats masqués)' },
     { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
     { id: 'livret', texte: 'Livret imprimable' },
     { id: 'installer', texte: 'Installer l\'application' },
@@ -437,13 +437,6 @@ async function ouvrirMenu() {
       window.location.href = `livret.html?univers=${encodeURIComponent(ctx.partie ? ctx.partie.univers : ctx.cat.univers[0].id)}`;
       break;
     case 'apropos': dialogueAPropos(); break;
-    case 'secret':
-      ctx.reglages.secret = !ctx.reglages.secret;
-      ctx.sauverReglages();
-      majModeMJ();
-      if (ctx.partie) actualiser();
-      annoncer(ctx.reglages.secret ? 'Mode assistant du MJ : les résultats sont masqués, touche-les pour les voir.' : 'Mode assistant du MJ désactivé.');
-      break;
     default: break;
   }
 }
@@ -462,7 +455,8 @@ async function dialogueReglages() {
   })), avant, { onchange: (t) => T.appliquer(t) });
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
-  const secret = caseACocher('Mode assistant du MJ : résultats masqués, affichés au toucher', { coche: ctx.reglages.secret });
+  const secret = caseACocher('Masquer les résultats (écran visible des joueurs)', { coche: ctx.reglages.secret, 'aria-describedby': 'aide-masquer' });
+  const aideSecret = h('p', { class: 'aide', id: 'aide-masquer' }, 'Les résultats sont floutés ; un toucher les révèle.');
   const lumAvant = ctx.reglages.luminosite ?? 100;
   const valeurLum = h('output', { for: 'reglage-lum', id: 'valeur-lum' }, `${lumAvant} %`);
   const curseurLum = h('input', {
@@ -475,7 +469,7 @@ async function dialogueReglages() {
     h('p', { class: 'aide', id: 'aide-lum' }, 'Assombrit l\'application pour jouer le soir (100 % = normal). En dessous de 100 %, les textes secondaires deviennent moins contrastés, comme quand tu baisses la luminosité de l\'appareil.'));
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [theme, luminosite, vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [theme, luminosite, vibration, dePhysique, secret, aideSecret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') { T.appliquer(avant); T.luminosite(lumAvant); return; }
@@ -483,9 +477,9 @@ async function dialogueReglages() {
   ctx.reglages.luminosite = T.luminosite(curseurLum.value);
   ctx.reglages.vibration = vibration.saisie.checked;
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
+  if (ctx.reglages.secret !== secret.saisie.checked) ctx.reveles.clear();
   ctx.reglages.secret = secret.saisie.checked;
   ctx.sauverReglages();
-  majModeMJ();
   if (ctx.partie) actualiser();
   annoncer('Réglages enregistrés.');
 }

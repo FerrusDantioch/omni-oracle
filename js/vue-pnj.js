@@ -26,8 +26,10 @@ export function creerVueGenerateurPNJ(ctx) {
   });
   let pnj = neuf();
 
+  let compteur = 0; // pour reconnaître chaque tirage (résultat révélé quand l'écran se redessine)
   function tirer(cle, valeur) {
     pnj.tirages[cle].valeur = valeur ?? M.deAleatoire(20);
+    pnj.tirages[cle].n = `pnj-${++compteur}`;
   }
 
   function rendre() {
@@ -61,6 +63,7 @@ export function creerVueGenerateurPNJ(ctx) {
           table: t, etat: pnj.tirages[k], cle: `pnj-${k}`,
           surTirage: (valeur) => { tirer(k, valeur); if (valeur === null) vibrer(); rendre(); },
           surVerrou: rendre,
+          surIgnorer: () => { pnj.tirages[k].valeur = null; rendre(); annoncer('Résultat ignoré.'); },
         })))),
       h('section', { class: 'carte', 'aria-labelledby': 'titre-ajout-pnj' },
         h('h2', { id: 'titre-ajout-pnj' }, 'Ajouter à la partie'),

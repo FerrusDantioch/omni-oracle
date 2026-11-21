@@ -189,6 +189,16 @@ export function tirerComplication(ctx, { cible = null, valeur = null } = {}) {
   return tirerEtNoter(ctx, table, { cible, valeur });
 }
 
+/**
+ * Le MJ écarte une suggestion inscrite au journal : motif 'relance' (un nouveau
+ * tirage la remplace) ou 'ignore'. L'entrée reste dans le journal, barrée.
+ */
+export function ecarter(ctx, n, motif) {
+  const e = typeof n === 'object' ? n : ctx.partie.journal.find((x) => x.n === n);
+  if (e && !e.ecarte) e.ecarte = motif;
+  return e;
+}
+
 /** Tire une ligne dans n'importe quelle table et l'inscrit au journal. */
 export function tirerEtNoter(ctx, table, { cible = null, valeur = null, contexte = '' } = {}) {
   const t = M.tirerTable(table, { valeur });

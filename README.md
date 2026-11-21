@@ -37,9 +37,21 @@ Adresse publique : <https://ferrusdantioch.github.io/omni-oracle/>
 Toujours visible en haut de l'écran : la **Pression** (avec + et −), le palier, le numéro de
 scène, les **omni-points** de chaque PJ et de l'Oracle, et le seuil de rupture.
 
-Dans le **menu** : mes parties, modifier la partie, mission suivante, export, **mode assistant
-du MJ** (résultats masqués, affichés au toucher), livret imprimable, réglages (thème Omni,
-Sombre, Clair ou Auto, luminosité, vibrations, vrai dé), installation, à propos.
+Dans le **menu** : mes parties, modifier la partie, mission suivante, export, livret
+imprimable, réglages (thème Omni, Sombre, Clair ou Auto, luminosité, vibrations, vrai dé,
+« Masquer les résultats (écran visible des joueurs) »), installation, à propos.
+
+Chaque résultat de table (mission, rebondissement, PNJ, complication, intention, rencontre,
+onglet Tables) est une **suggestion** : le MJ a le dernier mot.
+
+- **Relancer** : nouveau tirage ; l'ancien reste dans le journal, barré (« relancé par le MJ »).
+- **Ignorer** : le résultat est écarté ; il reste dans le journal, barré (« ignoré par le MJ »).
+  Pour une complication de début de scène, seule la complication est relancée ou ignorée :
+  le d20 d'altération (la règle) ne change pas.
+- **Afficher aux joueurs** : le résultat en très grand, plein écran, lisible de l'autre côté
+  de la table ; un toucher (ou Échap) ferme.
+- Réglage **Masquer les résultats** (désactivé par défaut) : les résultats sont floutés, un
+  toucher les révèle.
 
 ## Publier sur GitHub Pages
 

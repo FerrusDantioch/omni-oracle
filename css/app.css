@@ -568,26 +568,66 @@ details[open] > summary { margin-bottom: .4rem; }
 .ligne-fiche .champ-notes, .ligne-fiche .champ-consequence, .ligne-fiche .rangee { grid-column: 1 / -1; }
 .ligne-fiche .rangee { margin-top: 0; }
 
-/* --- Mode assistant du MJ ----------------------------------------------------------------- */
-.secret { margin-top: 1rem; }
-.secret > div > .resultat { margin-top: .5rem; }
-.bouton-secret {
+/* --- Résultats masqués (écran visible des joueurs) et suggestions du MJ ------------------- */
+.masquable { position: relative; margin-top: 1rem; }
+.masquable > .masquable-contenu > .resultat:first-child,
+.masquable > .masquable-contenu > .complication:first-child { margin-top: 0; }
+/* Flou : le résultat existe mais reste illisible ; le bouton couvre tout le bloc. */
+.masque > .masquable-contenu { filter: blur(.6rem); user-select: none; pointer-events: none; min-height: 4rem; }
+.bouton-reveler {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-height: 3.5rem;
-  border-style: dashed;
-  border-color: var(--accent);
-  background: var(--fond);
-}
-.badge-mj {
-  display: inline-flex;
-  align-items: center;
   min-height: 44px;
-  padding: 0 .7rem;
-  border: 1px dashed var(--accent);
-  border-radius: .6rem;
-  font-size: .9rem;
+  border: 2px dashed var(--accent);
+  background: transparent;
+  color: var(--texte);
   font-weight: 700;
 }
+/* L'étiquette garde un fond plein : lisible (contraste) par-dessus le flou. */
+.bouton-reveler > span { padding: .4rem .8rem; border-radius: .6rem; background: var(--surface); }
+.actions-suggestion { margin-top: .5rem; }
+.journal li.ecarte .texte-ecarte { text-decoration: line-through; color: var(--discret); }
+.journal-meta .etiquette { margin-left: .5rem; }
+
+/* « Afficher aux joueurs » : plein écran, très grand texte, un toucher ferme. */
+.dialogue-joueurs {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--surface);
+  color: var(--texte);
+}
+.dialogue-joueurs::backdrop { background: var(--surface); }
+.affichage-joueurs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem max(1rem, 4vw);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+.affichage-titre { font-size: clamp(1.1rem, 3vw, 1.8rem); color: var(--discret); }
+.affichage-texte {
+  font-size: clamp(1.8rem, 6.5vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.affichage-aide { font-size: 1rem; color: var(--discret); }
+.affichage-joueurs:focus-visible { outline: 3px solid var(--accent); outline-offset: -6px; }
 
 /* Petite flèche des dépliants (details), qui tourne à l'ouverture */
 details > summary { list-style: none; }

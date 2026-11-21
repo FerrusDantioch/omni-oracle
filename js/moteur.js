@@ -232,6 +232,18 @@ export function creerPartie(commun, univers, { mode = 'solo', mission = '', pjs 
   };
 }
 
+/**
+ * Type d'une entrée du journal. Jusqu'à la version 0.2.1, les débuts de scène étaient
+ * enregistrés par erreur avec le type « modifiee », « interrompue » ou null : on les
+ * reconnaît à leurs champs, sans modifier les parties enregistrées.
+ */
+export function typeEntree(e) {
+  if (e.type !== 'scene-debut' && 'alteree' in e && 'soupape' in e && 'prevue' in e) return 'scene-debut';
+  return e.type;
+}
+/** Altération d'un début de scène : 'modifiee', 'interrompue' ou null. */
+export const alterationEntree = (e) => (e.type === 'scene-debut' ? e.alteration ?? null : e.type);
+
 /** Ajoute une entrée au journal et la renvoie. */
 export function journaliser(partie, entree) {
   partie.compteur += 1;
@@ -296,7 +308,8 @@ export function debuterScene(commun, partie, { prevue = '', complications = null
   partie.scene.soupape = soupape;
   partie.scene.alteration = { de: valeur, pression: partie.pression, alteree, type, complication };
   const res = { de: valeur, pression: partie.pression, soupape, alteree, type, complication, palier: palier(commun, partie.pression) };
-  journaliser(partie, { type: 'scene-debut', prevue, ...res, palier: res.palier.id });
+  // « alteration » (modifiée / interrompue) : rangé à part pour ne pas écraser le type de l'entrée.
+  journaliser(partie, { ...res, type: 'scene-debut', alteration: type, prevue, palier: res.palier.id });
   return res;
 }
 

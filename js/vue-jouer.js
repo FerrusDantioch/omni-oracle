@@ -5,8 +5,9 @@ import { h, remplacer, riche, champ, choix, caseACocher, annoncer, vibrer, anime
 import { texteBrut } from './texte.js';
 import {
   saisieDes, essayer, dialogueFinScene, tirerComplication, dialogueContester,
-  transformerOuiMais, contestataire, decrireJet,
+  transformerOuiMais, contestataire, decrireJet, ecarter,
 } from './actions.js';
+import { actionsSuggestion } from './composants.js';
 
 const CONSEILS = {
   'oui-mais': 'Une complication mineure : tire dans la table Complications, ou invente-la.',
@@ -32,6 +33,30 @@ export function creerVueJouer(ctx) {
   const el = h('div', { class: 'vue-jouer' });
 
   // --- Scène -----------------------------------------------------------------------
+  /**
+   * Le MJ relance ou ignore la complication de début de scène. Seule la complication
+   * change : le d20 d'altération (la règle) reste tel quel. L'ancienne complication
+   * est gardée, barrée, dans l'entrée « début de scène » du journal.
+   */
+  function changerComplication(motif) {
+    const p = ctx.partie;
+    const a = p.scene.alteration;
+    const debut = [...p.journal].reverse().find((x) => M.typeEntree(x) === 'scene-debut' && x.scene === p.scene.numero && x.mission === p.mission.numero);
+    if (a.complication) {
+      const ancienne = { ...a.complication, ecarte: motif };
+      a.ecartees = [...(a.ecartees || []), ancienne];
+      if (debut) debut.ecartees = [...(debut.ecartees || []), ancienne];
+    }
+    a.complication = motif === 'relance' ? M.tirerTable(ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications)) : null;
+    a.complicationIgnoree = motif === 'ignore';
+    if (debut) debut.complication = a.complication;
+    ecran.animer = 'scene';
+    if (motif === 'relance') vibrer();
+    ctx.enregistrer();
+    if (motif === 'relance') ctx.annoncerResultat(`Nouvelle complication : ${texteBrut(a.complication.ligne.texte)}`);
+    else annoncer('Complication ignorée : invente l\'élément, ou relance.');
+  }
+
   function carteScene() {
     const p = ctx.partie;
     const C = ctx.commun;
@@ -95,10 +120,19 @@ export function creerVueJouer(ctx) {
           ? 'Ajoute cet élément à ta scène prévue :'
           : 'C\'est cet événement qui se joue à la place :'),
         a.complication && h('div', { class: 'complication' }, h('strong', {}, `${a.complication.titre} (${a.complication.valeur}) : `), riche(a.complication.ligne.texte)),
+        !a.complication && a.complicationIgnoree && h('p', { class: 'complication' }, 'Complication ignorée par le MJ : invente l\'élément, ou relance.'),
         h('p', { class: 'petit discret' }, `Adapte la gravité de la complication au palier de Pression (${M.palier(ctx.commun, a.pression).nom}).`));
     }
     if (ecran.animer === 'scene') animerResultat(res);
-    carte.append(ctx.resultat(res), h('div', { class: 'rangee' },
+    const cleScene = `scene-${p.mission.numero}-${p.scene.numero}-${(a.ecartees || []).length}`;
+    carte.append(ctx.resultat(res, { cle: cleScene }),
+      a.alteree && actionsSuggestion({
+        cle: 'scene-complication',
+        relancer: () => changerComplication('relance'),
+        ignorer: a.complication && (() => changerComplication('ignore')),
+        afficher: a.complication && { titre: a.complication.titre, texte: a.complication.ligne.texte },
+      }),
+      h('div', { class: 'rangee' },
       h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'scene-terminer', onclick: () => dialogueFinScene(ctx) }, 'Terminer la scène')));
     return carte;
   }
@@ -142,7 +176,7 @@ export function creerVueJouer(ctx) {
         }),
       }, 'Interroger l\'oracle')));
     const e = p.journal.find((x) => x.n === ecran.dernierOracle);
-    if (e) carte.append(resultatOracle(e));
+    if (e) carte.append(...resultatOracle(e).flat(Infinity).filter(Boolean));
     return carte;
   }
 
@@ -164,10 +198,6 @@ export function creerVueJouer(ctx) {
       p.mode === 'duo' && e.joueur && h('p', { class: 'petit' }, `Question de ${nomPJ(e.joueur)} : c'est à ${nomPJ(e.joueur)} d'interpréter.`),
       CONSEILS[e.reponse] && h('p', {}, CONSEILS[e.reponse]));
 
-    // Complications déjà tirées pour cette réponse
-    for (const t of p.journal.filter((x) => x.type === 'tirage' && x.cible === e.n)) {
-      res.append(h('div', { class: 'complication' }, h('strong', {}, `Complication (${t.valeur}) : `), riche(t.texte)));
-    }
     const boutons = h('div', { class: 'rangee' });
     if (e.complication) {
       boutons.append(h('button', {
@@ -190,7 +220,17 @@ export function creerVueJouer(ctx) {
     }
     if (boutons.childElementCount) res.append(boutons);
     if (ecran.animer === 'oracle') animerResultat(res);
-    return ctx.resultat(res);
+    // Complications tirées pour cette réponse : chacune est une suggestion du MJ.
+    const complications = p.journal.filter((x) => x.type === 'tirage' && x.cible === e.n && !x.ecarte).map((t) => [
+      ctx.resultat(h('div', { class: 'complication' }, h('strong', {}, `Complication (${t.valeur}) : `), riche(t.texte)), { cle: `j-${t.n}` }),
+      actionsSuggestion({
+        cle: `oracle-complication-${t.n}`,
+        relancer: () => { ecarter(ctx, t, 'relance'); tirerComplication(ctx, { cible: e.n }); vibrer(); ecran.animer = 'oracle'; ctx.enregistrer(); },
+        ignorer: () => { ecarter(ctx, t, 'ignore'); ctx.enregistrer(); annoncer('Complication ignorée.'); },
+        afficher: { titre: t.titre, texte: t.texte },
+      }),
+    ]);
+    return [ctx.resultat(res, { cle: `j-${e.n}` }), complications];
   }
 
   // --- Lanceur de dé ----------------------------------------------------------------------
@@ -239,7 +279,7 @@ export function creerVueJouer(ctx) {
         h('p', { class: 'resultat-detail' }, decrireJet(e.jet),
           e.jet.naturel === 20 && ' · 20 naturel', e.jet.naturel === 1 && ' · 1 naturel'));
       if (ecran.animer === 'de') animerResultat(res);
-      carte.append(ctx.resultat(res));
+      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }));
     }
     return carte;
   }

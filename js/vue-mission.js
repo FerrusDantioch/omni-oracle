@@ -4,7 +4,7 @@ import * as M from './moteur.js';
 import { h, remplacer, choix, annoncer, vibrer, animerResultat } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { tirageVerrouillable } from './composants.js';
-import { tirerEtNoter, saisieDes, essayer, decrireJet } from './actions.js';
+import { tirerEtNoter, saisieDes, essayer, decrireJet, ecarter } from './actions.js';
 
 export function creerVueMission(ctx) {
   const el = h('div', { class: 'vue-mission' });
@@ -20,8 +20,20 @@ export function creerVueMission(ctx) {
 
   function tirer(id, valeur) {
     const table = ctx.cat.table(ctx.univ.id, id);
+    const etat = etatMission()[id];
+    if (etat.n) ecarter(ctx, etat.n, 'relance');
     const e = tirerEtNoter(ctx, table, { valeur, contexte: 'mission' });
-    etatMission()[id].valeur = e.valeur;
+    etat.valeur = e.valeur;
+    etat.n = e.n;
+  }
+
+  function ignorer(id) {
+    const etat = etatMission()[id];
+    if (etat.n) ecarter(ctx, etat.n, 'ignore');
+    etat.valeur = null;
+    etat.n = null;
+    ctx.enregistrer();
+    annoncer('Résultat ignoré : la table est à nouveau libre.');
   }
 
   function tirerTout() {
@@ -50,6 +62,7 @@ export function creerVueMission(ctx) {
         cle: `mission-${id}`,
         surTirage: (valeur) => { tirer(id, valeur); ctx.enregistrer(); },
         surVerrou: () => ctx.enregistrer(),
+        surIgnorer: () => ignorer(id),
       }))));
   }
 

@@ -128,6 +128,19 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     (« tronc commun de l'Oracle Omni-système », « traits universels, communs à tous les univers ») ;
     modifié dans la source et dans le JSON.
 
+### Décisions du 21/11/2026
+
+18. **Résultats de table = suggestions** (plus de « mode assistant du MJ ») : sous chaque
+    résultat de table, « Relancer », « Ignorer » et « Afficher aux joueurs » (plein écran, très
+    grand texte, un toucher ferme). Le résultat écarté reste dans le journal, barré, avec
+    « relancé / ignoré par le MJ » (champ `ecarte` de l'entrée). Un résultat verrouillé
+    (mission, PNJ) n'a ni Relancer ni Ignorer. Complication de début de scène : seule la
+    complication change, jamais le d20 d'altération. Intention relancée : même profil et mêmes
+    modificateurs. Les réponses oui/non de l'oracle ne sont pas concernées.
+19. **Masquer les résultats (écran visible des joueurs)** : simple réglage, désactivé par
+    défaut (clé `secret` des réglages, gardée pour ne pas perdre le choix déjà fait) ; résultats
+    floutés, un toucher les révèle (révélés jusqu'au rechargement de la page).
+
 ## Tests
 
 - `npm test` : données (plages 1-20, fidélité mot pour mot), moteur (cas limites), sécurité.

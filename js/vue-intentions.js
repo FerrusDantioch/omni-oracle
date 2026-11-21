@@ -2,9 +2,10 @@
 // (tronc commun, section 5), et ce que fait un vaisseau ennemi (table E, space opéra).
 
 import * as M from './moteur.js';
-import { h, remplacer, riche, choix, caseACocher, champ, vibrer, animerResultat } from './ui.js';
+import { h, remplacer, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer } from './ui.js';
 import { rendreBloc } from './texte.js';
-import { saisieDes, essayer } from './actions.js';
+import { saisieDes, essayer, ecarter } from './actions.js';
+import { actionsSuggestion } from './composants.js';
 
 const signe = (n) => (n < 0 ? `− ${-n}` : `+ ${n}`);
 
@@ -32,6 +33,15 @@ export function creerVueIntentions(ctx) {
   };
   const seuil = () => tableI().modificateurs.pression.seuil;
   const pressionActive = (choixManuel) => (choixManuel === null ? ctx.partie.pression >= seuil() : choixManuel);
+
+  /** Le MJ ignore une intention : elle reste barrée dans le journal, l'écran se vide. */
+  function ignorer(e, champDernier) {
+    ecarter(ctx, e, 'ignore');
+    ecran[champDernier] = null;
+    ctx.enregistrer();
+    annoncer('Intention ignorée.');
+  }
+  const aEu = (e, id) => e.modificateurs.some((m) => m.id === id);
 
   /** Rappel de la colonne du profil, la ligne obtenue étant marquée (pas seulement par la couleur). */
   function listeColonnes(plages, actions, plageObtenue) {
@@ -122,7 +132,22 @@ export function creerVueIntentions(ctx) {
         listeColonnes(t.plages, prof.autres, e.plage),
         boutonsRelance(jouer));
       if (ecran.animer === 'pnj') animerResultat(res);
-      carte.append(ctx.resultat(res));
+      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
+        cle: 'intention',
+        // Nouveau d20, même profil et mêmes modificateurs que le résultat écarté.
+        relancer: () => essayer(() => {
+          const r = M.intentionPNJ(ctx.commun, { profil: e.profil, blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? seuil() : 0 });
+          ecarter(ctx, e, 'relance');
+          const n = M.journaliser(p, { type: 'intention', relance: false, ...r, nom: e.nom });
+          ecran.dernier = n.n;
+          ecran.animer = 'pnj';
+          vibrer();
+          ctx.enregistrer();
+          ctx.annoncerResultat(`${e.nom || prof.nom} : ${r.action}`);
+        }),
+        ignorer: () => ignorer(e, 'dernier'),
+        afficher: { titre: e.nom || prof.nom, texte: e.action },
+      }));
     }
     return carte;
   }
@@ -173,7 +198,21 @@ export function creerVueIntentions(ctx) {
         listeColonnes(E.lignes.map((l) => l.plage), E.lignes.map((l) => l.texte), e.plage),
         boutonsRelance(jouer));
       if (ecran.animer === 'vaisseau') animerResultat(res);
-      carte.append(ctx.resultat(res));
+      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
+        cle: 'intention-vaisseau',
+        relancer: () => essayer(() => {
+          const r = M.intentionVaisseau(E, { blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? m.pression.seuil : 0 });
+          ecarter(ctx, e, 'relance');
+          const n = M.journaliser(p, { type: 'intention-vaisseau', relance: false, ...r });
+          ecran.vDernier = n.n;
+          ecran.animer = 'vaisseau';
+          vibrer();
+          ctx.enregistrer();
+          ctx.annoncerResultat(`Vaisseau ennemi : ${r.action}`);
+        }),
+        ignorer: () => ignorer(e, 'vDernier'),
+        afficher: { titre: 'Vaisseau ennemi', texte: e.action },
+      }));
     }
     return carte;
   }

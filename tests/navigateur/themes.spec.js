@@ -108,10 +108,22 @@ for (const theme of THEMES) {
       if (nom === 'Vaisseaux') await page.getByRole('button', { name: 'Nouvelle rencontre' }).click();
       if (nom === 'Tables') { await page.locator('summary').first().click(); await page.locator('[data-cle="tables-T1-tirer"]').click(); }
       await verifier(nom);
+      if (nom === 'Tables') {
+        await page.locator('[data-cle="tables-T1-afficher"]').click();
+        await verifier('Afficher aux joueurs');
+        await page.keyboard.press('Escape');
+      }
     }
     await page.getByRole('button', { name: /Menu/ }).click();
     await page.getByRole('button', { name: /Réglages/ }).click();
     await verifier('Réglages');
+    // Résultat masqué : l'étiquette « toucher pour révéler » reste lisible sur le flou.
+    await page.getByRole('dialog').getByLabel('Masquer les résultats (écran visible des joueurs)').check();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await onglet(page, 'Tables');
+    await page.locator('[data-cle="tables-T1-tirer"]').click();
+    await expect(page.locator('.masque')).toHaveCount(1);
+    await verifier('Résultat masqué');
     expect(fautes).toEqual([]);
   });
 }
