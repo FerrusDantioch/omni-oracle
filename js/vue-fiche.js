@@ -68,7 +68,10 @@ export function creerVueFiche(ctx) {
         h('div', { class: 'carte-entete' },
           h('h2', {}, 'Fiche de suivi'),
           h('button', { type: 'button', class: 'bouton', 'data-cle': 'fiche-exporter', onclick: () => ctx.exporter() }, 'Exporter la partie')),
-        h('p', { class: 'petit discret' }, `Mission : ${p.mission.nom || 'sans nom'} · scène ${p.scene.numero} · Pression ${p.pression}/10 · omni-points : ${p.pjs.map((x) => `${x.nom} ${x.omni}`).join(', ')}, Oracle ${p.oracle.omni} · seuil de rupture (9) ${p.seuilAtteint ? 'déjà atteint' : 'pas encore atteint'}.`),
+        h('p', { class: 'petit discret' }, `Mission : ${p.mission.nom || 'sans nom'} · scène ${p.scene.numero} · Pression ${p.pression}/10`,
+          // Univers sans omni-points (ex. horreur) : pas de ligne « Omni-points » sur la fiche.
+          M.optionsUnivers(ctx.univ).omniPoints && ` · omni-points : ${p.pjs.map((x) => `${x.nom} ${x.omni}`).join(', ')}, Oracle ${p.oracle.omni}`,
+          ` · seuil de rupture (9) ${p.seuilAtteint ? 'déjà atteint' : 'pas encore atteint'}.`),
         h('p', { class: 'petit discret' }, 'Tout ce que tu écris ici est enregistré automatiquement et inclus dans l\'export de la partie.')),
       listeEditable({
         id: 'fils', titre: 'Fils ouverts', ajout: 'Ajouter un fil', aide: 'Une ligne par intrigue en cours.',

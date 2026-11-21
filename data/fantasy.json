@@ -1347,6 +1347,7 @@
       ],
       "modificateurs": {
         "blesse": 4,
+        "libelleBlesse": "l'adversaire a perdu la moitié de ses PV ou plus",
         "pression": {
           "seuil": 7,
           "valeur": -2

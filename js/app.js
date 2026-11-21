@@ -366,9 +366,10 @@ function allerOnglet(id) {
 function rendreTableauDeBord() {
   const p = ctx.partie;
   const C = ctx.commun;
-  const pal = M.palier(C, p.pression);
+  const pal = M.palier(C, p.pression, ctx.univ);
+  const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
   const changer = (d) => {
-    const r = M.ajusterPression(C, p, d);
+    const r = M.ajusterPression(C, p, d, { univers: ctx.univ });
     if (r.avant === r.apres) { annoncer(`La Pression est déjà à ${r.apres}.`); return; }
     ctx.enregistrer();
     annoncer(`Pression ${r.avant} → ${r.apres}${r.dejaBougee ? '. Attention : elle avait déjà bougé pendant cette scène (une fois par scène).' : '.'}`);
@@ -387,7 +388,8 @@ function rendreTableauDeBord() {
       h('button', { type: 'button', class: 'bouton bouton-icone', 'aria-label': 'Monter la Pression de 1', 'data-cle': 'tdb-plus', onclick: () => changer(+1) }, '+'),
       h('span', { class: 'tdb-palier' }, h('strong', {}, pal.nom), h('br'), `${pal.chance} %`)),
     h('div', { class: 'tdb-bloc tdb-scene' }, h('span', { class: 'tdb-etiquette' }, 'Scène'), h('strong', {}, String(p.scene.numero))),
-    h('div', { class: 'tdb-bloc tdb-omni' },
+    // Univers sans omni-points (ex. horreur) : ni jetons, ni case du seuil de rupture.
+    avecOmni && h('div', { class: 'tdb-bloc tdb-omni' },
       p.pjs.map((pj) => h('button', {
         type: 'button', class: 'bouton jeton', 'data-cle': `tdb-omni-${pj.id}`,
         'aria-label': `${pj.nom} : ${pj.omni} omni-point${pj.omni > 1 ? 's' : ''}. Dépenser un omni-point`,
@@ -487,12 +489,13 @@ async function dialogueReglages() {
 async function dialogueModifier() {
   const p = ctx.partie;
   const mission = champ('Nom de la mission', { type: 'text', valeur: p.mission.nom });
+  const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
   const pjs = p.pjs.map((pj, i) => ({
     nom: champ(`Nom du PJ ${i + 1}`, { type: 'text', valeur: pj.nom }),
-    omni: champ(`Omni-points de ${pj.nom}`, { type: 'number', valeur: pj.omni, min: 0, inputmode: 'numeric' }),
+    omni: avecOmni && champ(`Omni-points de ${pj.nom}`, { type: 'number', valeur: pj.omni, min: 0, inputmode: 'numeric' }),
   }));
-  const oracle = champ('Omni-points de l\'Oracle', { type: 'number', valeur: p.oracle.omni, min: 0, inputmode: 'numeric' });
-  const utilisations = champ('Utilisations d\'omni-points par les joueurs', {
+  const oracle = avecOmni && champ('Omni-points de l\'Oracle', { type: 'number', valeur: p.oracle.omni, min: 0, inputmode: 'numeric' });
+  const utilisations = avecOmni && champ('Utilisations d\'omni-points par les joueurs', {
     type: 'number', valeur: p.oracle.utilisationsJoueurs, min: 0, inputmode: 'numeric',
     aide: 'L\'Oracle gagne 1 omni-point toutes les 2 utilisations.',
   });
@@ -508,10 +511,12 @@ async function dialogueModifier() {
   p.mission.nom = mission.saisie.value.trim();
   pjs.forEach((x, i) => {
     p.pjs[i].nom = x.nom.saisie.value.trim() || `PJ ${i + 1}`;
-    p.pjs[i].omni = entier(x.omni, 0);
+    if (avecOmni) p.pjs[i].omni = entier(x.omni, 0);
   });
-  p.oracle.omni = entier(oracle, 0);
-  p.oracle.utilisationsJoueurs = entier(utilisations, 0);
+  if (avecOmni) {
+    p.oracle.omni = entier(oracle, 0);
+    p.oracle.utilisationsJoueurs = entier(utilisations, 0);
+  }
   p.scene.numero = entier(scene, 1);
   ctx.enregistrer();
   annoncer('Partie modifiée.');
@@ -523,11 +528,12 @@ async function dialogueMissionSuivante() {
   const r = await ouvrirDialogue({
     titre: 'Mission suivante',
     contenu: [
-      h('p', {}, 'Avant de passer à la suite, pense à la clôture : pose à l\'oracle « La mission est-elle un succès ? », puis applique la progression d\'Omni.'),
+      h('p', {}, `Avant de passer à la suite, pense à la clôture : pose à l'oracle « ${ctx.univ.cloture.question} », puis applique la progression d'Omni.`),
       h('ul', {},
         h('li', {}, `La Pression revient à ${ctx.commun.pression.depart}, le seuil de rupture est remis à zéro, et on repart de la scène 1.`),
-        h('li', {}, `L'Oracle perd ses omni-points restants (${p.oracle.omni}).`),
-        h('li', {}, `Chaque PJ retrouve ses ${ctx.univ.omniPointsPJ} omni-points.`),
+        M.optionsUnivers(ctx.univ).omniPoints && [
+          h('li', {}, `L'Oracle perd ses omni-points restants (${p.oracle.omni}).`),
+          h('li', {}, `Chaque PJ retrouve ses ${ctx.univ.omniPointsPJ} omni-points.`)],
         h('li', {}, 'La fiche de suivi et le journal sont conservés.')),
       nom,
     ],

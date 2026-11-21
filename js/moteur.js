@@ -175,15 +175,47 @@ export function vraisemblancePourAttitude(commun, attitude) {
   return a ? a.vraisemblance : commun.oracle.vraisemblanceParDefaut;
 }
 
-// --- Pression (section 3) -----------------------------------------------------------
+// --- Options d'univers -------------------------------------------------------------
 
-export function paliers(commun) {
-  return tableCommune(commun, 'paliers').lignes;
+/**
+ * Différences de règles d'un univers (bloc « options » de son JSON). Une option absente
+ * = comme le tronc commun. Le code lit ces options ; il ne teste jamais le nom d'un univers.
+ * - omniPoints : false = aucun omni-point (ni PJ ni Oracle), pas de gain au seuil de rupture
+ * - contestation : false = pas de contestation en duo (sans omni-points, jamais de contestation)
+ * - paliers : table de l'univers qui remplace les paliers de Pression du tronc commun
+ * - profils : tables de profils d'intention ajoutées à celles du tronc commun
+ * - fiche : rubriques en plus dans la fiche de suivi ; chocs : compteur de chocs par PJ
+ * - rappelOmni : rappel affiché avec « Dépenser un omni-point » ; libelles : mots de l'interface
+ */
+export function optionsUnivers(univers) {
+  const o = (univers && univers.options) || {};
+  const omniPoints = o.omniPoints !== false;
+  return {
+    omniPoints,
+    contestation: omniPoints && o.contestation !== false,
+    paliers: o.paliers || null,
+    profils: o.profils || [],
+    fiche: o.fiche || [],
+    chocs: o.chocs || null,
+    rappelOmni: o.rappelOmni || '',
+    libelles: o.libelles || {},
+  };
 }
 
-/** Palier correspondant à une valeur de Pression, avec la chance d'altération (Pression × 5 %). */
-export function palier(commun, pression) {
-  const p = paliers(commun).find((x) => pression >= x.min && pression <= x.max);
+// --- Pression (section 3) -----------------------------------------------------------
+
+/** Paliers de Pression : ceux de l'univers s'il en a (ex. horreur), sinon ceux du tronc commun. */
+export function paliers(commun, univers = null) {
+  const id = optionsUnivers(univers).paliers;
+  return (id ? univers.tables.find((t) => t.id === id) : tableCommune(commun, 'paliers')).lignes;
+}
+
+/**
+ * Palier correspondant à une valeur de Pression, avec la chance d'altération (Pression × 5 %).
+ * Seuls les noms et les textes changent d'un univers à l'autre, jamais la mécanique.
+ */
+export function palier(commun, pression, univers = null) {
+  const p = paliers(commun, univers).find((x) => pression >= x.min && pression <= x.max);
   return Object.assign({}, p, { chance: pression * commun.pression.chanceParPoint });
 }
 
@@ -255,16 +287,18 @@ export function journaliser(partie, entree) {
 
 /**
  * Vérifie les seuils après un changement de Pression :
- * - seuil de rupture : la 1re fois qu'elle atteint 9 dans la mission, l'Oracle gagne 1 omni-point ;
+ * - seuil de rupture : la 1re fois qu'elle atteint 9 dans la mission, l'Oracle gagne 1 omni-point
+ *   (rien dans un univers sans omni-points : l'événement est signalé avec un gain de 0) ;
  * - étau : la 1re fois qu'elle atteint 7, on signale que le rebondissement entre en jeu.
  * Renvoie la liste des événements survenus.
  */
-function verifierSeuils(commun, partie) {
+function verifierSeuils(commun, partie, univers = null) {
   const ev = [];
   if (!partie.seuilAtteint && partie.pression >= commun.pression.seuilRupture) {
     partie.seuilAtteint = true;
-    partie.oracle.omni += commun.omniPoints.gainSeuilRupture;
-    ev.push({ type: 'seuil-rupture', gain: commun.omniPoints.gainSeuilRupture });
+    const gain = optionsUnivers(univers).omniPoints ? commun.omniPoints.gainSeuilRupture : 0;
+    partie.oracle.omni += gain;
+    ev.push({ type: 'seuil-rupture', gain });
   }
   if (!partie.rebondissementSignale && partie.pression >= commun.pression.etau) {
     partie.rebondissementSignale = true;
@@ -278,12 +312,12 @@ function verifierSeuils(commun, partie) {
  * La Pression ne bouge qu'une fois par scène : si elle a déjà bougé, le
  * changement est fait quand même mais `dejaBougee` le signale.
  */
-export function ajusterPression(commun, partie, delta) {
+export function ajusterPression(commun, partie, delta, { univers = null } = {}) {
   const avant = partie.pression;
   const dejaBougee = partie.scene.pressionBougee;
   partie.pression = bornerPression(commun, avant + delta);
   if (partie.pression !== avant) partie.scene.pressionBougee = true;
-  const evenements = verifierSeuils(commun, partie);
+  const evenements = verifierSeuils(commun, partie, univers);
   if (partie.pression !== avant) journaliser(partie, { type: 'pression', avant, apres: partie.pression, manuel: true });
   return { avant, apres: partie.pression, dejaBougee, evenements };
 }
@@ -296,7 +330,7 @@ export function ajusterPression(commun, partie, delta) {
  * - Sinon : altérée si d20 ≤ Pression ; pair = modifiée, impair = interrompue.
  * Si la scène est altérée et qu'une table de complications est fournie, on y tire une ligne.
  */
-export function debuterScene(commun, partie, { prevue = '', complications = null, des = null, de = deAleatoire } = {}) {
+export function debuterScene(commun, partie, { prevue = '', complications = null, des = null, de = deAleatoire, univers = null } = {}) {
   const valeur = des ?? de(20);
   if (!valeurD20Valide(valeur)) throw new Error('Un d20 donne un nombre entier de 1 à 20.');
   const soupape = partie.pression >= commun.pression.soupape.niveau;
@@ -307,7 +341,7 @@ export function debuterScene(commun, partie, { prevue = '', complications = null
   partie.scene.etat = 'en-cours';
   partie.scene.soupape = soupape;
   partie.scene.alteration = { de: valeur, pression: partie.pression, alteree, type, complication };
-  const res = { de: valeur, pression: partie.pression, soupape, alteree, type, complication, palier: palier(commun, partie.pression) };
+  const res = { de: valeur, pression: partie.pression, soupape, alteree, type, complication, palier: palier(commun, partie.pression, univers) };
   // « alteration » (modifiée / interrompue) : rangé à part pour ne pas écraser le type de l'entrée.
   journaliser(partie, { ...res, type: 'scene-debut', alteration: type, prevue, palier: res.palier.id });
   return res;
@@ -330,10 +364,10 @@ export function proposerFinScene(commun, partie, issue) {
 }
 
 /** Termine la scène : applique la Pression proposée, note la scène dans la fiche, passe à la suivante. */
-export function terminerScene(commun, partie, issue, { resume = '' } = {}) {
+export function terminerScene(commun, partie, issue, { resume = '', univers = null } = {}) {
   const prop = proposerFinScene(commun, partie, issue);
   partie.pression = prop.apres;
-  const evenements = verifierSeuils(commun, partie);
+  const evenements = verifierSeuils(commun, partie, univers);
   if (resume || partie.scene.prevue) {
     partie.fiche.scenes.push({ numero: partie.scene.numero, mission: partie.mission.numero, texte: resume || partie.scene.prevue });
   }
@@ -412,8 +446,9 @@ export function poserQuestion(commun, partie, { question = '', vraisemblance: v,
  * question. Le nouveau résultat remplace l'ancien et ne peut plus être contesté.
  * La dépense compte pour le gain d'omni-point de l'Oracle.
  */
-export function contester(commun, partie, entree, idContestataire, { replique = '', des = null, de = deAleatoire } = {}) {
+export function contester(commun, partie, entree, idContestataire, { replique = '', des = null, de = deAleatoire, univers = null } = {}) {
   if (partie.mode !== 'duo') throw new Error('La contestation n\'existe qu\'en duo.');
+  if (!optionsUnivers(univers).contestation) throw new Error('Pas de contestation dans cet univers : celui qui a posé la question tranche.');
   if (entree.type !== 'oracle') throw new Error('Seule une réponse de l\'oracle peut être contestée.');
   if (entree.contestee) throw new Error('Cette réponse a déjà été contestée : elle est définitive.');
   if (entree.joueur && entree.joueur === idContestataire) throw new Error('C\'est l\'autre joueur qui peut contester.');
@@ -436,14 +471,32 @@ export function contester(commun, partie, entree, idContestataire, { replique = 
  * - pression : Pression en cours (−2 si elle est de 7 ou plus)
  * Le total est ramené entre 1 et 20 avant de lire la colonne.
  */
-export function intentionPNJ(commun, { profil, blesse = false, pression = 0, des = null, de = deAleatoire }) {
-  const t = tableCommune(commun, 'intentions');
+export function intentionPNJ(commun, { profil, blesse = false, pression = 0, des = null, de = deAleatoire, table = null }) {
+  const t = table || tableCommune(commun, 'intentions');
   const p = t.lignes.find((x) => x.id === profil);
   if (!p) throw new Error(`Profil inconnu : ${profil}`);
   const mods = [];
-  if (blesse && !t.modificateurs.blesseSaufProfils.includes(p.id)) mods.push({ id: 'blesse', valeur: t.modificateurs.blesse });
+  if (blesse && !(t.modificateurs.blesseSaufProfils || []).includes(p.id)) mods.push({ id: 'blesse', valeur: t.modificateurs.blesse });
   if (pression >= t.modificateurs.pression.seuil) mods.push({ id: 'pression', valeur: t.modificateurs.pression.valeur });
   return lireIntention(t.plages, (i) => p.autres[i], mods, des, de, { profil: p.id, nom: p.nom });
+}
+
+/**
+ * Tables de profils d'intention d'un univers : celle du tronc commun (Brute, Tacticien…,
+ * compagnons), puis celles que l'univers ajoute (options.profils, ex. F4 en fantasy).
+ */
+export function tablesProfils(catalogue, universId) {
+  const u = catalogue.univ(universId);
+  return [tableCommune(catalogue.commun, 'intentions'), ...optionsUnivers(u).profils.map((id) => catalogue.table(universId, id))];
+}
+
+/** Profil d'intention et sa table, ou null (profil d'un autre univers, par exemple). */
+export function trouverProfil(catalogue, universId, profilId) {
+  for (const table of tablesProfils(catalogue, universId)) {
+    const ligne = table.lignes.find((l) => l.id === profilId);
+    if (ligne) return { table, ligne };
+  }
+  return null;
 }
 
 /** Intention d'un vaisseau ennemi (table E de l'univers). */

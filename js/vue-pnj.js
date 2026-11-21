@@ -13,7 +13,8 @@ export const ATTITUDES = [
 
 /** Liste des profils d'intention pour une liste déroulante. */
 export function optionsProfils(ctx, { vide = true } = {}) {
-  const profils = ctx.commun.tables.find((t) => t.id === 'intentions').lignes;
+  // Profils du tronc commun, puis ceux que l'univers ajoute (ex. F4 en fantasy, M1 en horreur).
+  const profils = M.tablesProfils(ctx.cat, ctx.univ.id).flatMap((t) => t.lignes);
   return [...(vide ? [{ valeur: '', texte: '(aucun)' }] : []), ...profils.map((p) => ({ valeur: p.id, texte: p.nom }))];
 }
 

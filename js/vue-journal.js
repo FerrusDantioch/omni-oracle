@@ -73,7 +73,7 @@ export function decrireEntree(ctx, e) {
       return [h('span', { class: 'journal-type' }, `${e.titre} (${e.valeur}) : `), riche(e.texte),
         e.autres && e.autres.length > 0 && [h('br'), h('span', { class: 'petit discret' }, e.autres.join(' · '))]];
     case 'intention': {
-      const prof = ctx.commun.tables.find((t) => t.id === 'intentions').lignes.find((l) => l.id === e.profil);
+      const prof = M.trouverProfil(ctx.cat, ctx.univ.id, e.profil)?.ligne;
       return [h('span', { class: 'journal-type' }, `Intention${e.nom ? ` de ${e.nom}` : ''} (${prof ? prof.nom : e.profil}) : `), riche(e.action),
         e.relance && ' (relancé par l\'Oracle)', h('br'),
         h('span', { class: 'petit discret' }, `d20 : ${e.de}${e.modificateur ? `, total ${e.total}` : ''} → ${e.plage}`)];
@@ -108,7 +108,7 @@ export function creerVueJournal(ctx) {
     const liste = h('ol', { class: 'journal', reversed: true });
     for (const e of entrees) {
       const actions = [];
-      const pj = contestataire(p, e);
+      const pj = contestataire(p, e, ctx.univ);
       if (pj) {
         actions.push(h('button', { type: 'button', class: 'bouton', 'data-cle': `j-contester-${e.n}`, disabled: pj.omni <= 0, onclick: () => dialogueContester(ctx, e) },
           `Contester (${pj.nom})`));

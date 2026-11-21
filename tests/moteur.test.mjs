@@ -534,3 +534,126 @@ test('journal : le début de scène garde son type (et les anciennes parties res
   }
   assert.equal(M.typeEntree({ type: 'oracle' }), 'oracle');
 });
+
+// --- Options d'univers (Fantasy, Horreur / enquête) -------------------------------------
+describe('options d\'univers', () => {
+  const fantasy = cat.univ('fantasy');
+  const horreur = cat.univ('horreur-enquete');
+
+  test('sans option, un univers suit le tronc commun', () => {
+    for (const u of [cyber, space]) {
+      const o = M.optionsUnivers(u);
+      assert.equal(o.omniPoints, true);
+      assert.equal(o.contestation, true);
+      assert.equal(o.paliers, null);
+      assert.deepEqual(o.profils, []);
+    }
+    assert.equal(M.optionsUnivers(fantasy).omniPoints, true);
+    assert.equal(M.optionsUnivers(fantasy).rappelOmni, 'Un omni-point permet aussi de récupérer une utilisation de sort pour un magicien.');
+  });
+
+  test('horreur : aucun omni-point, ni pour les PJ ni pour l\'Oracle, et pas de contestation', () => {
+    const o = M.optionsUnivers(horreur);
+    assert.equal(o.omniPoints, false);
+    assert.equal(o.contestation, false);
+    const p = M.creerPartie(commun, horreur, { mode: 'duo', pjs: [{ nom: 'Ada' }, { nom: 'Bo' }] });
+    assert.deepEqual(p.pjs.map((x) => x.omni), [0, 0]);
+    assert.equal(p.oracle.omni, 0);
+    assert.throws(() => M.depenserOmniPJ(commun, p, 'pj1'));
+    const q = M.poserQuestion(commun, p, { vraisemblance: 'incertain', joueur: 'pj1', des: [10] });
+    assert.throws(() => M.contester(commun, p, q, 'pj2', { des: [10], univers: horreur }), /Pas de contestation/);
+    M.missionSuivante(commun, horreur, p);
+    assert.deepEqual(p.pjs.map((x) => x.omni), [0, 0]);
+    assert.equal(p.oracle.omni, 0);
+  });
+
+  test('horreur : le seuil de rupture ne rapporte rien, mais il est signalé (une fois)', () => {
+    const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    p.pression = 8;
+    const r = M.ajusterPression(commun, p, +1, { univers: horreur });
+    assert.deepEqual(r.evenements.find((e) => e.type === 'seuil-rupture'), { type: 'seuil-rupture', gain: 0 });
+    assert.equal(p.oracle.omni, 0);
+    assert.equal(p.seuilAtteint, true);
+    assert.equal(M.ajusterPression(commun, p, +1, { univers: horreur }).evenements.length, 0);
+    // Même règle en cyberpunk : l'Oracle gagne 1 omni-point.
+    const c = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+    c.pression = 8;
+    M.ajusterPression(commun, c, +1, { univers: cyber });
+    assert.equal(c.oracle.omni, 1);
+  });
+
+  test('horreur : la soupape à 10 puis retour à 7 ne change pas', () => {
+    const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    p.pression = 10;
+    const d = M.debuterScene(commun, p, { des: 15, univers: horreur });
+    assert.equal(d.soupape, true);
+    assert.equal(d.alteree, true);
+    assert.equal(d.palier.nom, 'Rupture');
+    const f = M.terminerScene(commun, p, 'main', { univers: horreur });
+    assert.equal(f.apres, 7);
+    assert.equal(p.oracle.omni, 0);
+  });
+
+  test('horreur : paliers propres à l\'univers, même chance d\'altération (Pression × 5 %)', () => {
+    const noms = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => M.palier(commun, v, horreur).nom);
+    assert.deepEqual(noms, ['Calme trompeur', 'Calme trompeur', 'Malaise', 'Malaise', 'Angoisse', 'Angoisse', 'Terreur', 'Terreur', 'Rupture', 'Rupture']);
+    for (let v = 0; v <= 10; v++) assert.equal(M.palier(commun, v, horreur).chance, M.palier(commun, v, cyber).chance);
+    assert.equal(M.palier(commun, 5, horreur).autres[0], '25 à 30 %');
+    assert.match(M.palier(commun, 5, horreur).autres[1], /^La menace se rapproche\./);
+    // Les autres univers gardent les paliers du tronc commun.
+    assert.equal(M.palier(commun, 5, cyber).nom, 'Tension');
+    assert.equal(M.palier(commun, 5, fantasy).nom, 'Tension');
+    assert.equal(M.palier(commun, 5).nom, 'Tension');
+  });
+
+  test('profils d\'intention : ceux du tronc commun, plus ceux de l\'univers', () => {
+    const ids = (u) => M.tablesProfils(cat, u).flatMap((t) => t.lignes.map((l) => l.id));
+    assert.equal(ids('cyberpunk').length, 8);
+    assert.deepEqual(ids('fantasy').slice(8), ['bete-sauvage', 'lanceur-de-sorts', 'chef-de-guerre']);
+    assert.deepEqual(ids('horreur-enquete').slice(8), ['predateur', 'manipulateur', 'entite-liee-a-un-lieu']);
+    assert.equal(M.trouverProfil(cat, 'cyberpunk', 'lanceur-de-sorts'), null);
+    assert.equal(M.trouverProfil(cat, 'fantasy', 'brute').table.id, 'intentions');
+  });
+
+  test('F4 : mêmes modificateurs (+4 si PV à moitié ou moins, −2 si Pression ≥ 7)', () => {
+    const { table } = M.trouverProfil(cat, 'fantasy', 'lanceur-de-sorts');
+    const base = M.intentionPNJ(commun, { table, profil: 'lanceur-de-sorts', des: 3 });
+    assert.equal(base.action, 'Lance un sort offensif sur la cible la plus dangereuse');
+    const blesse = M.intentionPNJ(commun, { table, profil: 'lanceur-de-sorts', blesse: true, des: 3 });
+    assert.equal(blesse.total, 7);
+    assert.equal(blesse.action, 'Lance un sort de contrôle ou d\'altération d\'état');
+    const tout = M.intentionPNJ(commun, { table, profil: 'chef-de-guerre', blesse: true, pression: 7, des: 17 });
+    assert.equal(tout.total, 19);
+    assert.equal(tout.action, 'Sonne la retraite ou parlemente');
+    const bas = M.intentionPNJ(commun, { table, profil: 'bete-sauvage', pression: 9, des: 1 });
+    assert.equal(bas.total, -1);
+    assert.equal(bas.action, 'Fonce sur la proie la plus proche');
+  });
+
+  test('M1 : −2 si Pression ≥ 7, +4 si la menace est affaiblie', () => {
+    const { table } = M.trouverProfil(cat, 'horreur-enquete', 'manipulateur');
+    assert.equal(table.modificateurs.libelleBlesse, 'la menace est affaiblie (rituel perturbé, symbole effacé, objet détruit)');
+    const r = M.intentionPNJ(commun, { table, profil: 'entite-liee-a-un-lieu', blesse: true, pression: 8, des: 11 });
+    assert.deepEqual(r.modificateurs.map((m) => m.valeur), [4, -2]);
+    assert.equal(r.total, 13);
+    assert.equal(r.action, 'Attaque celui qui franchit son seuil');
+    assert.equal(M.intentionPNJ(commun, { table, profil: 'predateur', des: 14 }).action, 'Terrorise : 1 point de choc à une cible, sans attaque');
+  });
+});
+
+test('parties de la version 0.2.1 : toujours valides avec les quatre univers', () => {
+  const fichier = lire('tests/navigateur/donnees/parties-0.2.1.json');
+  const ids = cat.univers.map((u) => u.id);
+  for (const p of fichier.parties) {
+    const copie = structuredClone(p);
+    const u = cat.univ(p.univers);
+    assert.equal(M.optionsUnivers(u).omniPoints, true);
+    // Le journal ancien se relit : débuts de scène reconnus, profils retrouvés.
+    for (const e of p.journal) {
+      if (M.typeEntree(e) === 'intention') assert.ok(M.trouverProfil(cat, p.univers, e.profil));
+    }
+    assert.equal(ids.includes(p.univers), true);
+    assert.deepEqual(p, copie, 'la lecture ne modifie pas la partie');
+  }
+  assert.equal(fichier.parties[0].journal.filter((e) => M.typeEntree(e) === 'scene-debut').length, 2);
+});

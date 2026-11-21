@@ -51,6 +51,7 @@ export function creerVueIntentions(ctx) {
 
   function boutonsRelance(rejouer) {
     const p = ctx.partie;
+    if (!M.optionsUnivers(ctx.univ).omniPoints) return null; // univers sans omni-points
     return h('div', { class: 'rangee' }, h('button', {
       type: 'button', class: 'bouton', disabled: p.oracle.omni <= 0, 'data-cle': 'intention-relance',
       onclick: () => essayer(() => {
@@ -61,14 +62,27 @@ export function creerVueIntentions(ctx) {
   }
 
   // --- PNJ ---------------------------------------------------------------------------
+  /** Profil et sa table (tronc commun, ou table de l'univers comme F4 en fantasy). */
+  const trouver = (id) => M.trouverProfil(ctx.cat, ctx.univ.id, id);
+  /** Règles affichées : section 5 du tronc commun, et la section de l'univers pour ses profils. */
+  function rappelRegles(table) {
+    const sectionUnivers = table.id !== 'intentions' && ctx.univ.sections.find((s) => s.texte.includes(`{{table ${table.id}}}`));
+    return h('details', { class: 'petit' }, h('summary', {}, 'Rappel des règles'),
+      h('div', { class: 'regles' },
+        rendreBloc(ctx.commun.sections.find((s) => s.id === 'intentions').texte),
+        sectionUnivers && [h('h3', {}, sectionUnivers.titre), rendreBloc(sectionUnivers.texte)]));
+  }
+
   function cartePNJ() {
     const p = ctx.partie;
-    const t = tableI();
+    if (!trouver(ecran.profil)) ecran.profil = 'brute';
+    const { table: t, ligne: profil } = trouver(ecran.profil);
+    const tousProfils = M.tablesProfils(ctx.cat, ctx.univ.id).flatMap((x) => x.lignes);
     const pnjs = p.fiche.pnjs;
     const choisi = ecran.pnj !== '' ? pnjs[Number(ecran.pnj)] : null;
     const selectPNJ = champ('PNJ de la fiche (facultatif)', {
       type: 'select', valeur: ecran.pnj, 'data-cle': 'intention-pnj',
-      options: [{ valeur: '', texte: '(aucun : choisis un profil)' }, ...pnjs.map((x, i) => ({ valeur: String(i), texte: `${x.nom}${x.profil ? ` (${t.lignes.find((l) => l.id === x.profil)?.nom})` : ''}` }))],
+      options: [{ valeur: '', texte: '(aucun : choisis un profil)' }, ...pnjs.map((x, i) => ({ valeur: String(i), texte: `${x.nom}${x.profil && trouver(x.profil) ? ` (${trouver(x.profil).ligne.nom})` : ''}` }))],
     });
     selectPNJ.saisie.addEventListener('change', (e) => {
       ecran.pnj = e.target.value;
@@ -76,12 +90,16 @@ export function creerVueIntentions(ctx) {
       if (x && x.profil) ecran.profil = x.profil;
       rendre();
     });
-    const profil = t.lignes.find((l) => l.id === ecran.profil);
-    const exempte = t.modificateurs.blesseSaufProfils.includes(ecran.profil);
+    const sauf = t.modificateurs.blesseSaufProfils || [];
+    const exempte = sauf.includes(ecran.profil);
+    const nomsSauf = sauf.map((id) => trouver(id)?.ligne.nom).filter(Boolean).join(', ');
+    const libelleBlesse = `+${t.modificateurs.blesse} : ${t.modificateurs.libelleBlesse || 'le PNJ a perdu la moitié de ses PV ou plus'}${
+      exempte ? ` (sans effet : ${profil.nom})` : nomsSauf ? ` (sauf ${nomsSauf})` : ''}`;
     const des = saisieDes(ctx, 1);
 
     function jouer(relance = false) {
       const r = M.intentionPNJ(ctx.commun, {
+        table: t,
         profil: ecran.profil,
         blesse: ecran.blesse,
         pression: pressionActive(ecran.pression) ? seuil() : 0,
@@ -97,13 +115,12 @@ export function creerVueIntentions(ctx) {
 
     const carte = h('section', { class: 'carte', 'aria-labelledby': 'titre-intention-pnj' },
       h('h2', { id: 'titre-intention-pnj' }, 'Intentions des ennemis et des PNJ compagnons'),
-      h('details', { class: 'petit' }, h('summary', {}, 'Rappel des règles'),
-        h('div', { class: 'regles' }, rendreBloc(ctx.commun.sections.find((s) => s.id === 'intentions').texte))),
+      rappelRegles(t),
       pnjs.length > 0 && selectPNJ,
-      choix('Profil', 'intention-profil', t.lignes.map((l) => ({ valeur: l.id, texte: l.nom })), ecran.profil,
+      choix('Profil', 'intention-profil', tousProfils.map((l) => ({ valeur: l.id, texte: l.nom })), ecran.profil,
         { onchange: (v) => { ecran.profil = v; rendre(); } }),
       h('fieldset', {}, h('legend', {}, 'Modificateurs'),
-        caseACocher(`+${t.modificateurs.blesse} : le PNJ a perdu la moitié de ses PV ou plus${exempte ? ' (sans effet : Fanatique)' : ' (sauf Fanatique)'}`, {
+        caseACocher(libelleBlesse, {
           coche: ecran.blesse, 'data-cle': 'intention-blesse', onchange: (v) => { ecran.blesse = v; },
         }),
         caseACocher(`${signe(t.modificateurs.pression.valeur).replace(' ', '')} : la Pression est de ${seuil()} ou plus (Pression actuelle : ${p.pression})`, {
@@ -124,19 +141,19 @@ export function creerVueIntentions(ctx) {
 
     const e = p.journal.find((x) => x.n === ecran.dernier);
     if (e) {
-      const prof = t.lignes.find((l) => l.id === e.profil);
+      const { table: tE, ligne: prof } = trouver(e.profil);
       const res = h('div', { class: 'resultat', 'aria-live': 'polite' },
         h('p', { class: 'discret' }, `${e.nom ? `${e.nom} · ` : ''}${prof.nom}${e.relance ? ' · relancé par l\'Oracle' : ''}`),
         h('p', { class: 'resultat-titre' }, riche(e.action)),
         h('p', { class: 'resultat-detail' }, detailJet(e)),
-        listeColonnes(t.plages, prof.autres, e.plage),
+        listeColonnes(tE.plages, prof.autres, e.plage),
         boutonsRelance(jouer));
       if (ecran.animer === 'pnj') animerResultat(res);
       carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
         cle: 'intention',
         // Nouveau d20, même profil et mêmes modificateurs que le résultat écarté.
         relancer: () => essayer(() => {
-          const r = M.intentionPNJ(ctx.commun, { profil: e.profil, blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? seuil() : 0 });
+          const r = M.intentionPNJ(ctx.commun, { table: tE, profil: e.profil, blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? tE.modificateurs.pression.seuil : 0 });
           ecarter(ctx, e, 'relance');
           const n = M.journaliser(p, { type: 'intention', relance: false, ...r, nom: e.nom });
           ecran.dernier = n.n;

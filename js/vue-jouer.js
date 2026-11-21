@@ -60,7 +60,7 @@ export function creerVueJouer(ctx) {
   function carteScene() {
     const p = ctx.partie;
     const C = ctx.commun;
-    const pal = M.palier(C, p.pression);
+    const pal = M.palier(C, p.pression, ctx.univ);
     const carte = h('section', { class: 'carte', 'aria-labelledby': 'titre-scene' },
       h('div', { class: 'carte-entete' },
         h('h2', { id: 'titre-scene' }, `Scène ${p.scene.numero}`),
@@ -87,6 +87,7 @@ export function creerVueJouer(ctx) {
           onclick: () => essayer(() => {
             const valeurs = des.lire();
             M.debuterScene(C, p, {
+              univers: ctx.univ,
               prevue: ecran.prevue.trim(),
               complications: ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications),
               des: valeurs ? valeurs[0] : null,
@@ -121,7 +122,7 @@ export function creerVueJouer(ctx) {
           : 'C\'est cet événement qui se joue à la place :'),
         a.complication && h('div', { class: 'complication' }, h('strong', {}, `${a.complication.titre} (${a.complication.valeur}) : `), riche(a.complication.ligne.texte)),
         !a.complication && a.complicationIgnoree && h('p', { class: 'complication' }, 'Complication ignorée par le MJ : invente l\'élément, ou relance.'),
-        h('p', { class: 'petit discret' }, `Adapte la gravité de la complication au palier de Pression (${M.palier(ctx.commun, a.pression).nom}).`));
+        h('p', { class: 'petit discret' }, `Adapte la gravité de la complication au palier de Pression (${M.palier(ctx.commun, a.pression, ctx.univ).nom}).`));
     }
     if (ecran.animer === 'scene') animerResultat(res);
     const cleScene = `scene-${p.mission.numero}-${p.scene.numero}-${(a.ecartees || []).length}`;
@@ -205,7 +206,7 @@ export function creerVueJouer(ctx) {
         onclick: () => { tirerComplication(ctx, { cible: e.n }); ecran.animer = 'oracle'; ctx.enregistrer(); },
       }, `Tirer une complication (${e.complication})`));
     }
-    const pj = contestataire(p, e);
+    const pj = contestataire(p, e, ctx.univ);
     if (pj) {
       boutons.append(h('button', {
         type: 'button', class: 'bouton', 'data-cle': 'oracle-contester', disabled: pj.omni <= 0,

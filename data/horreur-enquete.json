@@ -1494,6 +1494,7 @@
       ],
       "modificateurs": {
         "blesse": 4,
+        "libelleBlesse": "la menace est affaiblie (rituel perturbé, symbole effacé, objet détruit)",
         "pression": {
           "seuil": 7,
           "valeur": -2

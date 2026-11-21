@@ -45,7 +45,9 @@ export function essayer(f) {
 
 export function messageEvenement(ev) {
   switch (ev.type) {
-    case 'seuil-rupture': return 'Seuil de rupture : la Pression atteint 9 pour la première fois de la mission. L\'Oracle gagne 1 omni-point.';
+    case 'seuil-rupture': return ev.gain === 0
+      ? 'Seuil de rupture : la Pression atteint 9 pour la première fois de la mission. Sans omni-points dans cet univers, il ne rapporte rien à l\'Oracle.'
+      : 'Seuil de rupture : la Pression atteint 9 pour la première fois de la mission. L\'Oracle gagne 1 omni-point.';
     case 'gain-oracle': return 'L\'Oracle gagne 1 omni-point (2 utilisations d\'omni-points par les joueurs).';
     case 'rebondissement': return 'La Pression atteint 7 (Étau) : le rebondissement de la mission est tiré.';
     default: return '';
@@ -67,6 +69,7 @@ export async function dialogueOmniPJ(ctx, idPJ) {
       h('p', {}, `${pj.nom} a ${pj.omni} omni-point${pj.omni > 1 ? 's' : ''}.`),
       h('p', {}, 'Dis ta réplique, puis raconte comment tu perturbes la narration.'),
       replique,
+      M.optionsUnivers(ctx.univ).rappelOmni && h('p', { class: 'rappel-omni' }, h('strong', {}, 'Rappel : '), M.optionsUnivers(ctx.univ).rappelOmni),
       h('p', { class: 'petit discret' }, 'Toutes les 2 utilisations d\'omni-points par les joueurs, l\'Oracle en gagne 1.'),
     ],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Dépenser 1 omni-point', classe: 'bouton-accent' }],
@@ -132,14 +135,15 @@ export async function dialogueOmniOracle(ctx, { entree = null } = {}) {
 // --- Contestation (duo) ----------------------------------------------------------------------
 
 /** Peut-on contester cette réponse ? Renvoie le PJ contestataire ou null. */
-export function contestataire(partie, entree) {
+export function contestataire(partie, entree, univers = null) {
+  if (!M.optionsUnivers(univers).contestation) return null; // ex. horreur : celui qui pose la question tranche
   if (partie.mode !== 'duo' || entree.type !== 'oracle' || entree.contestee) return null;
   return partie.pjs.find((pj) => pj.id !== entree.joueur) || null;
 }
 
 export async function dialogueContester(ctx, entree) {
   const p = ctx.partie;
-  const pj = contestataire(p, entree);
+  const pj = contestataire(p, entree, ctx.univ);
   if (!pj) return;
   if (pj.omni <= 0) { annoncer(`${pj.nom} n'a plus d'omni-point pour contester.`); return; }
   const v = M.vraisemblance(ctx.commun, entree.vraisemblance);
@@ -161,7 +165,7 @@ export async function dialogueContester(ctx, entree) {
     },
   });
   if (r !== 'oui') return;
-  const res = essayer(() => M.contester(ctx.commun, p, entree, pj.id, { replique: replique.saisie.value.trim(), des: valeurs }));
+  const res = essayer(() => M.contester(ctx.commun, p, entree, pj.id, { replique: replique.saisie.value.trim(), des: valeurs, univers: ctx.univ }));
   if (!res) return;
   vibrer();
   ctx.enregistrer();
@@ -236,7 +240,7 @@ export async function dialogueFinScene(ctx) {
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Terminer la scène', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') return;
-  const res = M.terminerScene(C, p, issue, { resume: resume.saisie.value.trim() });
+  const res = M.terminerScene(C, p, issue, { resume: resume.saisie.value.trim(), univers: ctx.univ });
   ctx.enregistrer();
   annoncer(`Scène suivante : n° ${p.scene.numero}. Pression ${res.avant} → ${res.apres}.`);
   ctx.signaler(res.evenements);
