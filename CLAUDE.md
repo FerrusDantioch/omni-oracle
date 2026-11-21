@@ -173,6 +173,8 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     « Noter dans les indices ».
 25. **Table de folie** (`sources/06-horreur-table-de-folie.md`, recopiée du PDF de Ferrus du
     21/11/2026) : intertitres en capitales et « -1 » avec un tiret simple, comme sur le PDF.
+    Relue par Ferrus le 21/11/2026 (texte identique au PDF) : titre « Table des effets de folie
+    (1d20) » sans lettre de partie, comme sur le PDF ; titre court « Effets de folie » gardé.
     Option « la folie s'aggrave avec l'accumulation » codée, décochée par défaut (case de la
     partie, dans la fiche). Confirmé par Ferrus le 21/11/2026 : le point de folie qu'on vient de
     gagner compte dans le « 1d20 + points de folie » ; « Relancer » un effet de folie ne change ni
