@@ -4,7 +4,7 @@ import * as M from './moteur.js';
 import { h, remplacer, choix, annoncer, vibrer, animerResultat } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { tirageVerrouillable } from './composants.js';
-import { tirerEtNoter, saisieDes, essayer, decrireJet } from './actions.js';
+import { tirerEtNoter, saisieDes, essayer, decrireJet, ecarter } from './actions.js';
 
 export function creerVueMission(ctx) {
   const el = h('div', { class: 'vue-mission' });
@@ -20,8 +20,20 @@ export function creerVueMission(ctx) {
 
   function tirer(id, valeur) {
     const table = ctx.cat.table(ctx.univ.id, id);
+    const etat = etatMission()[id];
+    if (etat.n) ecarter(ctx, etat.n, 'relance');
     const e = tirerEtNoter(ctx, table, { valeur, contexte: 'mission' });
-    etatMission()[id].valeur = e.valeur;
+    etat.valeur = e.valeur;
+    etat.n = e.n;
+  }
+
+  function ignorer(id) {
+    const etat = etatMission()[id];
+    if (etat.n) ecarter(ctx, etat.n, 'ignore');
+    etat.valeur = null;
+    etat.n = null;
+    ctx.enregistrer();
+    annoncer('Résultat ignoré : la table est à nouveau libre.');
   }
 
   function tirerTout() {
@@ -31,7 +43,7 @@ export function creerVueMission(ctx) {
     libres.forEach((id) => tirer(id, null));
     vibrer();
     ctx.enregistrer();
-    ctx.annoncerResultat(`Mission tirée (${libres.length} table${libres.length > 1 ? 's' : ''}).`);
+    ctx.annoncerResultat(`${ctx.voc.Nom} ${ctx.voc.tiree} (${libres.length} table${libres.length > 1 ? 's' : ''}).`);
   }
 
   function carteGenerateur() {
@@ -39,17 +51,18 @@ export function creerVueMission(ctx) {
     const intro = section('mission');
     return h('section', { class: 'carte', 'aria-labelledby': 'titre-generateur' },
       h('div', { class: 'carte-entete' },
-        h('h2', { id: 'titre-generateur' }, 'Générer la mission'),
-        h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'mission-tout', onclick: tirerTout }, 'Tirer toute la mission')),
+        h('h2', { id: 'titre-generateur' }, `Générer ${ctx.voc.la}`),
+        h('button', { type: 'button', class: 'bouton bouton-accent', 'data-cle': 'mission-tout', onclick: tirerTout }, `Tirer ${ctx.voc.toute}`)),
       intro && h('div', { class: 'regles' }, rendreBloc(intro.texte)),
       h('p', { class: 'petit discret' }, 'Verrouille un résultat pour le garder quand tu relances les autres. Avec ton vrai dé, choisis la ligne à la main.'),
-      ctx.partie.rebondissementSignale && h('p', { class: 'complication' }, h('strong', {}, 'Étau : '), 'la Pression a atteint 7, le rebondissement de la mission est tiré.'),
+      ctx.partie.rebondissementSignale && h('p', { class: 'complication' }, h('strong', {}, 'Étau : '), `la Pression a atteint 7, le rebondissement ${ctx.voc.de} est tiré.`),
       h('div', { class: 'grille-tirages' }, ctx.univ.roles.mission.map((id) => tirageVerrouillable(ctx, {
         table: ctx.cat.table(ctx.univ.id, id),
         etat: etat[id],
         cle: `mission-${id}`,
         surTirage: (valeur) => { tirer(id, valeur); ctx.enregistrer(); },
         surVerrou: () => ctx.enregistrer(),
+        surIgnorer: () => ignorer(id),
       }))));
   }
 
@@ -86,7 +99,7 @@ export function creerVueMission(ctx) {
             ctx.annoncerResultat(`${e.libelle} : ${issue ? issue.texte : ''}`);
           }),
         }, `« ${ctx.univ.cloture.question} »`),
-        h('button', { type: 'button', class: 'bouton', 'data-cle': 'mission-suivante', onclick: () => ctx.missionSuivante() }, 'Mission suivante')));
+        h('button', { type: 'button', class: 'bouton', 'data-cle': 'mission-suivante', onclick: () => ctx.missionSuivante() }, ctx.voc.Suivante)));
     const e = ctx.partie.journal.find((x) => x.n === ecran.cloture);
     if (e) {
       const issue = M.issueCloture(ctx.univ, e.reponse);

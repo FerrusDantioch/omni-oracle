@@ -123,3 +123,14 @@ test('le fichier LICENSE est celui du kit, sans modification', () => {
   const empreinte = crypto.createHash('sha256').update(fs.readFileSync(path.join(racine, 'LICENSE'))).digest('hex');
   assert.equal(empreinte, '0483fae80ead6506beafd3258fea07f5ff23bb81e2fbd41daf137d58798a14fb', 'LICENSE a été modifié : il doit rester identique à celui du kit');
 });
+
+test('le code ne teste jamais le nom d\'un univers (les différences sont dans les données)', () => {
+  const index = JSON.parse(lire('data/univers.json'));
+  const ids = index.univers.map((f) => JSON.parse(lire(f)).id);
+  for (const f of [...lister('js'), 'sw.js']) {
+    const code = lire(f).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''); // sans les commentaires
+    for (const id of ids) {
+      assert.ok(!new RegExp(`['"\`]${id}['"\`]`).test(code), `${f} cite l'univers « ${id} » : mets cette différence dans les options de son JSON`);
+    }
+  }
+});

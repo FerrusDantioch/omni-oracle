@@ -3,6 +3,8 @@
   "commun": "data/commun.json",
   "univers": [
     "data/cyberpunk.json",
-    "data/space-opera.json"
+    "data/space-opera.json",
+    "data/fantasy.json",
+    "data/horreur-enquete.json"
   ]
 }

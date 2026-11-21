@@ -1,0 +1,1367 @@
+{
+  "format": 1,
+  "id": "fantasy",
+  "nom": "Fantasy",
+  "ordre": 3,
+  "source": "sources/04-variante-fantasy.md",
+  "omniPointsPJ": 3,
+  "roles": {
+    "mission": [
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6"
+    ],
+    "rebondissement": "T6",
+    "complications": "C",
+    "pnj": {
+      "role": "N1",
+      "trait": "N2",
+      "motivation": "N3"
+    },
+    "rencontres": {
+      "type": "F1",
+      "attitude": "F2",
+      "onglet": "Rencontres",
+      "titre": "Rencontre",
+      "question": "Le groupe rencontré accepte la proposition ?"
+    }
+  },
+  "options": {
+    "libelles": {
+      "mission": {
+        "nom": "quête",
+        "feminin": true
+      }
+    },
+    "profils": [
+      "F4"
+    ],
+    "rappelOmni": "Un omni-point permet aussi de récupérer une utilisation de sort pour un magicien."
+  },
+  "cloture": {
+    "question": "La quête est-elle un succès ?",
+    "issues": [
+      {
+        "libelle": "Oui, et… / Oui",
+        "reponses": [
+          "oui-et",
+          "oui"
+        ],
+        "texte": "succès complet."
+      },
+      {
+        "libelle": "Oui, mais… / Non, mais…",
+        "reponses": [
+          "oui-mais",
+          "non-mais"
+        ],
+        "texte": "succès partiel."
+      },
+      {
+        "libelle": "Non / Non, et…",
+        "reponses": [
+          "non",
+          "non-et"
+        ],
+        "texte": "échec, avec conséquences."
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "presentation",
+      "titre": null,
+      "niveau": 1,
+      "texte": [
+        "Cette variante s'utilise avec le **tronc commun** de l'Oracle Omni-système (oracle de question, Pression, scènes, intentions, omni-points, fiche de suivi, duo). Les règles du tronc commun ne changent pas. Seules changent les tables de contenu et quelques ajouts propres à la fantasy (rencontres de créatures, salles de donjon, profils d'intention supplémentaires).",
+        "**Omni-points (choix pour l'oracle) :** comme en cyberpunk et en space opéra, **3 par joueur et par mission**. L'Oracle commence à 0. *(Le livret Fantasy prévoit 1 omni-point par session attribué au hasard ; pour l'oracle solo/duo, on utilise 3 par mission afin que l'oracle soit utilisable.)* Comme dans le livret, un omni-point permet aussi de **récupérer une utilisation de sort** pour un magicien."
+      ]
+    },
+    {
+      "id": "mission",
+      "titre": "A. Générer une quête",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des tables T1 à T6 (ou choisis). Une mission de **routine** compte 3 à 5 scènes. Une quête **longue, épique ou un donjon** en compte 8 ou plus."
+      ]
+    },
+    {
+      "id": "deroule",
+      "titre": "Déroulé suggéré",
+      "niveau": 2,
+      "texte": [
+        "1. **Accroche** : la scène d'ouverture, souvent à la taverne, au village ou en route.",
+        "2. **Préparation** : s'informer, acheter ou fabriquer de l'équipement (un artisan ou un alchimiste produit 1d4 objets par jour), soigner, réunir des alliés.",
+        "3. **Voyage** : un trajet semé de complications, de rencontres (table F1) et d'attitudes (table F2).",
+        "4. **Rebondissement** : tiré à mi-parcours, ou quand la Pression atteint 7.",
+        "5. **Donjon ou confrontation** : face à l'antagoniste ou à l'enjeu ; pour un donjon, tire les salles dans la table F3.",
+        "6. **Retour** : récompense, conséquences, réputation."
+      ]
+    },
+    {
+      "id": "cloture",
+      "titre": "Clôture",
+      "niveau": 2,
+      "texte": [
+        "Pose l'oracle de question : « La quête est-elle un succès ? » Choisis la vraisemblance selon le déroulé réel.",
+        "- Oui, et… / Oui : succès complet.",
+        "- Oui, mais… / Non, mais… : succès partiel.",
+        "- Non / Non, et… : échec, avec conséquences.",
+        "Applique ensuite la progression du livret Fantasy (quête longue, épique, complexe ou donjon). L'Oracle perd ses omni-points restants. Le PJ retrouve ses 3 omni-points pour la mission suivante."
+      ]
+    },
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "niveau": 2,
+      "texte": [
+        "{{table T1}}"
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "niveau": 2,
+      "texte": [
+        "{{table T2}}"
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "niveau": 2,
+      "texte": [
+        "{{table T3}}"
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "niveau": 2,
+      "texte": [
+        "{{table T4}}"
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "niveau": 2,
+      "texte": [
+        "{{table T5}}"
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "niveau": 2,
+      "texte": [
+        "{{table T6}}"
+      ]
+    },
+    {
+      "id": "complications",
+      "titre": "B. Complications et événements (table des scènes altérées)",
+      "niveau": 1,
+      "texte": [
+        "{{table C}}"
+      ]
+    },
+    {
+      "id": "pnj",
+      "titre": "C. Générer un PNJ",
+      "niveau": 1,
+      "texte": [
+        "Tire un d20 dans chacune des trois tables."
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "niveau": 2,
+      "texte": [
+        "{{table N1}}"
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "niveau": 2,
+      "texte": [
+        "Identique à la table N2 du cyberpunk (traits universels, communs à tous les univers).",
+        "{{table N2}}"
+      ]
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "niveau": 2,
+      "texte": [
+        "{{table N3}}"
+      ]
+    },
+    {
+      "id": "rencontres",
+      "titre": "D. Rencontres, donjons et adversaires (ajouts fantasy)",
+      "niveau": 1,
+      "texte": []
+    },
+    {
+      "id": "F1",
+      "titre": "F1 — Type de rencontre",
+      "niveau": 2,
+      "texte": [
+        "Le livret Fantasy ne donne pas de statistiques pour les créatures : elles sont à définir au fil de l'aventure (comme les moyens de défense planétaires du space opéra).",
+        "{{table F1}}"
+      ]
+    },
+    {
+      "id": "F2",
+      "titre": "F2 — Attitude et état",
+      "niveau": 2,
+      "texte": [
+        "{{table F2}}",
+        "**Réaction à une proposition :** utilise l'oracle de question, avec une vraisemblance liée à l'attitude (hostile : improbable ; neutre : incertain ; amical : probable)."
+      ]
+    },
+    {
+      "id": "F3",
+      "titre": "F3 — Salle de donjon",
+      "niveau": 2,
+      "texte": [
+        "{{table F3}}",
+        "Pour savoir ce que contient une salle, utilise l'oracle de question (« Y a-t-il une créature ? », « Y a-t-il un trésor ? ») et la table de complications."
+      ]
+    },
+    {
+      "id": "F4",
+      "titre": "F4 — Intentions des adversaires fantasy",
+      "niveau": 2,
+      "texte": [
+        "Les profils du tronc commun (Brute, Tacticien, Lâche, Fanatique, Professionnel, compagnons) s'appliquent aussi en fantasy. Trois profils supplémentaires, avec les mêmes modificateurs (+4 si l'adversaire a perdu la moitié de ses PV ou plus, −2 si la Pression est de 7 ou plus) :",
+        "{{table F4}}",
+        "Un **lanceur de sorts** dispose de sorts limités (4 mineurs, 2 majeurs, 1 supérieur, 1 suprême par jour). Une fois épuisés, il passe à l'attaque physique ou fuit."
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "id": "T1",
+      "titre": "T1 — Accroche",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un messager épuisé s'effondre à la taverne en portant un sceau royal brisé."
+        },
+        {
+          "plage": "2",
+          "texte": "Un village voisin cesse d'envoyer ses marchands, et personne ne sait pourquoi."
+        },
+        {
+          "plage": "3",
+          "texte": "Un magicien errant offre une récompense pour un ingrédient introuvable."
+        },
+        {
+          "plage": "4",
+          "texte": "Une caravane est attaquée à la lisière de la forêt, et un survivant demande de l'aide."
+        },
+        {
+          "plage": "5",
+          "texte": "Un enfant disparaît chaque nuit de pleine lune."
+        },
+        {
+          "plage": "6",
+          "texte": "Un vieux plan menant à un donjon oublié tombe entre les mains du PJ."
+        },
+        {
+          "plage": "7",
+          "texte": "Un forgeron a besoin d'un métal rare pour achever une arme commandée par un noble."
+        },
+        {
+          "plage": "8",
+          "texte": "Un familier ou une monture du PJ tombe malade d'un mal inconnu."
+        },
+        {
+          "plage": "9",
+          "texte": "Une armée de gobelins rassemble ses troupes aux portes de la région."
+        },
+        {
+          "plage": "10",
+          "texte": "Un alchimiste rival accuse le PJ d'avoir saboté ses potions."
+        },
+        {
+          "plage": "11",
+          "texte": "Un orage magique ouvre une brèche dans le ciel au-dessus de la ville."
+        },
+        {
+          "plage": "12",
+          "texte": "Un noble propose un contrat discret : escorter une jeune héritière jusqu'à la capitale."
+        },
+        {
+          "plage": "13",
+          "texte": "Une rumeur annonce qu'un dragon s'est réveillé au sommet d'une montagne voisine."
+        },
+        {
+          "plage": "14",
+          "texte": "Un ancien compagnon d'aventure demande de l'aide pour rembourser une dette de jeu."
+        },
+        {
+          "plage": "15",
+          "texte": "Un temple reçoit des offrandes mystérieuses et des menaces anonymes."
+        },
+        {
+          "plage": "16",
+          "texte": "Les récoltes pourrissent d'un coup, et un guérisseur cherche la cause."
+        },
+        {
+          "plage": "17",
+          "texte": "Un cirque ambulant arrive en ville, et certains de ses artistes sont recherchés."
+        },
+        {
+          "plage": "18",
+          "texte": "Un livre ancien, cédé par un marchand, murmure des phrases en pleine nuit."
+        },
+        {
+          "plage": "19",
+          "texte": "Un duel d'honneur est proposé au PJ à la suite d'une insulte qu'il n'a pas faite."
+        },
+        {
+          "plage": "20",
+          "texte": "Un esprit élémentaire en colère réclame réparation pour un vol commis il y a des siècles."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "titre": "T2 — Objectif",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Récupérer un objet précis dans un donjon."
+        },
+        {
+          "plage": "2",
+          "texte": "Escorter une personne ou une caravane jusqu'à destination."
+        },
+        {
+          "plage": "3",
+          "texte": "Éliminer ou capturer une créature dangereuse."
+        },
+        {
+          "plage": "4",
+          "texte": "Retrouver une personne disparue."
+        },
+        {
+          "plage": "5",
+          "texte": "Livrer un message ou un colis à un destinataire méfiant."
+        },
+        {
+          "plage": "6",
+          "texte": "Défendre un village, un pont ou un col pendant une nuit."
+        },
+        {
+          "plage": "7",
+          "texte": "Récupérer un ingrédient rare pour un alchimiste ou un artisan."
+        },
+        {
+          "plage": "8",
+          "texte": "Négocier une trêve entre deux clans."
+        },
+        {
+          "plage": "9",
+          "texte": "Explorer des ruines et en rapporter une carte."
+        },
+        {
+          "plage": "10",
+          "texte": "Briser une malédiction ou un envoûtement."
+        },
+        {
+          "plage": "11",
+          "texte": "Infiltrer un château ou une guilde pour y repérer un traître."
+        },
+        {
+          "plage": "12",
+          "texte": "Voler quelque chose à quelqu'un qui l'a volé en premier."
+        },
+        {
+          "plage": "13",
+          "texte": "Libérer des prisonniers d'une forteresse."
+        },
+        {
+          "plage": "14",
+          "texte": "Apprendre un sort ou une technique auprès d'un maître."
+        },
+        {
+          "plage": "15",
+          "texte": "Prouver l'innocence d'un accusé devant un tribunal."
+        },
+        {
+          "plage": "16",
+          "texte": "Rembourser une dette d'honneur."
+        },
+        {
+          "plage": "17",
+          "texte": "Faire passer une frontière à quelqu'un de traqué."
+        },
+        {
+          "plage": "18",
+          "texte": "Reprendre une relique à des brigands."
+        },
+        {
+          "plage": "19",
+          "texte": "Éteindre un incendie de forêt, de monastère ou de village avant qu'il ne s'étende."
+        },
+        {
+          "plage": "20",
+          "texte": "Enterrer, détruire ou sceller un artefact maudit."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "titre": "T3 — Lieu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une taverne bondée au bord de la route."
+        },
+        {
+          "plage": "2",
+          "texte": "Un donjon aux couloirs humides, creusé sous une colline."
+        },
+        {
+          "plage": "3",
+          "texte": "Une forêt ancienne où les arbres semblent écouter."
+        },
+        {
+          "plage": "4",
+          "texte": "Un château en ruine, habité par des brigands."
+        },
+        {
+          "plage": "5",
+          "texte": "Le marché d'une ville fortifiée, plein d'artisans et de pickpockets."
+        },
+        {
+          "plage": "6",
+          "texte": "Un village isolé aux habitants méfiants."
+        },
+        {
+          "plage": "7",
+          "texte": "Une tour de magicien dont les étages changent de place."
+        },
+        {
+          "plage": "8",
+          "texte": "Un marais brumeux aux sentiers traîtres."
+        },
+        {
+          "plage": "9",
+          "texte": "Une montagne enneigée, battue par le vent."
+        },
+        {
+          "plage": "10",
+          "texte": "Un temple abandonné dont les statues semblent bouger."
+        },
+        {
+          "plage": "11",
+          "texte": "Une mine naine envahie par des créatures."
+        },
+        {
+          "plage": "12",
+          "texte": "Un port de pêcheurs, avec ses contrebandiers."
+        },
+        {
+          "plage": "13",
+          "texte": "Un pont gardé, au-dessus d'un gouffre."
+        },
+        {
+          "plage": "14",
+          "texte": "Une cathédrale ou un monastère aux cryptes secrètes."
+        },
+        {
+          "plage": "15",
+          "texte": "Un désert de pierre aux ruines à moitié ensablées."
+        },
+        {
+          "plage": "16",
+          "texte": "Un camp de nomades ou de mercenaires."
+        },
+        {
+          "plage": "17",
+          "texte": "Une bibliothèque ancienne aux livres dangereux."
+        },
+        {
+          "plage": "18",
+          "texte": "Une grotte de dragon ou de bête, remplie d'ossements."
+        },
+        {
+          "plage": "19",
+          "texte": "Un cimetière silencieux où la brume ne se lève jamais."
+        },
+        {
+          "plage": "20",
+          "texte": "Un autre plan : un royaume féerique, un plan élémentaire ou le monde des esprits."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "titre": "T4 — Antagoniste",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un seigneur féodal avide qui écrase les villageois."
+        },
+        {
+          "plage": "2",
+          "texte": "Un magicien corrompu par un pouvoir interdit."
+        },
+        {
+          "plage": "3",
+          "texte": "Une bande de brigands menée par un ancien chevalier."
+        },
+        {
+          "plage": "4",
+          "texte": "Un dragon cupide ou affamé."
+        },
+        {
+          "plage": "5",
+          "texte": "Un chef de guerre orc, gobelin ou troll qui rassemble une horde."
+        },
+        {
+          "plage": "6",
+          "texte": "Un cultiste qui prépare un rituel."
+        },
+        {
+          "plage": "7",
+          "texte": "Une sorcière aux marchés dangereux."
+        },
+        {
+          "plage": "8",
+          "texte": "Un rival aventurier qui veut la même récompense."
+        },
+        {
+          "plage": "9",
+          "texte": "Un noble faussement bienveillant, aux projets sinistres."
+        },
+        {
+          "plage": "10",
+          "texte": "Un mort-vivant lié à un serment brisé."
+        },
+        {
+          "plage": "11",
+          "texte": "Un esprit élémentaire furieux."
+        },
+        {
+          "plage": "12",
+          "texte": "Un assassin de la guilde, engagé pour faire disparaître un témoin."
+        },
+        {
+          "plage": "13",
+          "texte": "Un prêtre fanatique persuadé d'agir pour le bien."
+        },
+        {
+          "plage": "14",
+          "texte": "Un familier ou une créature devenus incontrôlables."
+        },
+        {
+          "plage": "15",
+          "texte": "Un ancien compagnon du PJ, passé du mauvais côté."
+        },
+        {
+          "plage": "16",
+          "texte": "Un alchimiste dont les potions ont tourné au poison."
+        },
+        {
+          "plage": "17",
+          "texte": "Une armée régulière manipulée par un conseiller."
+        },
+        {
+          "plage": "18",
+          "texte": "Un roi ou une reine possédés, que personne n'ose contredire."
+        },
+        {
+          "plage": "19",
+          "texte": "Une créature de légende (hydre, basilic, griffon) qui défend son territoire."
+        },
+        {
+          "plage": "20",
+          "texte": "Un adversaire dont on ignore tout jusqu'au dernier moment."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "titre": "T5 — Enjeu",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "La vie d'un innocent."
+        },
+        {
+          "plage": "2",
+          "texte": "La survie d'un village."
+        },
+        {
+          "plage": "3",
+          "texte": "Une grosse somme d'or."
+        },
+        {
+          "plage": "4",
+          "texte": "L'honneur du PJ ou de sa lignée."
+        },
+        {
+          "plage": "5",
+          "texte": "Une relique ou une arme légendaire."
+        },
+        {
+          "plage": "6",
+          "texte": "La paix entre deux royaumes."
+        },
+        {
+          "plage": "7",
+          "texte": "La confiance d'un allié proche."
+        },
+        {
+          "plage": "8",
+          "texte": "L'accès à un sort ou à un savoir interdit."
+        },
+        {
+          "plage": "9",
+          "texte": "La liberté d'un prisonnier."
+        },
+        {
+          "plage": "10",
+          "texte": "La santé ou la vie d'un familier ou d'une monture."
+        },
+        {
+          "plage": "11",
+          "texte": "Une dette envers un puissant."
+        },
+        {
+          "plage": "12",
+          "texte": "La réputation du PJ dans une région."
+        },
+        {
+          "plage": "13",
+          "texte": "Un secret de famille ou de naissance."
+        },
+        {
+          "plage": "14",
+          "texte": "Le contrôle d'une route commerciale."
+        },
+        {
+          "plage": "15",
+          "texte": "Le sort d'un trône."
+        },
+        {
+          "plage": "16",
+          "texte": "L'équilibre entre la magie et la nature (forêt, rivière)."
+        },
+        {
+          "plage": "17",
+          "texte": "L'accès à un équipement ou à un maître rare."
+        },
+        {
+          "plage": "18",
+          "texte": "La vérité sur la mort d'un héros."
+        },
+        {
+          "plage": "19",
+          "texte": "La survie d'une espèce menacée."
+        },
+        {
+          "plage": "20",
+          "texte": "La fin d'un grand fléau (peste, tempête magique, mort-vivants)."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "titre": "T6 — Rebondissement",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Le commanditaire a menti : la vraie cible est ailleurs."
+        },
+        {
+          "plage": "2",
+          "texte": "L'objet a déjà été volé ou détruit."
+        },
+        {
+          "plage": "3",
+          "texte": "Un allié du PJ travaille pour l'ennemi."
+        },
+        {
+          "plage": "4",
+          "texte": "La créature à tuer est une victime ou un gardien."
+        },
+        {
+          "plage": "5",
+          "texte": "L'antagoniste cherche la même chose, pour une bonne raison."
+        },
+        {
+          "plage": "6",
+          "texte": "Une troisième faction surgit, plus nombreuse."
+        },
+        {
+          "plage": "7",
+          "texte": "L'objet est un faux : le vrai est ailleurs."
+        },
+        {
+          "plage": "8",
+          "texte": "Le lieu est un piège préparé depuis longtemps."
+        },
+        {
+          "plage": "9",
+          "texte": "Le client prévoit de se débarrasser du PJ à la fin."
+        },
+        {
+          "plage": "10",
+          "texte": "Le sort ou la malédiction frappe le PJ lui-même."
+        },
+        {
+          "plage": "11",
+          "texte": "Le temps imparti est réduit de moitié (marée, éclipse, rituel)."
+        },
+        {
+          "plage": "12",
+          "texte": "La cible est un proche ou un ancien allié du PJ."
+        },
+        {
+          "plage": "13",
+          "texte": "Un esprit, un familier ou une monture choisit son camp."
+        },
+        {
+          "plage": "14",
+          "texte": "Un mentor ou un contact meurt ou disparaît."
+        },
+        {
+          "plage": "15",
+          "texte": "Une tempête, un éboulement ou un brouillard magique coupe la route."
+        },
+        {
+          "plage": "16",
+          "texte": "Une prophétie ou un présage prend un sens inattendu."
+        },
+        {
+          "plage": "17",
+          "texte": "L'antagoniste propose un marché très tentant."
+        },
+        {
+          "plage": "18",
+          "texte": "L'affaire en cache une autre, plus ancienne."
+        },
+        {
+          "plage": "19",
+          "texte": "Un héros ou un monstre que l'on croyait mort revient."
+        },
+        {
+          "plage": "20",
+          "texte": "Tout était une épreuve imposée par les dieux, un maître ou un roi."
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "titre": "Complications et événements",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Une patrouille de gardes réclame un droit de passage ou fouille les bagages."
+        },
+        {
+          "plage": "2",
+          "texte": "Un loup, un ours ou une meute suit la troupe."
+        },
+        {
+          "plage": "3",
+          "texte": "Un orage ou un brouillard fait perdre la route."
+        },
+        {
+          "plage": "4",
+          "texte": "Un voyageur en détresse supplie qu'on l'aide."
+        },
+        {
+          "plage": "5",
+          "texte": "Un ami, un contact ou un marchand arrive avec une urgence."
+        },
+        {
+          "plage": "6",
+          "texte": "Un pont, une porte ou un passage est bloqué ou effondré."
+        },
+        {
+          "plage": "7",
+          "texte": "Un feu de camp, une torche ou une lanterne s'éteint au pire moment."
+        },
+        {
+          "plage": "8",
+          "texte": "Un rival ou un concurrent se mêle de l'affaire."
+        },
+        {
+          "plage": "9",
+          "texte": "Une alarme ou un piège se déclenche sans que le PJ ait rien fait."
+        },
+        {
+          "plage": "10",
+          "texte": "Un PNJ propose un marché trop beau pour être honnête."
+        },
+        {
+          "plage": "11",
+          "texte": "La cible change de direction ou de plan."
+        },
+        {
+          "plage": "12",
+          "texte": "Des brigands réclament un péage."
+        },
+        {
+          "plage": "13",
+          "texte": "Un message anonyme ou une vision avertit d'un danger."
+        },
+        {
+          "plage": "14",
+          "texte": "Un sort, une potion ou un objet magique fait des siennes."
+        },
+        {
+          "plage": "15",
+          "texte": "Un familier ou une monture prend peur ou s'enfuit."
+        },
+        {
+          "plage": "16",
+          "texte": "Une arme, une armure ou un bouclier se brise ou se perd."
+        },
+        {
+          "plage": "17",
+          "texte": "Un ancien ennemi reconnaît le PJ."
+        },
+        {
+          "plage": "18",
+          "texte": "Une créature errante (griffon, ogre, spectre) croise la route."
+        },
+        {
+          "plage": "19",
+          "texte": "La nuit tombe plus tôt que prévu et une menace sort de l'ombre."
+        },
+        {
+          "plage": "20",
+          "texte": "Une opportunité inattendue : un passage secret, un allié providentiel, une trouvaille."
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "titre": "N1 — Rôle",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Aubergiste"
+        },
+        {
+          "plage": "2",
+          "texte": "Forgeron"
+        },
+        {
+          "plage": "3",
+          "texte": "Alchimiste"
+        },
+        {
+          "plage": "4",
+          "texte": "Magicien errant"
+        },
+        {
+          "plage": "5",
+          "texte": "Garde ou soldat"
+        },
+        {
+          "plage": "6",
+          "texte": "Marchand ambulant"
+        },
+        {
+          "plage": "7",
+          "texte": "Voleur ou pickpocket"
+        },
+        {
+          "plage": "8",
+          "texte": "Prêtre ou guérisseur"
+        },
+        {
+          "plage": "9",
+          "texte": "Chasseur ou rôdeur"
+        },
+        {
+          "plage": "10",
+          "texte": "Noble ou courtisan"
+        },
+        {
+          "plage": "11",
+          "texte": "Barde ou conteur"
+        },
+        {
+          "plage": "12",
+          "texte": "Chevalier errant"
+        },
+        {
+          "plage": "13",
+          "texte": "Mercenaire"
+        },
+        {
+          "plage": "14",
+          "texte": "Fermier ou villageois"
+        },
+        {
+          "plage": "15",
+          "texte": "Érudit ou bibliothécaire"
+        },
+        {
+          "plage": "16",
+          "texte": "Elfe, nain, gobelin ou orc de passage (choisis ou tire l'espèce)"
+        },
+        {
+          "plage": "17",
+          "texte": "Dresseur de familiers ou de montures"
+        },
+        {
+          "plage": "18",
+          "texte": "Brigand repenti"
+        },
+        {
+          "plage": "19",
+          "texte": "Assassin de la guilde"
+        },
+        {
+          "plage": "20",
+          "texte": "Esprit, fée ou créature sous forme humaine"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "titre": "N2 — Trait",
+      "reference": {
+        "univers": "commun",
+        "table": "N2"
+      }
+    },
+    {
+      "id": "N3",
+      "titre": "N3 — Motivation",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Veut de l'or, et vite."
+        },
+        {
+          "plage": "2",
+          "texte": "Veut protéger un proche."
+        },
+        {
+          "plage": "3",
+          "texte": "Cherche à se venger."
+        },
+        {
+          "plage": "4",
+          "texte": "Veut quitter la région."
+        },
+        {
+          "plage": "5",
+          "texte": "Cherche la gloire."
+        },
+        {
+          "plage": "6",
+          "texte": "Doit une dette à un puissant."
+        },
+        {
+          "plage": "7",
+          "texte": "Veut cacher un secret."
+        },
+        {
+          "plage": "8",
+          "texte": "Cherche à entrer dans une guilde, un ordre ou une cour."
+        },
+        {
+          "plage": "9",
+          "texte": "Veut faire tomber son seigneur."
+        },
+        {
+          "plage": "10",
+          "texte": "Cherche un remède ou un ingrédient rare."
+        },
+        {
+          "plage": "11",
+          "texte": "Veut connaître la vérité sur un événement passé."
+        },
+        {
+          "plage": "12",
+          "texte": "Sert deux maîtres à la fois."
+        },
+        {
+          "plage": "13",
+          "texte": "Veut simplement survivre à l'hiver."
+        },
+        {
+          "plage": "14",
+          "texte": "Veut impressionner quelqu'un."
+        },
+        {
+          "plage": "15",
+          "texte": "Veut racheter une faute."
+        },
+        {
+          "plage": "16",
+          "texte": "Cherche à retrouver un objet perdu ou volé."
+        },
+        {
+          "plage": "17",
+          "texte": "Obéit à un ordre ou à un serment qu'il ne comprend pas."
+        },
+        {
+          "plage": "18",
+          "texte": "Veut voler la vedette au PJ."
+        },
+        {
+          "plage": "19",
+          "texte": "Veut éprouver le PJ avant de lui faire confiance."
+        },
+        {
+          "plage": "20",
+          "texte": "N'a aucun but précis : il agit au hasard et sème le chaos."
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "titre": "F1 — Type de rencontre",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1-3",
+          "texte": "Meute de loups ou de bêtes sauvages"
+        },
+        {
+          "plage": "4-5",
+          "texte": "Brigands (bande de 1d4+1)",
+          "groupe": "1d4+1"
+        },
+        {
+          "plage": "6-7",
+          "texte": "Gobelins pillards (bande)"
+        },
+        {
+          "plage": "8-9",
+          "texte": "Orcs ou trolls (patrouille ou chef de guerre)"
+        },
+        {
+          "plage": "10",
+          "texte": "Morts-vivants (squelettes, goules, spectre)"
+        },
+        {
+          "plage": "11",
+          "texte": "Ogre ou géant isolé"
+        },
+        {
+          "plage": "12",
+          "texte": "Esprit élémentaire (feu, eau, terre ou air)"
+        },
+        {
+          "plage": "13",
+          "texte": "Créature de légende (griffon, hydre, basilic)"
+        },
+        {
+          "plage": "14",
+          "texte": "Créature magique invoquée ou piégée par un magicien"
+        },
+        {
+          "plage": "15",
+          "texte": "Chasseurs de primes ou mercenaires"
+        },
+        {
+          "plage": "16",
+          "texte": "Soldats d'un seigneur ou d'une armée"
+        },
+        {
+          "plage": "17",
+          "texte": "Cultistes"
+        },
+        {
+          "plage": "18",
+          "texte": "Bête gigantesque des marais ou des grottes (araignée, serpent, ver)"
+        },
+        {
+          "plage": "19",
+          "texte": "Dragon ou drakéide hostile"
+        },
+        {
+          "plage": "20",
+          "texte": "Quelque chose d'inconnu (à inventer)"
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "titre": "F2 — Attitude et état",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1-3",
+          "texte": "**Hostile et embusqué** : attaque dès que le PJ s'approche.",
+          "attitude": "hostile"
+        },
+        {
+          "plage": "4-6",
+          "texte": "**Hostile en patrouille** : interpelle le PJ, puis attaque au moindre faux pas.",
+          "attitude": "hostile"
+        },
+        {
+          "plage": "7-9",
+          "texte": "**Neutre et méfiant** : observe, n'agit pas si on ne le menace pas.",
+          "attitude": "neutre"
+        },
+        {
+          "plage": "10-12",
+          "texte": "**Neutre et occupé** : en route ailleurs, indifférent au PJ.",
+          "attitude": "neutre"
+        },
+        {
+          "plage": "13-14",
+          "texte": "**Blessé ou affaibli** : prêt à négocier ou à tenter un coup de désespoir.",
+          "attitude": null
+        },
+        {
+          "plage": "15-16",
+          "texte": "**En fuite** : poursuivi par plus fort que lui.",
+          "attitude": null
+        },
+        {
+          "plage": "17-18",
+          "texte": "**Amical** : propose son aide, une information ou un échange.",
+          "attitude": "amical"
+        },
+        {
+          "plage": "19",
+          "texte": "**Divisé** : le groupe se dispute, un traître est parmi eux.",
+          "attitude": null
+        },
+        {
+          "plage": "20",
+          "texte": "**Abandonné** : campement vide ou ruines, mais quelque chose y reste.",
+          "attitude": null
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "titre": "F3 — Salle de donjon",
+      "de": "d20",
+      "colonnes": [
+        "d20",
+        "Résultat"
+      ],
+      "lignes": [
+        {
+          "plage": "1",
+          "texte": "Un couloir étroit aux dalles piégées."
+        },
+        {
+          "plage": "2",
+          "texte": "Une salle de garde, avec un brasero encore tiède."
+        },
+        {
+          "plage": "3",
+          "texte": "Une crypte aux sarcophages entrouverts."
+        },
+        {
+          "plage": "4",
+          "texte": "Une salle au trésor, trop facile d'accès."
+        },
+        {
+          "plage": "5",
+          "texte": "Une antichambre de statues aux yeux incrustés de gemmes."
+        },
+        {
+          "plage": "6",
+          "texte": "Des cellules, certaines occupées."
+        },
+        {
+          "plage": "7",
+          "texte": "Une bibliothèque poussiéreuse aux grimoires fermés à clé."
+        },
+        {
+          "plage": "8",
+          "texte": "Une salle d'alchimie, avec fioles et vapeurs."
+        },
+        {
+          "plage": "9",
+          "texte": "Un pont de pierre au-dessus d'un gouffre."
+        },
+        {
+          "plage": "10",
+          "texte": "Une salle inondée jusqu'à la taille."
+        },
+        {
+          "plage": "11",
+          "texte": "Une forge souterraine, encore chaude."
+        },
+        {
+          "plage": "12",
+          "texte": "L'autel d'un culte oublié."
+        },
+        {
+          "plage": "13",
+          "texte": "Un dortoir de gardes ou de créatures."
+        },
+        {
+          "plage": "14",
+          "texte": "Un puits sans fond, ou un escalier qui descend plus bas qu'il ne devrait."
+        },
+        {
+          "plage": "15",
+          "texte": "Une salle d'énigmes (mécanisme, inscription, symboles)."
+        },
+        {
+          "plage": "16",
+          "texte": "Une salle de banquet abandonnée, la table encore dressée."
+        },
+        {
+          "plage": "17",
+          "texte": "Un jardin souterrain aux champignons lumineux."
+        },
+        {
+          "plage": "18",
+          "texte": "La salle du gardien ou de l'antagoniste."
+        },
+        {
+          "plage": "19",
+          "texte": "Un passage secret, signalé par un indice."
+        },
+        {
+          "plage": "20",
+          "texte": "Une salle vide… qui n'est pas vide (illusion, piège ou magie)."
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "titre": "F4 — Intentions des adversaires fantasy",
+      "de": "d20",
+      "colonnes": [
+        "Profil",
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "lignes": [
+        {
+          "texte": "**Bête sauvage**",
+          "autres": [
+            "Fonce sur la proie la plus proche",
+            "Attaque la proie la plus blessée",
+            "Tourne autour et cherche à isoler",
+            "Attaque la cible la plus dangereuse",
+            "Fuit ou se replie dans son repaire"
+          ],
+          "nom": "Bête sauvage",
+          "id": "bete-sauvage",
+          "compagnon": false
+        },
+        {
+          "texte": "**Lanceur de sorts**",
+          "autres": [
+            "Lance un sort offensif sur la cible la plus dangereuse",
+            "Lance un sort de contrôle ou d'altération d'état",
+            "Se protège (bouclier, recul, obstacle)",
+            "Invoque un familier ou un esprit",
+            "Se replie ou disparaît"
+          ],
+          "nom": "Lanceur de sorts",
+          "id": "lanceur-de-sorts",
+          "compagnon": false
+        },
+        {
+          "texte": "**Chef de guerre**",
+          "autres": [
+            "Ordonne à ses troupes d'attaquer la cible la plus dangereuse",
+            "Attaque lui-même la cible la plus proche",
+            "Manœuvre (flanque, bloque une issue)",
+            "Appelle du renfort",
+            "Sonne la retraite ou parlemente"
+          ],
+          "nom": "Chef de guerre",
+          "id": "chef-de-guerre",
+          "compagnon": false
+        }
+      ],
+      "type": "grille",
+      "plages": [
+        "1-4",
+        "5-8",
+        "9-12",
+        "13-16",
+        "17-20"
+      ],
+      "modificateurs": {
+        "blesse": 4,
+        "libelleBlesse": "l'adversaire a perdu la moitié de ses PV ou plus",
+        "pression": {
+          "seuil": 7,
+          "valeur": -2
+        }
+      }
+    }
+  ]
+}

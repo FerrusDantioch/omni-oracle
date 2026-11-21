@@ -5,7 +5,8 @@ Consignes pour travailler sur ce dépôt. À lire en entier avant toute modifica
 ## Ce qu'est l'application
 
 L'oracle de l'Omni-système (jeu de rôle d20 de Ferrus Dantioch) : simule le MJ en solo (1 PJ,
-parfois des PNJ compagnons) ou en duo (2 PJ), ou aide un vrai MJ à improviser. Deux formes qui
+parfois des PNJ compagnons) ou en duo (2 PJ), ou aide un vrai MJ à improviser. Quatre univers :
+Cyberpunk, Space opéra, Fantasy, Horreur / enquête. Deux formes qui
 lisent **les mêmes données** (`data/*.json`) :
 
 - `index.html` : la PWA (outil de table, surtout sur tablette) ;
@@ -68,13 +69,13 @@ lisent **les mêmes données** (`data/*.json`) :
 |---|---|
 | `js/config.js` | Nom, version, auteur, contact, lien Omni-système, `idStockage`. Lu par les pages et par `sw.js` (`importScripts`). |
 | `js/theme.js` | Thème avant l'affichage (Omni par défaut, Sombre, Clair, Auto : appareil sombre → Omni, clair → Clair). |
-| `js/moteur.js` | Toutes les règles, sans affichage. Les nombres viennent de `data/commun.json`. Testé par `tests/moteur.test.mjs`. |
+| `js/moteur.js` | Toutes les règles, sans affichage. Les nombres viennent de `data/commun.json`. `optionsUnivers()` lit les différences de règles d'un univers, `vocabulaire()` ses mots (« quête », « mystère »). Testé par `tests/moteur.test.mjs`. |
 | `js/donnees.js` | Charge `data/univers.json`, le tronc commun et les univers ; crée le catalogue (renvois de tables résolus). |
 | `js/stockage.js` | localStorage, export / import JSON. |
 | `js/app.js` | Accueil, tableau de bord, onglets, menu, réglages. |
-| `js/actions.js` | Actions partagées (omni-points, contestation, fin de scène, complications, saisie d'un vrai dé). |
-| `js/vue-*.js` | Un fichier par onglet. |
-| `js/ui.js`, `js/texte.js`, `js/composants.js` | Outils d'affichage (fenêtres, champs, mise en forme `**gras**`, tables tirables). |
+| `js/actions.js` | Actions partagées (omni-points, contestation, fin de scène, complications, chocs et folie, suggestions écartées, saisie d'un vrai dé). |
+| `js/vue-*.js` | Un fichier par onglet. `vue-vaisseaux.js` sert l'onglet des rencontres (« Vaisseaux » en space opéra, « Rencontres » en fantasy). |
+| `js/ui.js`, `js/texte.js`, `js/composants.js` | Outils d'affichage (fenêtres, champs, mise en forme `**gras**`, tables tirables, boutons Relancer / Ignorer / Afficher aux joueurs, boutons de chocs). |
 | `js/pwa.js`, `js/apropos.js` | Service worker, bouton « Mettre à jour », installation, À propos. |
 | `js/livret.js`, `css/livret.css` | Livret imprimable. |
 
@@ -84,9 +85,20 @@ Données :
   ajouter un JSON et une ligne ici**, sans toucher au code (prouvé par
   `tests/navigateur/nouvel-univers.spec.js`). Format documenté dans le README.
 - Chaque table : `id`, `titre`, `de` (`"d20"`), `colonnes`, `lignes` (`plage`, `texte`, `autres`
-  facultatif), ou `reference` vers la table d'un autre univers. Les champs en plus (ex.
-  `famille`, `escadrille`, `escorte` en D1 ; `attitude` en D2 ; `modificateurs`) servent au moteur.
+  facultatif), ou `reference` vers la table d'un autre univers ou du tronc commun (N2 est dans
+  `commun.json`). Les champs en plus (ex. `famille`, `escadrille`, `escorte` en D1 ; `groupe` en
+  F1 ; `attitude` en D2 et F2 ; `modificateurs` ; `actionsChoc` en M1 ; `groupes`, `chocAllie`,
+  `aggravation` dans la table de folie) servent au moteur et à l'affichage.
 - Le texte des règles est dans `sections[].texte` (lignes Markdown simples, `{{table X}}` place une table).
+  Une section peut avoir sa propre `source` (table de folie : `sources/06-…`).
+- **Différences entre univers = données, jamais de code** : bloc `options` (omni-points,
+  contestation, paliers, profils d'intention, rappel omni, rubriques de fiche, chocs, libellés) et
+  `roles` (tables de mission, PNJ, complications, rencontres). Le code ne teste **jamais** le nom
+  d'un univers (`if (univers === …)` interdit). Format documenté dans le README.
+- **Parties enregistrées** : ne jamais renommer ni retirer un champ d'une partie. Les nouveaux
+  champs sont ajoutés quand on en a besoin (`f[id] ||= []`, `pj.chocs || 0`). Le test
+  `tests/navigateur/univers.spec.js` rouvre de vraies parties de la version 0.2.1
+  (`tests/navigateur/donnees/parties-0.2.1.json`).
 
 ## Interprétations validées par Ferrus (20/11/2026)
 
@@ -128,12 +140,52 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
     (« tronc commun de l'Oracle Omni-système », « traits universels, communs à tous les univers ») ;
     modifié dans la source et dans le JSON.
 
+### Décisions du 21/11/2026
+
+18. **Résultats de table = suggestions** (plus de « mode assistant du MJ ») : sous chaque
+    résultat de table, « Relancer », « Ignorer » et « Afficher aux joueurs » (plein écran, très
+    grand texte, un toucher ferme). Le résultat écarté reste dans le journal, barré, avec
+    « relancé / ignoré par le MJ » (champ `ecarte` de l'entrée). Un résultat verrouillé
+    (mission, PNJ) n'a ni Relancer ni Ignorer. Complication de début de scène : seule la
+    complication change, jamais le d20 d'altération. Intention relancée : même profil et mêmes
+    modificateurs. Les réponses oui/non de l'oracle ne sont pas concernées.
+19. **Masquer les résultats (écran visible des joueurs)** : simple réglage, désactivé par
+    défaut (clé `secret` des réglages, gardée pour ne pas perdre le choix déjà fait) ; résultats
+    floutés, un toucher les révèle (révélés jusqu'au rechargement de la page).
+20. **Fantasy et Horreur** : les sources 04 et 05 ne citent plus de nom de fichier (même
+    formulation que le space opéra), dans la source et le JSON. N2 est dans le tronc commun.
+21. **Fantasy** : 3 omni-points par PJ et par mission. Rappel « un omni-point permet aussi de
+    récupérer une utilisation de sort pour un magicien » dans « Dépenser un omni-point », sans
+    gestion des sorts. F1 : pas de statistiques inventées ; « Brigands (bande de 1d4+1) » : le
+    1d4+1 est lancé. F2, états sans attitude (Blessé ou affaibli, En fuite, Divisé, Abandonné) :
+    « incertain » par défaut, comme D2.
+22. **Horreur** : ni omni-points ni contestation. Seuil de rupture : un petit message, aucun gain ;
+    l'« option à tester » (tirer le rebondissement à 9) n'est **pas** codée. Les profils de
+    compagnons du tronc commun restent disponibles. M1 : +4 si la menace est affaiblie.
+23. **Vocabulaire** : « Quête » en fantasy, « Mystère » en horreur (onglet, boutons, titres) ;
+    la question de clôture reste celle de la source (« L'affaire est-elle résolue ? »).
+24. **Chocs** : boutons +1 / +2 après C1 (rappel « 1 point de choc (2 si l'événement est
+    particulièrement atroce) »), +1 après « Terrorise » de M1, +1 à l'allié sous l'effet 11 de la
+    table de folie ; aucun choc automatique. À 5 : alerte et bouton « Convertir 5 chocs en 1 point
+    de folie » (jamais de conversion automatique), puis jet sur la table de folie. I1 : bouton
+    « Noter dans les indices ».
+25. **Table de folie** (`sources/06-horreur-table-de-folie.md`, recopiée du PDF de Ferrus du
+    21/11/2026) : intertitres en capitales et « -1 » avec un tiret simple, comme sur le PDF.
+    Option « la folie s'aggrave avec l'accumulation » codée, décochée par défaut (case de la
+    partie, dans la fiche). En attente de confirmation : le point de folie qu'on vient de gagner
+    compte dans le « 1d20 + points de folie » ; « Relancer » un effet de folie ne change ni les
+    chocs ni les points de folie.
+26. **Livret Horreur** : la partie 1 reprend le tronc commun tel quel (omni-points, contestation) ;
+    la section 0 de la partie 2 dit ce qui change. La fiche imprimée suit l'univers (pas de ligne
+    omni-points, rubriques d'enquête, chocs et folie).
+
 ## Tests
 
 - `npm test` : données (plages 1-20, fidélité mot pour mot), moteur (cas limites), sécurité.
 - `npx playwright test` (après `npm install`) : hors ligne (serveur coupé), aucune requête
   externe, export/import, thèmes et contrastes, focus, animations réduites, tablette (800 px),
-  téléphone (400 et 360 px), À propos, mise à jour, livret, nouvel univers.
+  téléphone (400 et 360 px), À propos, mise à jour, livret, nouvel univers, options des univers,
+  chocs et folie, suggestions du MJ, anciennes parties (0.2.1).
   Utiliser `--trace off` ou la configuration fournie (traces désactivées).
 - Avant de dire que c'est terminé : vérifier hors ligne, sur tablette et téléphone, relire
   l'« À propos », vérifier qu'aucune requête réseau ne part (ces quatre points sont couverts par
@@ -141,7 +193,8 @@ Points non tranchés par les sources, décidés par Ferrus. Ne pas les changer s
 
 ## Évolutions prévues (architecture prête, rien de codé)
 
-- Univers Fantasy et Horreur / enquête : nouveaux fichiers JSON seulement.
+- Autres univers : un fichier JSON et une ligne dans `data/univers.json` (bloc `options` pour les
+  différences de règles).
 - Profils de vaisseaux (agressif, prudent, prédateur), nouvelles tables (rencontres aliens,
   planètes, événements entre deux missions) : nouvelles tables JSON ; un nouveau *type* de
   générateur demandera un petit onglet.

@@ -13,7 +13,8 @@ export const ATTITUDES = [
 
 /** Liste des profils d'intention pour une liste déroulante. */
 export function optionsProfils(ctx, { vide = true } = {}) {
-  const profils = ctx.commun.tables.find((t) => t.id === 'intentions').lignes;
+  // Profils du tronc commun, puis ceux que l'univers ajoute (ex. F4 en fantasy, M1 en horreur).
+  const profils = M.tablesProfils(ctx.cat, ctx.univ.id).flatMap((t) => t.lignes);
   return [...(vide ? [{ valeur: '', texte: '(aucun)' }] : []), ...profils.map((p) => ({ valeur: p.id, texte: p.nom }))];
 }
 
@@ -26,8 +27,10 @@ export function creerVueGenerateurPNJ(ctx) {
   });
   let pnj = neuf();
 
+  let compteur = 0; // pour reconnaître chaque tirage (résultat révélé quand l'écran se redessine)
   function tirer(cle, valeur) {
     pnj.tirages[cle].valeur = valeur ?? M.deAleatoire(20);
+    pnj.tirages[cle].n = `pnj-${++compteur}`;
   }
 
   function rendre() {
@@ -56,11 +59,12 @@ export function creerVueGenerateurPNJ(ctx) {
             },
           }, 'Tirer les trois')),
         intro && h('div', { class: 'regles' }, rendreBloc(intro.texte)),
-        n2.reference && h('p', { class: 'petit discret' }, `Le trait (${n2.id}) reprend la table ${n2.reference.table} de l'univers « ${ctx.cat.univ(n2.reference.univers).nom} », comme le prévoient les règles.`),
+        n2.reference && h('p', { class: 'petit discret' }, `Le trait (${n2.id}) reprend la table ${n2.reference.table} ${ctx.cat.origine(n2.reference)}, commune à tous les univers.`),
         h('div', { class: 'grille-tirages' }, Object.entries(tables).map(([k, t]) => tirageVerrouillable(ctx, {
           table: t, etat: pnj.tirages[k], cle: `pnj-${k}`,
           surTirage: (valeur) => { tirer(k, valeur); if (valeur === null) vibrer(); rendre(); },
           surVerrou: rendre,
+          surIgnorer: () => { pnj.tirages[k].valeur = null; rendre(); annoncer('Résultat ignoré.'); },
         })))),
       h('section', { class: 'carte', 'aria-labelledby': 'titre-ajout-pnj' },
         h('h2', { id: 'titre-ajout-pnj' }, 'Ajouter à la partie'),

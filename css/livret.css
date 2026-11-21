@@ -103,6 +103,9 @@ li { margin-bottom: .15rem; }
 .fiche-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .fiche-table th, .fiche-table td { border: 1px solid currentColor; padding: .2rem .4rem; text-align: left; }
 .fiche-table td { height: 2.1rem; }
+/* Intertitre d'une table (ex. groupes de la table de folie) : sur toute la largeur. */
+.table-donnees tr.intertitre th { text-align: left; border-top: 2px solid currentColor; padding-top: .35rem; }
+.fiche-chocs td .cases { white-space: nowrap; }
 .ligne-a-remplir { display: inline-block; min-width: 3.5rem; border-bottom: 1px solid currentColor; }
 .ligne-a-remplir.longue { min-width: 20rem; max-width: 70%; }
 .case-vide {

@@ -117,6 +117,26 @@ export function ouvrirDialogue({ titre, contenu, actions = [{ id: 'ok', texte: '
   });
 }
 
+/**
+ * « Afficher aux joueurs » : le résultat en très grand, plein écran, lisible depuis
+ * l'autre côté de la table. Un toucher (ou Échap, ou Entrée) ferme.
+ * - titre : petit texte au-dessus (ex. nom de la table) ; texte : le résultat (**gras** permis).
+ */
+export function afficherAuxJoueurs({ titre = '', texte }) {
+  const retour = document.activeElement;
+  const fermer = () => dlg.close();
+  const bouton = h('button', { type: 'button', class: 'affichage-joueurs', onclick: fermer },
+    titre && h('span', { class: 'affichage-titre' }, riche(titre)),
+    h('span', { class: 'affichage-texte' }, riche(texte)),
+    h('span', { class: 'affichage-aide' }, 'Toucher pour fermer'));
+  const dlg = h('dialog', { class: 'dialogue-joueurs', 'aria-label': 'Résultat affiché aux joueurs' }, bouton);
+  dlg.addEventListener('close', () => { dlg.remove(); retour?.focus?.({ preventScroll: true }); });
+  document.body.append(dlg);
+  dlg.showModal();
+  bouton.focus({ preventScroll: true });
+  return dlg;
+}
+
 /** Demande une confirmation (Oui / Annuler). */
 export async function confirmer(titre, message, { oui = 'Confirmer', danger = false } = {}) {
   const r = await ouvrirDialogue({

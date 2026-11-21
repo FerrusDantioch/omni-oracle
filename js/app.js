@@ -28,16 +28,15 @@ const CONFIG = globalThis.CONFIG_APP;
 // Onglets de la partie. `si(univers)` : l'onglet n'apparaît que si l'univers le permet.
 const ONGLETS = [
   { id: 'jouer', texte: 'Jouer', creer: creerVueJouer },
-  { id: 'mission', texte: 'Mission', creer: creerVueMission },
+  { id: 'mission', texte: (u) => M.vocabulaire(u).Nom, creer: creerVueMission },
   { id: 'pnj', texte: 'PNJ', creer: creerVueGenerateurPNJ },
   { id: 'intentions', texte: 'Intentions', creer: creerVueIntentions },
-  { id: 'vaisseaux', texte: 'Vaisseaux', creer: creerVueVaisseaux, si: (u) => !!u.roles.vaisseaux },
+  { id: 'vaisseaux', texte: (u) => u.roles.rencontres.onglet, creer: creerVueVaisseaux, si: (u) => !!u.roles.rencontres },
   { id: 'fiche', texte: 'Fiche', creer: creerVueFiche },
   { id: 'tables', texte: 'Tables', creer: creerVueTables },
   { id: 'journal', texte: 'Journal', creer: creerVueJournal },
 ];
 
-let compteurSecret = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -52,6 +51,8 @@ const ctx = {
   demandeIntention: null,  // index d'un PNJ de la fiche : à présélectionner dans l'onglet Intentions
   get commun() { return this.cat.commun; },
   get univ() { return this.cat.univ(this.partie.univers); },
+  /** « mission », ou le mot de l'univers (« quête », « mystère »), avec ses accords. */
+  get voc() { return M.vocabulaire(this.univ); },
 
   /** Enregistre la partie sur l'appareil, puis met l'écran à jour. */
   enregistrer() {
@@ -82,7 +83,7 @@ const ctx = {
   },
   /** Affiche les événements importants (seuil de rupture, gain de l'Oracle, rebondissement). */
   async signaler(evenements = []) {
-    const messages = evenements.map(messageEvenement).filter(Boolean);
+    const messages = evenements.map((e) => messageEvenement(e, this.voc)).filter(Boolean);
     if (!messages.length) return;
     vibrer(60);
     const rebond = evenements.some((e) => e.type === 'rebondissement');
@@ -90,32 +91,39 @@ const ctx = {
       titre: 'À noter',
       contenu: h('ul', {}, messages.map((m) => h('li', {}, m))),
       actions: rebond
-        ? [{ id: 'ok', texte: 'Fermer' }, { id: 'mission', texte: 'Voir la mission', classe: 'bouton-accent' }]
+        ? [{ id: 'ok', texte: 'Fermer' }, { id: 'mission', texte: `Voir ${this.voc.la}`, classe: 'bouton-accent' }]
         : [{ id: 'ok', texte: 'Fermer' }],
     });
     if (r === 'mission') allerOnglet('mission');
   },
+  /** Résultats déjà révélés par un toucher (réglage « Masquer les résultats »), pour la séance. */
+  reveles: new Set(),
   /**
-   * Emballage des résultats. En mode assistant du MJ, le résultat est masqué
-   * et ne s'affiche qu'au toucher (pour tirer en secret devant les joueurs).
+   * Emballage des résultats. Avec le réglage « Masquer les résultats (écran visible
+   * des joueurs) », le résultat est flouté ; un toucher le révèle.
+   * - cle : identifiant stable du résultat (ex. n° du journal), pour qu'il reste
+   *   révélé quand l'écran se redessine.
    */
-  resultat(el) {
-    if (!this.reglages.secret) return el;
-    const id = `secret-${++compteurSecret}`;
-    const MASQUE = 'Résultat masqué : toucher pour voir';
-    const contenu = h('div', { id, hidden: true }, el);
-    const bouton = h('button', {
-      type: 'button', class: 'bouton bouton-secret', 'aria-expanded': 'false', 'aria-controls': id,
-      onclick: () => {
-        const montrer = contenu.hidden;
-        contenu.hidden = !montrer;
-        bouton.setAttribute('aria-expanded', String(montrer));
-        bouton.textContent = montrer ? 'Masquer le résultat' : MASQUE;
+  resultat(el, { cle = null } = {}) {
+    if (!this.reglages.secret || (cle !== null && this.reveles.has(cle))) return el;
+    const contenu = h('div', { class: 'masquable-contenu', inert: true, 'aria-hidden': 'true' }, el);
+    const bloc = h('div', { class: 'masquable masque' }, contenu);
+    bloc.append(h('button', {
+      type: 'button', class: 'bouton bouton-reveler', 'data-cle': cle !== null ? `reveler-${cle}` : null,
+      onclick: (ev) => {
+        // Résultat repérable : on le note révélé et on redessine (ex. la ligne tirée
+        // se marque aussi dans la liste de l'onglet Tables).
+        if (cle !== null) { this.reveles.add(cle); actualiser(); return; }
+        contenu.inert = false;
+        contenu.removeAttribute('aria-hidden');
+        bloc.classList.remove('masque');
+        ev.currentTarget.remove();
+        contenu.querySelector('button, [tabindex]')?.focus({ preventScroll: true });
       },
-    }, MASQUE);
-    return h('div', { class: 'secret' }, bouton, contenu);
+    }, h('span', {}, 'Résultat masqué : toucher pour révéler')));
+    return bloc;
   },
-  /** Annonce un résultat, sauf en mode assistant du MJ (il resterait visible à l'écran). */
+  /** Annonce un résultat, sauf s'il est masqué (il serait lu à voix haute). */
   annoncerResultat(message) {
     annoncer(this.reglages.secret ? 'Résultat tiré (masqué).' : message);
   },
@@ -141,14 +149,9 @@ function actualiser() {
 }
 
 // --- Démarrage -------------------------------------------------------------------------
-/** Pastille « Mode MJ » dans l'en-tête quand les résultats sont masqués. */
-function majModeMJ() {
-  $('badge-mj').hidden = !ctx.reglages.secret;
-}
 
 async function demarrer() {
   reglerVibration(ctx.reglages.vibration);
-  majModeMJ();
   $('bouton-menu').addEventListener('click', ouvrirMenu);
   initialiserPWA({ bouton: $('bouton-maj') });
   try {
@@ -187,9 +190,10 @@ function carteNouvellePartie() {
   const profilsCompagnons = ctx.commun.tables.find((t) => t.id === 'intentions').lignes.filter((l) => l.compagnon);
   const etat = { univers: univers[0].id, mode: 'solo', compagnons: [] };
 
+  const libelleMission = (id) => `Nom ${M.vocabulaire(ctx.cat.univ(id)).de} (facultatif)`;
   const choixUnivers = choix('Univers', 'nouvel-univers', univers.map((u) => ({ valeur: u.id, texte: u.nom })), etat.univers,
-    { onchange: (v) => { etat.univers = v; } });
-  const mission = champ('Nom de la mission (facultatif)', { type: 'text', placeholder: 'Ex. : Extraction à la tour Kaiden' });
+    { onchange: (v) => { etat.univers = v; mission.querySelector('label').textContent = libelleMission(v); } });
+  const mission = champ(libelleMission(etat.univers), { type: 'text' });
   const pj1 = champ('Nom du PJ', { type: 'text', autocomplete: 'off' });
   const pj2 = champ('Nom du second PJ', { type: 'text', autocomplete: 'off' });
   pj2.hidden = true;
@@ -245,7 +249,7 @@ function carteNouvellePartie() {
         M.journaliser(partie, { type: 'mission', nom: partie.mission.nom });
         S.enregistrerPartie(partie);
         ouvrirPartie(partie);
-        annoncer('Partie créée. Bonne mission !');
+        annoncer(`Partie créée. ${M.vocabulaire(u).bonne} ${M.vocabulaire(u).nom} !`);
       },
     }, 'Commencer la partie')));
 }
@@ -262,17 +266,18 @@ function carteMesParties() {
       ? h('p', { class: 'discret' }, 'Aucune partie enregistrée sur cet appareil.')
       : h('ul', { class: 'liste-parties' }, parties.map((p) => {
         const u = ctx.cat.univ(p.univers);
+        const voc = M.vocabulaire(u);
         return h('li', {},
-          h('div', { class: 'titre-partie' }, p.mission?.nom || 'Mission sans nom'),
+          h('div', { class: 'titre-partie' }, p.mission?.nom || voc.sansNom),
           h('div', { class: 'petit discret' },
-            `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${p.pjs.map((x) => x.nom).join(' et ')} · mission ${p.mission?.numero ?? 1}, scène ${p.scene.numero} · ${dateCourte(p.modifie)}`),
+            `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${p.pjs.map((x) => x.nom).join(' et ')} · ${voc.nom} ${p.mission?.numero ?? 1}, scène ${p.scene.numero} · ${dateCourte(p.modifie)}`),
           h('div', { class: 'rangee' },
             h('button', { type: 'button', class: 'bouton bouton-accent', onclick: () => ouvrirPartie(S.lirePartie(p.id)) }, 'Reprendre'),
             h('button', { type: 'button', class: 'bouton', onclick: () => S.exporterPartie(p) }, 'Exporter'),
             h('button', {
               type: 'button', class: 'bouton bouton-discret',
               onclick: async () => {
-                if (await confirmer('Supprimer la partie', `Supprimer « ${p.mission?.nom || 'Mission sans nom'} » de cet appareil ? Pense à l'exporter avant si tu veux la garder.`, { oui: 'Supprimer', danger: true })) {
+                if (await confirmer('Supprimer la partie', `Supprimer « ${p.mission?.nom || voc.sansNom} » de cet appareil ? Pense à l'exporter avant si tu veux la garder.`, { oui: 'Supprimer', danger: true })) {
                   S.supprimerPartie(p.id);
                   afficherAccueil();
                   annoncer('Partie supprimée.');
@@ -341,7 +346,7 @@ function rendreOnglets() {
     type: 'button', class: 'onglet', 'data-onglet': o.id, 'data-cle': `onglet-${o.id}`,
     'aria-current': o.id === ctx.onglet ? 'page' : false,
     onclick: () => allerOnglet(o.id),
-  }, o.texte)));
+  }, typeof o.texte === 'function' ? o.texte(ctx.univ) : o.texte)));
 }
 
 function allerOnglet(id) {
@@ -365,9 +370,11 @@ function allerOnglet(id) {
 function rendreTableauDeBord() {
   const p = ctx.partie;
   const C = ctx.commun;
-  const pal = M.palier(C, p.pression);
+  const pal = M.palier(C, p.pression, ctx.univ);
+  const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
+  const chocs = M.optionsUnivers(ctx.univ).chocs;
   const changer = (d) => {
-    const r = M.ajusterPression(C, p, d);
+    const r = M.ajusterPression(C, p, d, { univers: ctx.univ });
     if (r.avant === r.apres) { annoncer(`La Pression est déjà à ${r.apres}.`); return; }
     ctx.enregistrer();
     annoncer(`Pression ${r.avant} → ${r.apres}${r.dejaBougee ? '. Attention : elle avait déjà bougé pendant cette scène (une fois par scène).' : '.'}`);
@@ -386,7 +393,19 @@ function rendreTableauDeBord() {
       h('button', { type: 'button', class: 'bouton bouton-icone', 'aria-label': 'Monter la Pression de 1', 'data-cle': 'tdb-plus', onclick: () => changer(+1) }, '+'),
       h('span', { class: 'tdb-palier' }, h('strong', {}, pal.nom), h('br'), `${pal.chance} %`)),
     h('div', { class: 'tdb-bloc tdb-scene' }, h('span', { class: 'tdb-etiquette' }, 'Scène'), h('strong', {}, String(p.scene.numero))),
-    h('div', { class: 'tdb-bloc tdb-omni' },
+    // Univers avec points de choc (ex. horreur) : un compteur par PJ, qui ouvre la fiche.
+    chocs && h('div', { class: 'tdb-bloc tdb-chocs' },
+      p.pjs.map((pj) => {
+        const n = pj.chocs || 0;
+        const alerte = n >= chocs.seuil;
+        return h('button', {
+          type: 'button', class: `bouton jeton${alerte ? ' alerte' : ''}`, 'data-cle': `tdb-chocs-${pj.id}`,
+          'aria-label': `${pj.nom} : ${n} point${n > 1 ? 's' : ''} de choc${alerte ? ` (${chocs.alerte})` : ''}. Voir chocs et folie`,
+          onclick: () => { ctx.demandeFiche = 'chocs'; allerOnglet('fiche'); },
+        }, pj.nom, ' ', h('span', { class: 'omni' }, `${n} choc${n > 1 ? 's' : ''}`), alerte && h('span', { class: 'alerte-jeton', 'aria-hidden': 'true' }, ' !'));
+      })),
+    // Univers sans omni-points (ex. horreur) : ni jetons, ni case du seuil de rupture.
+    avecOmni && h('div', { class: 'tdb-bloc tdb-omni' },
       p.pjs.map((pj) => h('button', {
         type: 'button', class: 'bouton jeton', 'data-cle': `tdb-omni-${pj.id}`,
         'aria-label': `${pj.nom} : ${pj.omni} omni-point${pj.omni > 1 ? 's' : ''}. Dépenser un omni-point`,
@@ -398,7 +417,7 @@ function rendreTableauDeBord() {
         onclick: () => dialogueOmniOracle(ctx),
       }, 'Oracle ', h('span', { class: 'omni' }, `◆ ${p.oracle.omni}`)),
       caseACocher(`Seuil ${C.pression.seuilRupture} atteint`, {
-        coche: p.seuilAtteint, 'data-cle': 'tdb-seuil', title: `Seuil de rupture (${C.pression.seuilRupture}) déjà atteint dans la mission`,
+        coche: p.seuilAtteint, 'data-cle': 'tdb-seuil', title: `Seuil de rupture (${C.pression.seuilRupture}) déjà atteint dans ${ctx.voc.cette}`,
         onchange: (v) => { p.seuilAtteint = v; ctx.enregistrer(); annoncer(v ? 'Seuil de rupture coché (correction manuelle, sans gain d\'omni-point).' : 'Seuil de rupture décoché.'); },
       })));
 }
@@ -406,7 +425,8 @@ function rendreTableauDeBord() {
 /** Titre de l'en-tête : nom de l'application à l'accueil, nom de la mission en partie. */
 function majTitre() {
   const p = ctx.partie;
-  const titre = p ? `${p.mission.nom || 'Mission sans nom'}${p.mission.numero > 1 ? ` (mission ${p.mission.numero})` : ''}` : CONFIG.nom;
+  const voc = p && ctx.voc;
+  const titre = p ? `${p.mission.nom || voc.sansNom}${p.mission.numero > 1 ? ` (${voc.nom} ${p.mission.numero})` : ''}` : CONFIG.nom;
   $('titre-app').textContent = titre;
   document.title = p ? `${titre} · ${CONFIG.nom}` : CONFIG.nom;
 }
@@ -417,9 +437,8 @@ async function ouvrirMenu() {
   const actions = [
     enPartie && { id: 'parties', texte: 'Mes parties' },
     enPartie && { id: 'modifier', texte: 'Modifier la partie' },
-    enPartie && { id: 'mission', texte: 'Mission suivante' },
+    enPartie && { id: 'mission', texte: ctx.voc.Suivante },
     enPartie && { id: 'exporter', texte: 'Exporter cette partie' },
-    { id: 'secret', texte: ctx.reglages.secret ? 'Mode assistant du MJ : activé (désactiver)' : 'Mode assistant du MJ (résultats masqués)' },
     { id: 'reglages', texte: 'Réglages (thème, vibrations…)' },
     { id: 'livret', texte: 'Livret imprimable' },
     { id: 'installer', texte: 'Installer l\'application' },
@@ -437,13 +456,6 @@ async function ouvrirMenu() {
       window.location.href = `livret.html?univers=${encodeURIComponent(ctx.partie ? ctx.partie.univers : ctx.cat.univers[0].id)}`;
       break;
     case 'apropos': dialogueAPropos(); break;
-    case 'secret':
-      ctx.reglages.secret = !ctx.reglages.secret;
-      ctx.sauverReglages();
-      majModeMJ();
-      if (ctx.partie) actualiser();
-      annoncer(ctx.reglages.secret ? 'Mode assistant du MJ : les résultats sont masqués, touche-les pour les voir.' : 'Mode assistant du MJ désactivé.');
-      break;
     default: break;
   }
 }
@@ -462,7 +474,8 @@ async function dialogueReglages() {
   })), avant, { onchange: (t) => T.appliquer(t) });
   const vibration = caseACocher('Vibrations (lancers, omni-points)', { coche: ctx.reglages.vibration });
   const dePhysique = caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', { coche: ctx.reglages.dePhysique });
-  const secret = caseACocher('Mode assistant du MJ : résultats masqués, affichés au toucher', { coche: ctx.reglages.secret });
+  const secret = caseACocher('Masquer les résultats (écran visible des joueurs)', { coche: ctx.reglages.secret, 'aria-describedby': 'aide-masquer' });
+  const aideSecret = h('p', { class: 'aide', id: 'aide-masquer' }, 'Les résultats sont floutés ; un toucher les révèle.');
   const lumAvant = ctx.reglages.luminosite ?? 100;
   const valeurLum = h('output', { for: 'reglage-lum', id: 'valeur-lum' }, `${lumAvant} %`);
   const curseurLum = h('input', {
@@ -475,7 +488,7 @@ async function dialogueReglages() {
     h('p', { class: 'aide', id: 'aide-lum' }, 'Assombrit l\'application pour jouer le soir (100 % = normal). En dessous de 100 %, les textes secondaires deviennent moins contrastés, comme quand tu baisses la luminosité de l\'appareil.'));
   const r = await ouvrirDialogue({
     titre: 'Réglages',
-    contenu: [theme, luminosite, vibration, dePhysique, secret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
+    contenu: [theme, luminosite, vibration, dePhysique, secret, aideSecret, h('p', { class: 'petit discret' }, 'Ces réglages sont propres à cet appareil.')],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Enregistrer', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') { T.appliquer(avant); T.luminosite(lumAvant); return; }
@@ -483,9 +496,9 @@ async function dialogueReglages() {
   ctx.reglages.luminosite = T.luminosite(curseurLum.value);
   ctx.reglages.vibration = vibration.saisie.checked;
   ctx.reglages.dePhysique = dePhysique.saisie.checked;
+  if (ctx.reglages.secret !== secret.saisie.checked) ctx.reveles.clear();
   ctx.reglages.secret = secret.saisie.checked;
   ctx.sauverReglages();
-  majModeMJ();
   if (ctx.partie) actualiser();
   annoncer('Réglages enregistrés.');
 }
@@ -493,12 +506,13 @@ async function dialogueReglages() {
 async function dialogueModifier() {
   const p = ctx.partie;
   const mission = champ('Nom de la mission', { type: 'text', valeur: p.mission.nom });
+  const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
   const pjs = p.pjs.map((pj, i) => ({
     nom: champ(`Nom du PJ ${i + 1}`, { type: 'text', valeur: pj.nom }),
-    omni: champ(`Omni-points de ${pj.nom}`, { type: 'number', valeur: pj.omni, min: 0, inputmode: 'numeric' }),
+    omni: avecOmni && champ(`Omni-points de ${pj.nom}`, { type: 'number', valeur: pj.omni, min: 0, inputmode: 'numeric' }),
   }));
-  const oracle = champ('Omni-points de l\'Oracle', { type: 'number', valeur: p.oracle.omni, min: 0, inputmode: 'numeric' });
-  const utilisations = champ('Utilisations d\'omni-points par les joueurs', {
+  const oracle = avecOmni && champ('Omni-points de l\'Oracle', { type: 'number', valeur: p.oracle.omni, min: 0, inputmode: 'numeric' });
+  const utilisations = avecOmni && champ('Utilisations d\'omni-points par les joueurs', {
     type: 'number', valeur: p.oracle.utilisationsJoueurs, min: 0, inputmode: 'numeric',
     aide: 'L\'Oracle gagne 1 omni-point toutes les 2 utilisations.',
   });
@@ -514,10 +528,12 @@ async function dialogueModifier() {
   p.mission.nom = mission.saisie.value.trim();
   pjs.forEach((x, i) => {
     p.pjs[i].nom = x.nom.saisie.value.trim() || `PJ ${i + 1}`;
-    p.pjs[i].omni = entier(x.omni, 0);
+    if (avecOmni) p.pjs[i].omni = entier(x.omni, 0);
   });
-  p.oracle.omni = entier(oracle, 0);
-  p.oracle.utilisationsJoueurs = entier(utilisations, 0);
+  if (avecOmni) {
+    p.oracle.omni = entier(oracle, 0);
+    p.oracle.utilisationsJoueurs = entier(utilisations, 0);
+  }
   p.scene.numero = entier(scene, 1);
   ctx.enregistrer();
   annoncer('Partie modifiée.');
@@ -525,24 +541,26 @@ async function dialogueModifier() {
 
 async function dialogueMissionSuivante() {
   const p = ctx.partie;
-  const nom = champ('Nom de la nouvelle mission (facultatif)', { type: 'text' });
+  const voc = ctx.voc;
+  const nom = champ(`Nom ${voc.deLaNouvelle} (facultatif)`, { type: 'text' });
   const r = await ouvrirDialogue({
-    titre: 'Mission suivante',
+    titre: voc.Suivante,
     contenu: [
-      h('p', {}, 'Avant de passer à la suite, pense à la clôture : pose à l\'oracle « La mission est-elle un succès ? », puis applique la progression d\'Omni.'),
+      h('p', {}, `Avant de passer à la suite, pense à la clôture : pose à l'oracle « ${ctx.univ.cloture.question} », puis applique la progression d'Omni.`),
       h('ul', {},
         h('li', {}, `La Pression revient à ${ctx.commun.pression.depart}, le seuil de rupture est remis à zéro, et on repart de la scène 1.`),
-        h('li', {}, `L'Oracle perd ses omni-points restants (${p.oracle.omni}).`),
-        h('li', {}, `Chaque PJ retrouve ses ${ctx.univ.omniPointsPJ} omni-points.`),
+        M.optionsUnivers(ctx.univ).omniPoints && [
+          h('li', {}, `L'Oracle perd ses omni-points restants (${p.oracle.omni}).`),
+          h('li', {}, `Chaque PJ retrouve ses ${ctx.univ.omniPointsPJ} omni-points.`)],
         h('li', {}, 'La fiche de suivi et le journal sont conservés.')),
       nom,
     ],
-    actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Commencer la mission suivante', classe: 'bouton-accent' }],
+    actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: `Commencer ${voc.laSuivante}`, classe: 'bouton-accent' }],
   });
   if (r !== 'oui') return;
   essayer(() => M.missionSuivante(ctx.commun, ctx.univ, p, { nom: nom.saisie.value.trim() }));
   ctx.enregistrer();
-  annoncer(`Mission ${p.mission.numero} : c'est parti.`);
+  annoncer(`${voc.Nom} ${p.mission.numero} : c'est parti.`);
 }
 
 demarrer();

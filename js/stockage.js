@@ -16,7 +16,7 @@ export const REGLAGES_PAR_DEFAUT = Object.freeze({
   theme: 'omni',        // 'omni' | 'sombre' | 'clair' | 'auto'
   vibration: true,
   dePhysique: false,    // saisir le résultat d'un vrai dé au lieu de le lancer
-  secret: false,        // mode assistant du MJ : résultats masqués
+  secret: false,        // « Masquer les résultats (écran visible des joueurs) » : floutés, révélés au toucher
   luminosite: 100,      // en %, de 50 à 100 (100 = aucun assombrissement)
 });
 

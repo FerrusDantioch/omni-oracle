@@ -906,93 +906,10 @@
     {
       "id": "N2",
       "titre": "N2 — Trait",
-      "de": "d20",
-      "colonnes": [
-        "d20",
-        "Résultat"
-      ],
-      "lignes": [
-        {
-          "plage": "1",
-          "texte": "Méfiant : répond toujours par une question."
-        },
-        {
-          "plage": "2",
-          "texte": "Bavard : en dit trop, y compris ce qu'il ne devrait pas."
-        },
-        {
-          "plage": "3",
-          "texte": "Cupide : tout a un prix."
-        },
-        {
-          "plage": "4",
-          "texte": "Loyal : ne trahit jamais ceux qu'il a choisis."
-        },
-        {
-          "plage": "5",
-          "texte": "Nerveux : sursaute au moindre bruit."
-        },
-        {
-          "plage": "6",
-          "texte": "Froid et professionnel : va droit au but."
-        },
-        {
-          "plage": "7",
-          "texte": "Ironique : tourne tout en dérision."
-        },
-        {
-          "plage": "8",
-          "texte": "Fatigué : plus rien ne le surprend."
-        },
-        {
-          "plage": "9",
-          "texte": "Ambitieux : cherche à monter, quitte à écraser."
-        },
-        {
-          "plage": "10",
-          "texte": "Paranoïaque : voit des pièges partout."
-        },
-        {
-          "plage": "11",
-          "texte": "Chaleureux en surface : cache autre chose."
-        },
-        {
-          "plage": "12",
-          "texte": "Colérique : s'enflamme pour un rien."
-        },
-        {
-          "plage": "13",
-          "texte": "Curieux : pose trop de questions."
-        },
-        {
-          "plage": "14",
-          "texte": "Superstitieux : a des rituels pour tout."
-        },
-        {
-          "plage": "15",
-          "texte": "Menteur compulsif : arrange la vérité par habitude."
-        },
-        {
-          "plage": "16",
-          "texte": "Idéaliste : croit encore pouvoir changer les choses."
-        },
-        {
-          "plage": "17",
-          "texte": "Résigné : pense que rien ne sert de lutter."
-        },
-        {
-          "plage": "18",
-          "texte": "Arrogant : se croit intouchable."
-        },
-        {
-          "plage": "19",
-          "texte": "Effrayé : n'aspire qu'à partir."
-        },
-        {
-          "plage": "20",
-          "texte": "Calme de façon inquiétante : ne se trouble jamais."
-        }
-      ]
+      "reference": {
+        "univers": "commun",
+        "table": "N2"
+      }
     },
     {
       "id": "N3",

@@ -3,6 +3,7 @@
 
 import * as M from './moteur.js';
 import { h, remplacer, riche, heure, choix } from './ui.js';
+import { texteBrut } from './texte.js';
 import { decrireJet, contestataire, dialogueContester, transformerOuiMais } from './actions.js';
 
 const ISSUES = { main: 'le PJ avait la main', subi: 'le PJ a subi', neutre: 'ni l\'un ni l\'autre', soupape: 'soupape', 'deja-bougee': 'déjà bougé pendant la scène' };
@@ -21,11 +22,14 @@ const CORRESPONDANCE = {
   omni: ['omni-pj', 'omni-oracle'],
 };
 
+/** Suggestion écartée par le MJ (« Relancer » ou « Ignorer ») : elle reste lisible, barrée. */
+const ECARTS = { relance: 'relancé par le MJ', ignore: 'ignoré par le MJ' };
+
 /** Description lisible d'une entrée du journal. */
 export function decrireEntree(ctx, e) {
   const p = ctx.partie;
   const nomPJ = (id) => p.pjs.find((x) => x.id === id)?.nom || '?';
-  switch (e.type) {
+  switch (M.typeEntree(e)) {
     case 'jet':
       return [h('span', { class: 'journal-type' }, 'Jet : '), `${e.jet.total}`, e.raison && ` (${e.raison})`, h('br'),
         h('span', { class: 'petit discret' }, decrireJet(e.jet))];
@@ -47,8 +51,12 @@ export function decrireEntree(ctx, e) {
       const parts = [h('span', { class: 'journal-type' }, `Début de la scène ${e.scene}`), e.prevue && ` : ${e.prevue}`, h('br')];
       if (!e.alteree) parts.push(h('span', { class: 'petit discret' }, `d20 = ${e.de}, Pression ${e.pression} : comme prévu.`));
       else {
-        parts.push(h('span', { class: 'petit' }, `${e.soupape ? 'Soupape, ' : ''}d20 = ${e.de}, Pression ${e.pression} : scène ${e.type === 'modifiee' ? 'modifiée' : 'interrompue'}.`));
+        parts.push(h('span', { class: 'petit' }, `${e.soupape ? 'Soupape, ' : ''}d20 = ${e.de}, Pression ${e.pression} : scène ${M.alterationEntree(e) === 'modifiee' ? 'modifiée' : 'interrompue'}.`));
+        for (const x of e.ecartees || []) {
+          parts.push(h('br'), h('span', { class: 'ancien' }, riche(x.ligne.texte)), ` (${ECARTS[x.ecarte]})`);
+        }
         if (e.complication) parts.push(h('br'), riche(e.complication.ligne.texte));
+        else if (e.ecartees?.length) parts.push(h('br'), h('span', { class: 'petit discret' }, 'Complication ignorée par le MJ.'));
       }
       return parts;
     }
@@ -66,7 +74,7 @@ export function decrireEntree(ctx, e) {
       return [h('span', { class: 'journal-type' }, `${e.titre} (${e.valeur}) : `), riche(e.texte),
         e.autres && e.autres.length > 0 && [h('br'), h('span', { class: 'petit discret' }, e.autres.join(' · '))]];
     case 'intention': {
-      const prof = ctx.commun.tables.find((t) => t.id === 'intentions').lignes.find((l) => l.id === e.profil);
+      const prof = M.trouverProfil(ctx.cat, ctx.univ.id, e.profil)?.ligne;
       return [h('span', { class: 'journal-type' }, `Intention${e.nom ? ` de ${e.nom}` : ''} (${prof ? prof.nom : e.profil}) : `), riche(e.action),
         e.relance && ' (relancé par l\'Oracle)', h('br'),
         h('span', { class: 'petit discret' }, `d20 : ${e.de}${e.modificateur ? `, total ${e.total}` : ''} → ${e.plage}`)];
@@ -76,13 +84,22 @@ export function decrireEntree(ctx, e) {
         h('span', { class: 'petit discret' }, `d20 : ${e.de}${e.modificateur ? `, total ${e.total}` : ''} → ${e.plage}`)];
     case 'vaisseau': {
       const r = e.rencontre;
-      return [h('span', { class: 'journal-type' }, 'Rencontre de vaisseau : '), riche(r.type.ligne.texte),
+      return [h('span', { class: 'journal-type' }, `${ctx.univ.roles.rencontres?.titre || 'Rencontre'} : `), riche(r.type.ligne.texte),
         r.escadrille && ` (${r.escadrille.total} chasseurs)`,
+        r.groupe && ` (${r.groupe.total})`,
         r.escorte && (r.escorte.deploie ? `, escorte de ${r.escorte.escadrille.total} chasseurs` : ', sans escorte'),
         h('br'), riche(r.attitude.ligne.texte)];
     }
+    case 'choc':
+      return [h('span', { class: 'journal-type' }, `${nomPJ(e.pj)} : `), `${e.nb > 0 ? '+' : '−'}${Math.abs(e.nb)} point${Math.abs(e.nb) > 1 ? 's' : ''} de choc (total ${e.total})`,
+        e.motif && h('span', { class: 'petit discret' }, ` · ${texteBrut(e.motif)}`)];
+    case 'folie-points':
+      return [h('span', { class: 'journal-type' }, `${nomPJ(e.pj)} : `), `${e.nb > 0 ? '+' : '−'}${Math.abs(e.nb)} point${Math.abs(e.nb) > 1 ? 's' : ''} de folie (total ${e.total}, à la main)`];
+    case 'folie':
+      return [h('span', { class: 'journal-type' }, `${nomPJ(e.pj)}${e.conversion ? ' gagne 1 point de folie' : ''} · ${e.titre} (${e.de}${e.bonus ? ` + ${e.bonus} = ${e.total}` : ''}) : `),
+        riche(e.nom), e.texte && [' — ', riche(e.texte)]];
     case 'mission':
-      return [h('span', { class: 'journal-type' }, `Nouvelle mission (n° ${e.mission})`), e.nom && ` : ${e.nom}`];
+      return [h('span', { class: 'journal-type' }, `${ctx.voc.nouvelle.charAt(0).toUpperCase()}${ctx.voc.nouvelle.slice(1)} (n° ${e.mission})`), e.nom && ` : ${e.nom}`];
     case 'note':
       return [h('span', { class: 'journal-type' }, 'Note : '), e.texte];
     default:
@@ -97,11 +114,11 @@ export function creerVueJournal(ctx) {
   function rendre() {
     const p = ctx.partie;
     const types = CORRESPONDANCE[filtre];
-    const entrees = p.journal.filter((e) => !types || types.includes(e.type)).slice().reverse();
+    const entrees = p.journal.filter((e) => !types || types.includes(M.typeEntree(e))).slice().reverse();
     const liste = h('ol', { class: 'journal', reversed: true });
     for (const e of entrees) {
       const actions = [];
-      const pj = contestataire(p, e);
+      const pj = contestataire(p, e, ctx.univ);
       if (pj) {
         actions.push(h('button', { type: 'button', class: 'bouton', 'data-cle': `j-contester-${e.n}`, disabled: pj.omni <= 0, onclick: () => dialogueContester(ctx, e) },
           `Contester (${pj.nom})`));
@@ -109,9 +126,10 @@ export function creerVueJournal(ctx) {
       if (e.type === 'oracle' && e.reponse === 'oui' && p.oracle.omni > 0) {
         actions.push(h('button', { type: 'button', class: 'bouton', 'data-cle': `j-ouimais-${e.n}`, onclick: () => transformerOuiMais(ctx, e) }, '« Oui, mais… » (Oracle)'));
       }
-      liste.append(h('li', {},
-        h('div', { class: 'journal-meta' }, `Mission ${e.mission} · scène ${e.scene} · ${heure(e.quand)}`),
-        h('div', {}, ctx.resultat(h('span', {}, decrireEntree(ctx, e)), { court: true })),
+      liste.append(h('li', { class: e.ecarte ? 'ecarte' : null },
+        h('div', { class: 'journal-meta' }, `${ctx.voc.Nom} ${e.mission} · scène ${e.scene} · ${heure(e.quand)}`,
+          e.ecarte && h('span', { class: 'etiquette' }, ECARTS[e.ecarte])),
+        h('div', {}, ctx.resultat(h('span', { class: e.ecarte ? 'texte-ecarte' : null }, decrireEntree(ctx, e)), { cle: `j-${e.n}` })),
         actions.length > 0 && h('div', { class: 'rangee' }, actions)));
     }
     remplacer(el, h('section', { class: 'carte', 'aria-labelledby': 'titre-journal' },

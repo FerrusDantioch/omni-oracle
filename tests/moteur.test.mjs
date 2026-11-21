@@ -437,10 +437,29 @@ describe('Générateurs', () => {
     assert.equal(m2.T1.valeur, 1);
     assert.equal(m2.T2.valeur, 20);
   });
-  test('PNJ space opéra : le trait vient de la table N2 du cyberpunk', () => {
+  test('PNJ space opéra : le trait vient de la table N2 du tronc commun', () => {
     const pnj = M.genererPNJ(cat, 'space-opera', { de: des(1, 1, 1) });
     assert.equal(pnj.role.ligne.texte, 'Capitaine de croiseur');
     assert.equal(pnj.trait.ligne.texte, 'Méfiant : répond toujours par une question.');
+  });
+  test('N2 est commune : les quatre univers lisent la même table du tronc commun', () => {
+    const n2 = cat.table('commun', 'N2');
+    assert.equal(n2.lignes.length, 20);
+    for (const id of ['cyberpunk', 'space-opera', 'fantasy', 'horreur-enquete']) {
+      const t = cat.table(id, 'N2');
+      assert.deepEqual(t.reference, { univers: 'commun', table: 'N2' }, id);
+      assert.equal(t.lignes, n2.lignes, id);
+    }
+    assert.equal(cat.origine({ univers: 'commun', table: 'N2' }), 'du tronc commun');
+    assert.equal(M.genererPNJ(cat, 'fantasy', { de: des(4, 1, 1) }).role.ligne.texte, 'Magicien errant');
+    assert.equal(M.genererPNJ(cat, 'horreur-enquete', { de: des(20, 20, 20) }).trait.ligne.texte, cat.table('commun', 'N2').lignes[19].texte);
+  });
+  test('les quatre univers sont chargés, dans l\'ordre', () => {
+    assert.deepEqual(cat.univers.map((u) => u.id), ['cyberpunk', 'space-opera', 'fantasy', 'horreur-enquete']);
+    const q = M.tirerMission(cat, 'fantasy', { de: des(1, 1, 1, 1, 1, 1) });
+    assert.equal(q.T1.ligne.texte, 'Un messager épuisé s\'effondre à la taverne en portant un sceau royal brisé.');
+    const a = M.tirerMission(cat, 'horreur-enquete', { de: des(20, 20, 20, 20, 20, 20) });
+    assert.equal(a.T6.titre, 'T6 — Révélation');
   });
   test('clôture : degrés de l\'oracle → succès complet, partiel, échec', () => {
     assert.equal(M.issueCloture(cyber, 'oui-et').texte, 'succès complet.');
@@ -498,4 +517,228 @@ describe('Journal', () => {
     assert.equal(e.mission, 1);
     assert.equal(e.question, 'Est-il armé ?');
   });
+});
+
+test('journal : le début de scène garde son type (et les anciennes parties restent lisibles)', () => {
+  const p = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+  M.debuterScene(commun, p, { des: 2 });
+  const e = p.journal.at(-1);
+  assert.equal(e.type, 'scene-debut');
+  assert.equal(e.alteration, 'modifiee');
+  assert.equal(M.typeEntree(e), 'scene-debut');
+  // Entrées enregistrées par la version 0.2.1 (type écrasé par l'altération).
+  for (const ancien of ['modifiee', 'interrompue', null]) {
+    const v = { n: 1, type: ancien, prevue: '', de: 2, pression: 3, soupape: false, alteree: ancien !== null, complication: null, palier: 'vigilance' };
+    assert.equal(M.typeEntree(v), 'scene-debut');
+    assert.equal(M.alterationEntree(v), ancien);
+  }
+  assert.equal(M.typeEntree({ type: 'oracle' }), 'oracle');
+});
+
+// --- Options d'univers (Fantasy, Horreur / enquête) -------------------------------------
+describe('options d\'univers', () => {
+  const fantasy = cat.univ('fantasy');
+  const horreur = cat.univ('horreur-enquete');
+
+  test('sans option, un univers suit le tronc commun', () => {
+    for (const u of [cyber, space]) {
+      const o = M.optionsUnivers(u);
+      assert.equal(o.omniPoints, true);
+      assert.equal(o.contestation, true);
+      assert.equal(o.paliers, null);
+      assert.deepEqual(o.profils, []);
+    }
+    assert.equal(M.optionsUnivers(fantasy).omniPoints, true);
+    assert.equal(M.optionsUnivers(fantasy).rappelOmni, 'Un omni-point permet aussi de récupérer une utilisation de sort pour un magicien.');
+  });
+
+  test('horreur : aucun omni-point, ni pour les PJ ni pour l\'Oracle, et pas de contestation', () => {
+    const o = M.optionsUnivers(horreur);
+    assert.equal(o.omniPoints, false);
+    assert.equal(o.contestation, false);
+    const p = M.creerPartie(commun, horreur, { mode: 'duo', pjs: [{ nom: 'Ada' }, { nom: 'Bo' }] });
+    assert.deepEqual(p.pjs.map((x) => x.omni), [0, 0]);
+    assert.equal(p.oracle.omni, 0);
+    assert.throws(() => M.depenserOmniPJ(commun, p, 'pj1'));
+    const q = M.poserQuestion(commun, p, { vraisemblance: 'incertain', joueur: 'pj1', des: [10] });
+    assert.throws(() => M.contester(commun, p, q, 'pj2', { des: [10], univers: horreur }), /Pas de contestation/);
+    M.missionSuivante(commun, horreur, p);
+    assert.deepEqual(p.pjs.map((x) => x.omni), [0, 0]);
+    assert.equal(p.oracle.omni, 0);
+  });
+
+  test('horreur : le seuil de rupture ne rapporte rien, mais il est signalé (une fois)', () => {
+    const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    p.pression = 8;
+    const r = M.ajusterPression(commun, p, +1, { univers: horreur });
+    assert.deepEqual(r.evenements.find((e) => e.type === 'seuil-rupture'), { type: 'seuil-rupture', gain: 0 });
+    assert.equal(p.oracle.omni, 0);
+    assert.equal(p.seuilAtteint, true);
+    assert.equal(M.ajusterPression(commun, p, +1, { univers: horreur }).evenements.length, 0);
+    // Même règle en cyberpunk : l'Oracle gagne 1 omni-point.
+    const c = M.creerPartie(commun, cyber, { pjs: [{ nom: 'Kei' }] });
+    c.pression = 8;
+    M.ajusterPression(commun, c, +1, { univers: cyber });
+    assert.equal(c.oracle.omni, 1);
+  });
+
+  test('horreur : la soupape à 10 puis retour à 7 ne change pas', () => {
+    const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    p.pression = 10;
+    const d = M.debuterScene(commun, p, { des: 15, univers: horreur });
+    assert.equal(d.soupape, true);
+    assert.equal(d.alteree, true);
+    assert.equal(d.palier.nom, 'Rupture');
+    const f = M.terminerScene(commun, p, 'main', { univers: horreur });
+    assert.equal(f.apres, 7);
+    assert.equal(p.oracle.omni, 0);
+  });
+
+  test('horreur : paliers propres à l\'univers, même chance d\'altération (Pression × 5 %)', () => {
+    const noms = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => M.palier(commun, v, horreur).nom);
+    assert.deepEqual(noms, ['Calme trompeur', 'Calme trompeur', 'Malaise', 'Malaise', 'Angoisse', 'Angoisse', 'Terreur', 'Terreur', 'Rupture', 'Rupture']);
+    for (let v = 0; v <= 10; v++) assert.equal(M.palier(commun, v, horreur).chance, M.palier(commun, v, cyber).chance);
+    assert.equal(M.palier(commun, 5, horreur).autres[0], '25 à 30 %');
+    assert.match(M.palier(commun, 5, horreur).autres[1], /^La menace se rapproche\./);
+    // Les autres univers gardent les paliers du tronc commun.
+    assert.equal(M.palier(commun, 5, cyber).nom, 'Tension');
+    assert.equal(M.palier(commun, 5, fantasy).nom, 'Tension');
+    assert.equal(M.palier(commun, 5).nom, 'Tension');
+  });
+
+  test('profils d\'intention : ceux du tronc commun, plus ceux de l\'univers', () => {
+    const ids = (u) => M.tablesProfils(cat, u).flatMap((t) => t.lignes.map((l) => l.id));
+    assert.equal(ids('cyberpunk').length, 8);
+    assert.deepEqual(ids('fantasy').slice(8), ['bete-sauvage', 'lanceur-de-sorts', 'chef-de-guerre']);
+    assert.deepEqual(ids('horreur-enquete').slice(8), ['predateur', 'manipulateur', 'entite-liee-a-un-lieu']);
+    assert.equal(M.trouverProfil(cat, 'cyberpunk', 'lanceur-de-sorts'), null);
+    assert.equal(M.trouverProfil(cat, 'fantasy', 'brute').table.id, 'intentions');
+  });
+
+  test('F4 : mêmes modificateurs (+4 si PV à moitié ou moins, −2 si Pression ≥ 7)', () => {
+    const { table } = M.trouverProfil(cat, 'fantasy', 'lanceur-de-sorts');
+    const base = M.intentionPNJ(commun, { table, profil: 'lanceur-de-sorts', des: 3 });
+    assert.equal(base.action, 'Lance un sort offensif sur la cible la plus dangereuse');
+    const blesse = M.intentionPNJ(commun, { table, profil: 'lanceur-de-sorts', blesse: true, des: 3 });
+    assert.equal(blesse.total, 7);
+    assert.equal(blesse.action, 'Lance un sort de contrôle ou d\'altération d\'état');
+    const tout = M.intentionPNJ(commun, { table, profil: 'chef-de-guerre', blesse: true, pression: 7, des: 17 });
+    assert.equal(tout.total, 19);
+    assert.equal(tout.action, 'Sonne la retraite ou parlemente');
+    const bas = M.intentionPNJ(commun, { table, profil: 'bete-sauvage', pression: 9, des: 1 });
+    assert.equal(bas.total, -1);
+    assert.equal(bas.action, 'Fonce sur la proie la plus proche');
+  });
+
+  test('M1 : −2 si Pression ≥ 7, +4 si la menace est affaiblie', () => {
+    const { table } = M.trouverProfil(cat, 'horreur-enquete', 'manipulateur');
+    assert.equal(table.modificateurs.libelleBlesse, 'la menace est affaiblie (rituel perturbé, symbole effacé, objet détruit)');
+    const r = M.intentionPNJ(commun, { table, profil: 'entite-liee-a-un-lieu', blesse: true, pression: 8, des: 11 });
+    assert.deepEqual(r.modificateurs.map((m) => m.valeur), [4, -2]);
+    assert.equal(r.total, 13);
+    assert.equal(r.action, 'Attaque celui qui franchit son seuil');
+    assert.equal(M.intentionPNJ(commun, { table, profil: 'predateur', des: 14 }).action, 'Terrorise : 1 point de choc à une cible, sans attaque');
+  });
+});
+
+test('parties de la version 0.2.1 : toujours valides avec les quatre univers', () => {
+  const fichier = lire('tests/navigateur/donnees/parties-0.2.1.json');
+  const ids = cat.univers.map((u) => u.id);
+  for (const p of fichier.parties) {
+    const copie = structuredClone(p);
+    const u = cat.univ(p.univers);
+    assert.equal(M.optionsUnivers(u).omniPoints, true);
+    // Le journal ancien se relit : débuts de scène reconnus, profils retrouvés.
+    for (const e of p.journal) {
+      if (M.typeEntree(e) === 'intention') assert.ok(M.trouverProfil(cat, p.univers, e.profil));
+    }
+    assert.equal(ids.includes(p.univers), true);
+    assert.deepEqual(p, copie, 'la lecture ne modifie pas la partie');
+  }
+  assert.equal(fichier.parties[0].journal.filter((e) => M.typeEntree(e) === 'scene-debut').length, 2);
+});
+
+describe('chocs et folie (horreur)', () => {
+  const horreur = cat.univ('horreur-enquete');
+  const partie = () => M.creerPartie(commun, horreur, { mode: 'duo', pjs: [{ nom: 'Ada' }, { nom: 'Bo' }] });
+
+  test('les chocs s\'ajoutent ; l\'alerte arrive à 5', () => {
+    const p = partie();
+    assert.deepEqual(M.ajouterChocs(horreur, p, 'pj1', 2), { avant: 0, chocs: 2, alerte: false });
+    assert.equal(M.ajouterChocs(horreur, p, 'pj1', 3).alerte, true);
+    assert.equal(M.ajouterChocs(horreur, p, 'pj1', -9).chocs, 0);
+    assert.equal(p.journal.filter((e) => e.type === 'choc').length, 3);
+    assert.throws(() => M.ajouterChocs(cyber, p, 'pj1', 1), /pas de points de choc/);
+  });
+
+  test('5 chocs = 1 point de folie + un jet sur la table de folie', () => {
+    const p = partie();
+    assert.throws(() => M.convertirFolie(cat, 'horreur-enquete', p, 'pj1', { des: 3 }), /Il faut 5/);
+    M.ajouterChocs(horreur, p, 'pj1', 6);
+    const e = M.convertirFolie(cat, 'horreur-enquete', p, 'pj1', { des: 3 });
+    assert.equal(p.pjs[0].chocs, 1);
+    assert.equal(p.pjs[0].folie, 1);
+    assert.equal(e.type, 'folie');
+    assert.equal(e.conversion, true);
+    assert.equal(e.nom, '**Cri incontrôlable**');
+    assert.equal(e.texte, 'Un hurlement lui échappe. Les ennemis ou PNJ hostiles des environs sont alertés.');
+    assert.equal(e.groupe, '**CHOC IMMÉDIAT — 1-7 · dure jusqu\'à la fin de la scène sauf indication**');
+  });
+
+  test('effet 11 (transfert de peur) : l\'allié visé peut prendre 1 point de choc', () => {
+    const p = partie();
+    const e = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 11 });
+    assert.equal(e.chocAllie, 1);
+    assert.equal(e.groupe, '**TRAUMATISME MARQUANT — 8-14 · dure jusqu\'à la fin de la session sauf indication**');
+    assert.equal(M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 15 }).groupe, '**FRACTURE MENTALE — 15-20 · conséquences durables, à discuter avec le MJ**');
+  });
+
+  test('option « la folie s\'aggrave » : 1d20 + points de folie, au-delà de 20 : 21-22 et 23+', () => {
+    const p = partie();
+    p.pjs[0].folie = 2;
+    assert.equal(M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18 }).total, 18); // option décochée
+    const a = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18, aggravation: true });
+    assert.equal(a.total, 20);
+    assert.equal(a.nom, '**Effondrement**');
+    const b = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 19, aggravation: true });
+    assert.equal(b.plage, '21-22');
+    assert.equal(b.nom, '**Crise de folie passagère**');
+    assert.equal(b.texte, 'le MJ contrôle le personnage pendant 1d4 tours.');
+    p.pjs[0].folie = 5;
+    const c = M.tirerFolie(cat, 'horreur-enquete', p, 'pj1', { des: 18, aggravation: true });
+    assert.equal(c.plage, '23+');
+    assert.equal(c.nom, '**Folie profonde**');
+  });
+
+  test('vocabulaire : quête (fantasy), mystère (horreur), mission ailleurs', () => {
+    assert.equal(M.vocabulaire(cyber).Suivante, 'Mission suivante');
+    assert.equal(M.vocabulaire(cat.univ('fantasy')).toute, 'toute la quête');
+    const v = M.vocabulaire(horreur);
+    assert.equal(v.Nom, 'Mystère');
+    assert.equal(v.laSuivante, 'le mystère suivant');
+    assert.equal(v.deLaNouvelle, 'du nouveau mystère');
+    assert.equal(v.toute, 'tout le mystère');
+  });
+
+  test('rencontres en fantasy : F1 puis F2 ; une bande de brigands compte 1d4+1 membres', () => {
+    const r = M.rencontreVaisseau(cat, 'fantasy', { de: des(4, 3, 8) });
+    assert.equal(r.type.ligne.texte, 'Brigands (bande de 1d4+1)');
+    assert.equal(r.groupe.total, 4);
+    assert.equal(r.attitude.ligne.texte.startsWith('**Neutre et méfiant**'), true);
+    assert.equal(r.vraisemblance, 'incertain');
+    const blesse = M.rencontreVaisseau(cat, 'fantasy', { de: des(10, 13) });
+    assert.equal(blesse.attitude.ligne.attitude, null);
+    assert.equal(blesse.vraisemblance, 'incertain');
+    assert.throws(() => M.rencontreVaisseau(cat, 'horreur-enquete'));
+  });
+});
+
+test('journal : les chocs ne remplacent pas le numéro de l\'entrée', () => {
+  const horreur = cat.univ('horreur-enquete');
+  const p = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+  M.journaliser(p, { type: 'note', texte: 'x' });
+  M.ajouterChocs(horreur, p, 'pj1', 2);
+  M.ajusterFolie(horreur, p, 'pj1', 1);
+  assert.deepEqual(p.journal.map((e) => e.n), [1, 2, 3]);
+  assert.equal(p.journal[1].nb, 2);
 });

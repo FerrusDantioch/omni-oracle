@@ -1,0 +1,344 @@
+{
+  "application": "Omni-Oracle",
+  "type": "parties",
+  "version": "0.2.1",
+  "exporte": "2026-11-20T21:00:00.000Z",
+  "parties": [
+    {
+      "format": 1,
+      "id": "partie-ancienne-cyber",
+      "cree": "2026-11-21T05:39:39.140Z",
+      "modifie": "2026-11-21T05:39:39.143Z",
+      "univers": "cyberpunk",
+      "mode": "duo",
+      "mission": {
+        "nom": "Ancienne mission",
+        "numero": 1
+      },
+      "pression": 4,
+      "seuilAtteint": false,
+      "rebondissementSignale": false,
+      "scene": {
+        "numero": 2,
+        "prevue": "Fuite",
+        "etat": "en-cours",
+        "soupape": false,
+        "alteration": {
+          "de": 15,
+          "pression": 4,
+          "alteree": false,
+          "type": null,
+          "complication": null
+        },
+        "pressionBougee": false
+      },
+      "pjs": [
+        {
+          "id": "pj1",
+          "nom": "Kei",
+          "omni": 2
+        },
+        {
+          "id": "pj2",
+          "nom": "Rho",
+          "omni": 2
+        }
+      ],
+      "oracle": {
+        "omni": 1,
+        "utilisationsJoueurs": 2
+      },
+      "tirageMission": {
+        "T1": {
+          "valeur": 18,
+          "verrou": true
+        },
+        "T2": {
+          "valeur": 19,
+          "verrou": false
+        },
+        "T3": {
+          "valeur": 15,
+          "verrou": false
+        },
+        "T4": {
+          "valeur": 18,
+          "verrou": false
+        },
+        "T5": {
+          "valeur": 6,
+          "verrou": false
+        },
+        "T6": {
+          "valeur": 15,
+          "verrou": false
+        }
+      },
+      "journal": [
+        {
+          "n": 1,
+          "quand": "2026-11-21T05:39:39.141Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "modifiee",
+          "prevue": "Au marché",
+          "de": 2,
+          "pression": 3,
+          "soupape": false,
+          "alteree": true,
+          "complication": {
+            "table": "C",
+            "titre": "Complications et événements",
+            "valeur": 7,
+            "ligne": {
+              "plage": "7",
+              "texte": "Une coupure de courant plonge le lieu dans le noir."
+            }
+          },
+          "palier": "vigilance"
+        },
+        {
+          "n": 2,
+          "quand": "2026-11-21T05:39:39.142Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "oracle",
+          "question": "Le garde est seul ?",
+          "joueur": "pj1",
+          "vraisemblance": "incertain",
+          "jet": {
+            "mode": "normal",
+            "des": [
+              11
+            ],
+            "naturel": 11,
+            "modificateur": 0,
+            "total": 11
+          },
+          "reponse": "oui-mais",
+          "libelle": "Oui, mais…",
+          "naturel": false,
+          "complication": "mineure",
+          "contestee": true,
+          "historique": [
+            {
+              "reponse": "non",
+              "libelle": "Non",
+              "jet": {
+                "mode": "normal",
+                "des": [
+                  2
+                ],
+                "naturel": 2,
+                "modificateur": 0,
+                "total": 2
+              },
+              "par": "contestation"
+            }
+          ],
+          "contestePar": "pj2",
+          "repliqueContestation": "Non !"
+        },
+        {
+          "n": 3,
+          "quand": "2026-11-21T05:39:39.142Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "omni-pj",
+          "pj": "pj2",
+          "replique": "Non !",
+          "motif": "contestation",
+          "cible": 2,
+          "evenements": []
+        },
+        {
+          "n": 4,
+          "quand": "2026-11-21T05:39:39.142Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "omni-pj",
+          "pj": "pj1",
+          "replique": "Coup de chance",
+          "motif": "",
+          "evenements": [
+            {
+              "type": "gain-oracle",
+              "raison": "utilisations"
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "quand": "2026-11-21T05:39:39.142Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "intention",
+          "relance": false,
+          "de": 3,
+          "modificateurs": [],
+          "modificateur": 0,
+          "total": 3,
+          "lu": 3,
+          "plage": "1-4",
+          "action": "Fonce sur la cible la plus proche",
+          "profil": "brute",
+          "nom": "Vex"
+        },
+        {
+          "n": 6,
+          "quand": "2026-11-21T05:39:39.143Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "scene-fin",
+          "issue": "main",
+          "avant": 3,
+          "apres": 4,
+          "raison": "main",
+          "resume": "On a trouvé le contact.",
+          "evenements": []
+        },
+        {
+          "n": 7,
+          "quand": "2026-11-21T05:39:39.143Z",
+          "scene": 2,
+          "mission": 1,
+          "type": null,
+          "prevue": "Fuite",
+          "de": 15,
+          "pression": 4,
+          "soupape": false,
+          "alteree": false,
+          "complication": null,
+          "palier": "vigilance"
+        }
+      ],
+      "compteur": 7,
+      "fiche": {
+        "fils": [
+          {
+            "texte": "Qui a trahi ?"
+          }
+        ],
+        "pnjs": [
+          {
+            "nom": "Vex",
+            "role": "Fixeur",
+            "attitude": "hostile",
+            "profil": "tacticien",
+            "notes": ""
+          }
+        ],
+        "menaces": [],
+        "lieux": [],
+        "scenes": [
+          {
+            "numero": 1,
+            "mission": 1,
+            "texte": "On a trouvé le contact."
+          }
+        ]
+      }
+    },
+    {
+      "format": 1,
+      "id": "partie-ancienne-space",
+      "cree": "2026-11-21T05:39:39.143Z",
+      "modifie": "2026-11-21T05:39:39.143Z",
+      "univers": "space-opera",
+      "mode": "solo",
+      "mission": {
+        "nom": "Patrouille",
+        "numero": 1
+      },
+      "pression": 3,
+      "seuilAtteint": false,
+      "rebondissementSignale": false,
+      "scene": {
+        "numero": 1,
+        "prevue": "",
+        "etat": "preparation",
+        "soupape": false,
+        "alteration": null,
+        "pressionBougee": false
+      },
+      "pjs": [
+        {
+          "id": "pj1",
+          "nom": "Ysa",
+          "omni": 3
+        }
+      ],
+      "oracle": {
+        "omni": 0,
+        "utilisationsJoueurs": 0
+      },
+      "tirageMission": {},
+      "journal": [
+        {
+          "n": 1,
+          "quand": "2026-11-21T05:39:39.143Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "vaisseau",
+          "rencontre": {
+            "type": {
+              "table": "D1",
+              "titre": "D1 — Type de vaisseau",
+              "valeur": 18,
+              "ligne": {
+                "plage": "17-18",
+                "texte": "**Croiseur alien**",
+                "autres": [
+                  "11 / 15 / 35 / 55",
+                  "2 postes lasers légers, 1 canon laser principal, 1 poste de missiles à énergie"
+                ],
+                "famille": "alien",
+                "escorte": true
+              }
+            },
+            "escorte": {
+              "de": 9,
+              "seuil": 14,
+              "deploie": false,
+              "famille": "alien"
+            },
+            "attitude": {
+              "table": "D2",
+              "titre": "D2 — Attitude et état",
+              "valeur": 2,
+              "ligne": {
+                "plage": "1-3",
+                "texte": "**Hostile et embusqué** : attaque dès que le PJ entre à portée.",
+                "attitude": "hostile"
+              }
+            },
+            "vraisemblance": "improbable"
+          }
+        },
+        {
+          "n": 2,
+          "quand": "2026-11-21T05:39:39.143Z",
+          "scene": 1,
+          "mission": 1,
+          "type": "intention-vaisseau",
+          "relance": false,
+          "de": 9,
+          "modificateurs": [],
+          "modificateur": 0,
+          "total": 9,
+          "lu": 9,
+          "plage": "9-12",
+          "action": "Vise un point faible : tire pour faire tomber les boucliers ou un système précis."
+        }
+      ],
+      "compteur": 2,
+      "fiche": {
+        "fils": [],
+        "pnjs": [],
+        "menaces": [],
+        "lieux": [],
+        "scenes": []
+      }
+    }
+  ]
+}

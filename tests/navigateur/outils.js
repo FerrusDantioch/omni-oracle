@@ -37,7 +37,7 @@ export function surveillerErreurs(page) {
 export async function creerPartie(page, { univers = 'Cyberpunk', mode = 'Solo', mission = 'Mission test', pjs = ['Kei'] } = {}) {
   await page.getByText(univers, { exact: true }).click();
   await page.getByText(mode, { exact: true }).click();
-  await page.getByLabel('Nom de la mission').fill(mission);
+  await page.getByLabel(/^Nom (de la|du) \S+ \(facultatif\)$/).fill(mission);
   if (mode === 'Duo') {
     await page.getByLabel('Nom du premier PJ').fill(pjs[0]);
     await page.getByLabel('Nom du second PJ').fill(pjs[1]);

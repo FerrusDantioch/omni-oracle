@@ -4,6 +4,7 @@
 
 import * as M from './moteur.js';
 import { h, ouvrirDialogue, confirmer, champ, choix, annoncer, vibrer } from './ui.js';
+import { texteBrut } from './texte.js';
 
 // --- Saisie d'un vrai dé -------------------------------------------------------------
 
@@ -43,11 +44,13 @@ export function essayer(f) {
 
 // --- Événements (seuil de rupture, gain de l'Oracle, rebondissement) ---------------------
 
-export function messageEvenement(ev) {
+export function messageEvenement(ev, voc = { la: 'la mission', de: 'de la mission', cette: 'cette mission' }) {
   switch (ev.type) {
-    case 'seuil-rupture': return 'Seuil de rupture : la Pression atteint 9 pour la première fois de la mission. L\'Oracle gagne 1 omni-point.';
+    case 'seuil-rupture': return ev.gain === 0
+      ? `Seuil de rupture : la Pression atteint 9 pour la première fois ${voc.de}. Sans omni-points dans cet univers, il ne rapporte rien à l'Oracle.`
+      : `Seuil de rupture : la Pression atteint 9 pour la première fois ${voc.de}. L'Oracle gagne 1 omni-point.`;
     case 'gain-oracle': return 'L\'Oracle gagne 1 omni-point (2 utilisations d\'omni-points par les joueurs).';
-    case 'rebondissement': return 'La Pression atteint 7 (Étau) : le rebondissement de la mission est tiré.';
+    case 'rebondissement': return `La Pression atteint 7 (Étau) : le rebondissement ${voc.de} est tiré.`;
     default: return '';
   }
 }
@@ -57,7 +60,7 @@ export function messageEvenement(ev) {
 export async function dialogueOmniPJ(ctx, idPJ) {
   const pj = ctx.partie.pjs.find((p) => p.id === idPJ);
   if (pj.omni <= 0) {
-    await ouvrirDialogue({ titre: `${pj.nom} : omni-points`, contenu: h('p', {}, `${pj.nom} n'a plus d'omni-point pour cette mission.`) });
+    await ouvrirDialogue({ titre: `${pj.nom} : omni-points`, contenu: h('p', {}, `${pj.nom} n'a plus d'omni-point pour ${ctx.voc.cette}.`) });
     return;
   }
   const replique = champ('Ta réplique (facultative)', { type: 'textarea', rows: 2, placeholder: '« … »' });
@@ -67,6 +70,7 @@ export async function dialogueOmniPJ(ctx, idPJ) {
       h('p', {}, `${pj.nom} a ${pj.omni} omni-point${pj.omni > 1 ? 's' : ''}.`),
       h('p', {}, 'Dis ta réplique, puis raconte comment tu perturbes la narration.'),
       replique,
+      M.optionsUnivers(ctx.univ).rappelOmni && h('p', { class: 'rappel-omni' }, h('strong', {}, 'Rappel : '), M.optionsUnivers(ctx.univ).rappelOmni),
       h('p', { class: 'petit discret' }, 'Toutes les 2 utilisations d\'omni-points par les joueurs, l\'Oracle en gagne 1.'),
     ],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Dépenser 1 omni-point', classe: 'bouton-accent' }],
@@ -99,7 +103,7 @@ export async function dialogueOmniOracle(ctx, { entree = null } = {}) {
       titre: 'Omni-points de l\'Oracle',
       contenu: [
         h('p', {}, 'L\'Oracle n\'a pas d\'omni-point pour l\'instant.'),
-        h('p', { class: 'discret' }, `Il en gagne 1 toutes les 2 utilisations d'omni-points par les joueurs (déjà ${p.oracle.utilisationsJoueurs % 2} sur 2), et 1 la première fois que la Pression atteint 9 dans la mission.`),
+        h('p', { class: 'discret' }, `Il en gagne 1 toutes les 2 utilisations d'omni-points par les joueurs (déjà ${p.oracle.utilisationsJoueurs % 2} sur 2), et 1 la première fois que la Pression atteint 9 dans ${ctx.voc.la}.`),
       ],
     });
     return;
@@ -132,14 +136,15 @@ export async function dialogueOmniOracle(ctx, { entree = null } = {}) {
 // --- Contestation (duo) ----------------------------------------------------------------------
 
 /** Peut-on contester cette réponse ? Renvoie le PJ contestataire ou null. */
-export function contestataire(partie, entree) {
+export function contestataire(partie, entree, univers = null) {
+  if (!M.optionsUnivers(univers).contestation) return null; // ex. horreur : celui qui pose la question tranche
   if (partie.mode !== 'duo' || entree.type !== 'oracle' || entree.contestee) return null;
   return partie.pjs.find((pj) => pj.id !== entree.joueur) || null;
 }
 
 export async function dialogueContester(ctx, entree) {
   const p = ctx.partie;
-  const pj = contestataire(p, entree);
+  const pj = contestataire(p, entree, ctx.univ);
   if (!pj) return;
   if (pj.omni <= 0) { annoncer(`${pj.nom} n'a plus d'omni-point pour contester.`); return; }
   const v = M.vraisemblance(ctx.commun, entree.vraisemblance);
@@ -161,7 +166,7 @@ export async function dialogueContester(ctx, entree) {
     },
   });
   if (r !== 'oui') return;
-  const res = essayer(() => M.contester(ctx.commun, p, entree, pj.id, { replique: replique.saisie.value.trim(), des: valeurs }));
+  const res = essayer(() => M.contester(ctx.commun, p, entree, pj.id, { replique: replique.saisie.value.trim(), des: valeurs, univers: ctx.univ }));
   if (!res) return;
   vibrer();
   ctx.enregistrer();
@@ -189,6 +194,16 @@ export function tirerComplication(ctx, { cible = null, valeur = null } = {}) {
   return tirerEtNoter(ctx, table, { cible, valeur });
 }
 
+/**
+ * Le MJ écarte une suggestion inscrite au journal : motif 'relance' (un nouveau
+ * tirage la remplace) ou 'ignore'. L'entrée reste dans le journal, barrée.
+ */
+export function ecarter(ctx, n, motif) {
+  const e = typeof n === 'object' ? n : ctx.partie.journal.find((x) => x.n === n);
+  if (e && !e.ecarte) e.ecarte = motif;
+  return e;
+}
+
 /** Tire une ligne dans n'importe quelle table et l'inscrit au journal. */
 export function tirerEtNoter(ctx, table, { cible = null, valeur = null, contexte = '' } = {}) {
   const t = M.tirerTable(table, { valeur });
@@ -197,6 +212,46 @@ export function tirerEtNoter(ctx, table, { cible = null, valeur = null, contexte
     type: 'tirage', table: table.id, titre: table.titre, valeur: t.valeur, plage: t.ligne.plage,
     texte: t.ligne.texte, autres: t.ligne.autres || null, cible, contexte, manuel: valeur !== null,
   });
+}
+
+// --- Chocs et folie (univers avec options.chocs, ex. horreur) ------------------------------------
+
+/**
+ * Ajoute n points de choc à un PJ. À 5 (ou plus), alerte « 5 chocs = 1 point de folie »
+ * avec la possibilité de convertir tout de suite.
+ */
+export async function donnerChocs(ctx, idPJ, n, { motif = '' } = {}) {
+  const o = M.optionsUnivers(ctx.univ).chocs;
+  const pj = ctx.partie.pjs.find((x) => x.id === idPJ);
+  const r = M.ajouterChocs(ctx.univ, ctx.partie, idPJ, n, { motif });
+  vibrer();
+  ctx.enregistrer();
+  annoncer(`${pj.nom} : ${r.chocs} point${r.chocs > 1 ? 's' : ''} de choc.`);
+  if (n > 0 && r.alerte) {
+    const choix = await ouvrirDialogue({
+      titre: o.alerte,
+      contenu: [
+        h('p', {}, `${pj.nom} a ${r.chocs} points de choc. ${o.seuil} points de choc = 1 point de folie + un jet sur la table de folie.`),
+      ],
+      actions: [{ id: 'plus-tard', texte: 'Plus tard' }, { id: 'convertir', texte: `Convertir ${o.seuil} chocs en 1 point de folie`, classe: 'bouton-accent' }],
+    });
+    if (choix === 'convertir') convertirEnFolie(ctx, idPJ);
+  }
+}
+
+/** Convertit 5 chocs en 1 point de folie, lance le jet de folie et montre le résultat dans la fiche. */
+export function convertirEnFolie(ctx, idPJ, { des = null } = {}) {
+  const p = ctx.partie;
+  const e = essayer(() => M.convertirFolie(ctx.cat, ctx.univ.id, p, idPJ, { aggravation: !!p.folieAggravee, des }));
+  if (!e) return null;
+  const pj = p.pjs.find((x) => x.id === idPJ);
+  pj.derniereFolie = e.n;
+  vibrer(60);
+  ctx.demandeFiche = 'chocs';
+  ctx.enregistrer();
+  ctx.annoncerResultat(`${pj.nom} gagne 1 point de folie : ${texteBrut(e.nom)}.`);
+  ctx.aller('fiche');
+  return e;
 }
 
 // --- Fin de scène ---------------------------------------------------------------------------------
@@ -226,7 +281,7 @@ export async function dialogueFinScene(ctx) {
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Terminer la scène', classe: 'bouton-accent' }],
   });
   if (r !== 'oui') return;
-  const res = M.terminerScene(C, p, issue, { resume: resume.saisie.value.trim() });
+  const res = M.terminerScene(C, p, issue, { resume: resume.saisie.value.trim(), univers: ctx.univ });
   ctx.enregistrer();
   annoncer(`Scène suivante : n° ${p.scene.numero}. Pression ${res.avant} → ${res.apres}.`);
   ctx.signaler(res.evenements);

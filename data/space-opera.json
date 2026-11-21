@@ -21,9 +21,12 @@
       "trait": "N2",
       "motivation": "N3"
     },
-    "vaisseaux": {
+    "rencontres": {
       "type": "D1",
-      "attitude": "D2"
+      "attitude": "D2",
+      "onglet": "Vaisseaux",
+      "titre": "Rencontre de vaisseau",
+      "question": "Le vaisseau accepte la proposition ?"
     },
     "intentionsVaisseau": "E"
   },
@@ -963,7 +966,7 @@
       "titre": "N2 — Trait",
       "de": "d20",
       "reference": {
-        "univers": "cyberpunk",
+        "univers": "commun",
         "table": "N2"
       }
     },
