@@ -33,7 +33,7 @@ Tu peux passer de l'un à l'autre en pleine partie : saisis dans l'application l
 
 ## Se repérer dans l'application
 
-Ce guide suit la version 0.3.3. Tu vois la version de ton application dans « À propos ».
+Ce guide suit la version 0.3.4. Tu vois la version de ton application dans « À propos ».
 
 **À l'accueil**, tu trouves « Nouvelle partie » (univers, mode, noms, compagnons) et « Mes parties » (Reprendre, Exporter, Supprimer, Importer un fichier, Exporter toutes les parties).
 
@@ -56,7 +56,7 @@ Ce guide suit la version 0.3.3. Tu vois la version de ton application dans « À
 | **Tables** | Toutes les tables de l'univers, avec recherche. |
 | **Journal** | L'historique de la partie. |
 
-**Le menu** (☰, en haut à droite) contient : Mes parties, Modifier la partie, Mission suivante (« Quête suivante », « Mystère suivant »), Exporter cette partie, Réglages, Livret imprimable, Installer l'application et À propos.
+**Le menu** (☰, en haut à droite) contient : Mes parties, Modifier la partie, Mission suivante (« Quête suivante », « Mystère suivant »), Exporter cette partie, Réglages, Guide d'utilisation, Livret imprimable, Installer l'application et À propos.
 
 ## Ta première partie en cinq minutes
 
