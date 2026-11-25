@@ -122,7 +122,13 @@ h2:target, h3:target { border-left: 4px solid var(--halo); padding-left: .5rem; 
 .retour-sommaire a { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* Lien dans le texte : assez haut pour le doigt sans déranger la lecture. */
-.guide p a, .guide li a { display: inline-block; min-height: 44px; line-height: 44px; }
+.guide p a, .guide li a {
+  display: inline-block;
+  min-height: 44px;
+  min-width: 44px;
+  padding: .65rem 0;
+  line-height: 1.4;
+}
 .sommaire li a, .retour-sommaire a { line-height: 1.3; }
 
 /* --- Tableaux : défilent seuls sur un écran étroit, sans élargir la page ------------------ */
@@ -167,7 +173,7 @@ tbody th { font-weight: 700; }
   .guide { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
   .sous-titre { color: var(--texte); }
   a { color: var(--texte); text-decoration: underline; }
-  .guide p a, .guide li a { display: inline; min-height: 0; line-height: inherit; }
+  .guide p a, .guide li a { display: inline; min-height: 0; min-width: 0; padding: 0; line-height: inherit; }
   /* Sur papier, l'adresse d'un lien vers un autre site est écrite en clair. */
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .9em; }
   h1 { font-size: 20pt; }

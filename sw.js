@@ -102,7 +102,7 @@ self.addEventListener('fetch', (evenement) => {
     try {
       const reponse = await fetch(requete);
       if (reponse.ok && url.pathname.startsWith(new URL('./', self.location).pathname)) {
-        cache.put(requete, reponse.clone());
+        cache.put(requete, reponse.clone()).catch(() => {});
       }
       return reponse;
     } catch (erreur) {

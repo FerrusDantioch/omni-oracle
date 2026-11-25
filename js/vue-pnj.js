@@ -1,9 +1,10 @@
 // Onglet « PNJ » : générateur de PNJ (rôle, trait, motivation) et ajout à la fiche de suivi.
 
 import * as M from './moteur.js';
-import { h, remplacer, champ, choix, annoncer, vibrer } from './ui.js';
+import { h, remplacer, champ, choix, annoncer, vibrer, garderFocus } from './ui.js';
 import { texteBrut, rendreBloc } from './texte.js';
 import { tirageVerrouillable } from './composants.js';
+import { tirerEtNoter, ecarter } from './actions.js';
 
 export const ATTITUDES = [
   { valeur: 'hostile', texte: 'Hostile' },
@@ -21,20 +22,25 @@ export function optionsProfils(ctx, { vide = true } = {}) {
 export function creerVueGenerateurPNJ(ctx) {
   const el = h('div', { class: 'vue-pnj' });
   const roles = ctx.univ.roles.pnj; // { role: 'N1', trait: 'N2', motivation: 'N3' }
+  const tables = () => Object.fromEntries(Object.entries(roles).map(([k, id]) => [k, ctx.cat.table(ctx.univ.id, id)]));
   const neuf = () => ({
     tirages: Object.fromEntries(Object.keys(roles).map((k) => [k, { valeur: null, verrou: false }])),
     nom: '', attitude: 'neutre', profil: '', notes: '',
   });
   let pnj = neuf();
 
-  let compteur = 0; // pour reconnaître chaque tirage (résultat révélé quand l'écran se redessine)
   function tirer(cle, valeur) {
-    pnj.tirages[cle].valeur = valeur ?? M.deAleatoire(20);
-    pnj.tirages[cle].n = `pnj-${++compteur}`;
+    const t = tables()[cle];
+    const etat = pnj.tirages[cle];
+    if (etat.n) ecarter(ctx, etat.n, 'relance');
+    const e = tirerEtNoter(ctx, t, { valeur, contexte: 'pnj' });
+    etat.valeur = e.valeur;
+    etat.n = e.n;
+    return e;
   }
 
   function rendre() {
-    const tables = Object.fromEntries(Object.entries(roles).map(([k, id]) => [k, ctx.cat.table(ctx.univ.id, id)]));
+    const tTables = tables();
     const intro = ctx.univ.sections.find((s) => s.id === 'pnj');
     const nom = champ('Nom', { type: 'text', valeur: pnj.nom, 'data-cle': 'pnj-nom', placeholder: 'Nom libre' });
     nom.saisie.addEventListener('input', (e) => { pnj.nom = e.target.value; });
@@ -43,7 +49,7 @@ export function creerVueGenerateurPNJ(ctx) {
     const profil = champ('Profil d\'intention', { type: 'select', valeur: pnj.profil, options: optionsProfils(ctx), 'data-cle': 'pnj-profil' });
     profil.saisie.addEventListener('change', (e) => { pnj.profil = e.target.value; });
 
-    const n2 = tables.trait;
+    const n2 = tTables.trait;
     remplacer(el,
       h('section', { class: 'carte', 'aria-labelledby': 'titre-gen-pnj' },
         h('div', { class: 'carte-entete' },
@@ -52,19 +58,31 @@ export function creerVueGenerateurPNJ(ctx) {
             type: 'button', class: 'bouton bouton-accent', 'data-cle': 'pnj-tout',
             onclick: () => {
               const libres = Object.keys(roles).filter((k) => !pnj.tirages[k].verrou);
+              if (!libres.length) { annoncer('Tout est verrouillé : déverrouille une table pour la relancer.'); return; }
               libres.forEach((k) => tirer(k, null));
               vibrer();
-              rendre();
+              ctx.enregistrer();
               ctx.annoncerResultat('PNJ tiré.');
             },
           }, 'Tirer les trois')),
         intro && h('div', { class: 'regles' }, rendreBloc(intro.texte)),
         n2.reference && h('p', { class: 'petit discret' }, `Le trait (${n2.id}) reprend la table ${n2.reference.table} ${ctx.cat.origine(n2.reference)}, commune à tous les univers.`),
-        h('div', { class: 'grille-tirages' }, Object.entries(tables).map(([k, t]) => tirageVerrouillable(ctx, {
+        h('div', { class: 'grille-tirages' }, Object.entries(tTables).map(([k, t]) => tirageVerrouillable(ctx, {
           table: t, etat: pnj.tirages[k], cle: `pnj-${k}`,
-          surTirage: (valeur) => { tirer(k, valeur); if (valeur === null) vibrer(); rendre(); },
-          surVerrou: rendre,
-          surIgnorer: () => { pnj.tirages[k].valeur = null; rendre(); annoncer('Résultat ignoré.'); },
+          surTirage: (valeur) => {
+            const e = tirer(k, valeur);
+            ctx.enregistrer();
+            ctx.annoncerResultat(`${t.titre} (${e.valeur}) : ${texteBrut(e.texte)}`);
+          },
+          surVerrou: () => garderFocus(rendre),
+          surIgnorer: () => {
+            const etat = pnj.tirages[k];
+            if (etat.n) ecarter(ctx, etat.n, 'ignore');
+            etat.valeur = null;
+            etat.n = null;
+            ctx.enregistrer();
+            annoncer('Résultat ignoré.');
+          },
         })))),
       h('section', { class: 'carte', 'aria-labelledby': 'titre-ajout-pnj' },
         h('h2', { id: 'titre-ajout-pnj' }, 'Ajouter à la partie'),
@@ -77,7 +95,7 @@ export function creerVueGenerateurPNJ(ctx) {
           onclick: () => {
             const lire = (k) => {
               const v = pnj.tirages[k].valeur;
-              return v ? texteBrut(M.ligneParValeur(tables[k], v).texte) : '';
+              return v ? texteBrut(M.ligneParValeur(tTables[k], v).texte) : '';
             };
             const details = [lire('trait') && `Trait : ${lire('trait')}`, lire('motivation') && `Motivation : ${lire('motivation')}`, pnj.notes.trim()].filter(Boolean);
             const fiche = {

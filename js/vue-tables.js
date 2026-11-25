@@ -3,9 +3,8 @@
 
 import { h, remplacer, riche, animerResultat, annoncer } from './ui.js';
 import { texteBrut } from './texte.js';
-import { autresColonnes } from './composants.js';
+import { autresColonnes, actionsSuggestion, boutonsChocs, valeurDePlage } from './composants.js';
 import { tirerEtNoter, ecarter } from './actions.js';
-import { actionsSuggestion, boutonsChocs } from './composants.js';
 import * as M from './moteur.js';
 
 /** Texte sans accents ni majuscules, pour une recherche tolérante (« evenement » trouve « événement »). */
@@ -103,7 +102,7 @@ export function creerVueTables(ctx) {
       h('button', {
         type: 'button', class: 'bouton bouton-discret petit', 'data-cle': `tables-${table.id}-${l.plage}`,
         'aria-label': `Prendre la ligne ${l.plage} de ${table.titre}`,
-        onclick: () => noter(table, Number(String(l.plage).split('-')[0])),
+        onclick: () => noter(table, valeurDePlage(l.plage)),
       }, 'Prendre')))));
     details.addEventListener('toggle', () => {
       if (details.open) ecran.ouvertes.add(table.id); else ecran.ouvertes.delete(table.id);

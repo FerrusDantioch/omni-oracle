@@ -1,7 +1,7 @@
 // Onglet « Jouer » : la scène en cours, l'oracle de question et le lanceur de dé.
 
 import * as M from './moteur.js';
-import { h, remplacer, ajouter, riche, champ, choix, caseACocher, annoncer, vibrer, animerResultat } from './ui.js';
+import { h, remplacer, ajouter, riche, champ, choix, caseACocher, annoncer, vibrer, animerResultat, ouvrirDialogue, garderFocus } from './ui.js';
 import { texteBrut } from './texte.js';
 import {
   saisieDes, essayer, dialogueFinScene, tirerComplication, dialogueContester,
@@ -38,20 +38,39 @@ export function creerVueJouer(ctx) {
    * change : le d20 d'altération (la règle) reste tel quel. L'ancienne complication
    * est gardée, barrée, dans l'entrée « début de scène » du journal.
    */
-  function changerComplication(motif) {
+  async function changerComplication(motif) {
     const p = ctx.partie;
     const a = p.scene.alteration;
+    let valeur = null;
+    if (motif === 'relance' && ctx.reglages.dePhysique) {
+      const des = saisieDes(ctx, 1, 'Ton d20 de complication');
+      let vals = null;
+      const r = await ouvrirDialogue({
+        titre: 'Relancer la complication',
+        contenu: [h('p', {}, 'Saisis le résultat de ton d20 pour la nouvelle complication.'), des.el],
+        actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Valider', classe: 'bouton-accent' }],
+        avantFermeture: (id, _dlg, afficherErreur) => {
+          if (id !== 'oui') return true;
+          try { vals = des.lire(); return true; } catch (e) { afficherErreur(e.message); return false; }
+        },
+      });
+      if (r !== 'oui') return;
+      valeur = vals[0];
+    }
     const debut = [...p.journal].reverse().find((x) => M.typeEntree(x) === 'scene-debut' && x.scene === p.scene.numero && x.mission === p.mission.numero);
     if (a.complication) {
       const ancienne = { ...a.complication, ecarte: motif };
       a.ecartees = [...(a.ecartees || []), ancienne];
       if (debut) debut.ecartees = [...(debut.ecartees || []), ancienne];
     }
-    a.complication = motif === 'relance' ? M.tirerTable(ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications)) : null;
+    a.complication = motif === 'relance'
+      ? M.tirerTable(ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications), { valeur })
+      : null;
+    a.complicationALancer = false;
     a.complicationIgnoree = motif === 'ignore';
     if (debut) debut.complication = a.complication;
     ecran.animer = 'scene';
-    if (motif === 'relance') vibrer();
+    if (motif === 'relance' && valeur === null) vibrer();
     ctx.enregistrer();
     if (motif === 'relance') ctx.annoncerResultat(`Nouvelle complication : ${texteBrut(a.complication.ligne.texte)}`);
     else annoncer('Complication ignorée : invente l\'élément, ou relance.');
@@ -92,6 +111,7 @@ export function creerVueJouer(ctx) {
               prevue: ecran.prevue.trim(),
               complications: ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications),
               des: valeurs ? valeurs[0] : null,
+              dePhysique: ctx.reglages.dePhysique,
             });
             ecran.prevue = '';
             ecran.animer = 'scene';
@@ -127,8 +147,30 @@ export function creerVueJouer(ctx) {
     }
     if (ecran.animer === 'scene') animerResultat(res);
     const cleScene = `scene-${p.mission.numero}-${p.scene.numero}-${(a.ecartees || []).length}`;
+    let blocComplication = null;
+    if (a.alteree && !a.complication && !a.complicationIgnoree) {
+      const desComp = saisieDes(ctx, 1, 'Ton d20 de complication');
+      blocComplication = h('div', { class: 'saisie-complication' },
+        desComp.el,
+        h('div', { class: 'rangee' }, h('button', {
+          type: 'button', class: 'bouton bouton-accent', 'data-cle': 'scene-complication-valider',
+          onclick: () => essayer(() => {
+            const vals = desComp.lire();
+            const table = ctx.cat.table(ctx.univ.id, ctx.univ.roles.complications);
+            a.complication = M.tirerTable(table, { valeur: vals?.[0] ?? null });
+            a.complicationALancer = false;
+            const debut = [...p.journal].reverse().find((x) => M.typeEntree(x) === 'scene-debut' && x.scene === p.scene.numero && x.mission === p.mission.numero);
+            if (debut) debut.complication = a.complication;
+            ecran.animer = 'scene';
+            if (!vals) vibrer();
+            ctx.enregistrer();
+            ctx.annoncerResultat(`Complication : ${texteBrut(a.complication.ligne.texte)}`);
+          }),
+        }, 'Valider la complication')));
+    }
     ajouter(carte, [ctx.resultat(res, { cle: cleScene }),
-      a.alteree && actionsSuggestion({
+      blocComplication,
+      a.alteree && (a.complication || a.complicationIgnoree) && actionsSuggestion({
         cle: 'scene-complication',
         relancer: () => changerComplication('relance'),
         ignorer: a.complication && (() => changerComplication('ignore')),
@@ -150,7 +192,7 @@ export function creerVueJouer(ctx) {
     const vrais = choix('Vraisemblance', 'vraisemblance',
       M.vraisemblances(C).map((v) => ({ valeur: v.id, texte: v.texte, detail: v.autres[0] })),
       ecran.vraisemblance,
-      { onchange: (v) => { ecran.vraisemblance = v; rendre(); } });
+      { onchange: (v) => { ecran.vraisemblance = v; garderFocus(rendre); } });
     const v = M.vraisemblance(C, ecran.vraisemblance);
     const des = saisieDes(ctx, v.jet.mode === 'normal' ? 1 : 2);
     const carte = h('section', { class: 'carte', 'aria-labelledby': 'titre-oracle' },
@@ -241,7 +283,7 @@ export function creerVueJouer(ctx) {
       { valeur: 'normal', texte: 'Normal' },
       { valeur: 'avantage', texte: 'Avantage', detail: '2 dés, le meilleur' },
       { valeur: 'desavantage', texte: 'Désavantage', detail: '2 dés, le pire' },
-    ], ecran.mode, { onchange: (m) => { ecran.mode = m; rendre(); } });
+    ], ecran.mode, { onchange: (m) => { ecran.mode = m; garderFocus(rendre); } });
     const mod = h('input', {
       type: 'number', id: 'modificateur', inputmode: 'numeric', step: 1, value: ecran.modificateur, 'data-cle': 'de-mod',
       oninput: (e) => { ecran.modificateur = Number.parseInt(e.target.value, 10) || 0; },
@@ -314,7 +356,7 @@ export function creerVueJouer(ctx) {
       bandeauSauvegarde(),
       h('div', { class: 'rangee option-de' }, caseACocher('J\'utilise mon vrai dé (je saisis le résultat)', {
         coche: ctx.reglages.dePhysique, 'data-cle': 'de-physique',
-        onchange: (v) => { ctx.reglages.dePhysique = v; ctx.sauverReglages(); rendre(); },
+        onchange: (v) => { ctx.reglages.dePhysique = v; ctx.sauverReglages(); garderFocus(rendre); },
       })),
       h('div', { class: 'grille' }, carteScene(), carteOracle(), carteDe()));
     ecran.animer = null;

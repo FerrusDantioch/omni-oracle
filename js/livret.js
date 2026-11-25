@@ -164,4 +164,6 @@ async function demarrer() {
   document.body.dataset.pret = 'oui'; // repère pour les tests
 }
 
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+
 demarrer();

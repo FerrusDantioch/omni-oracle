@@ -2,7 +2,7 @@
 // (tronc commun, section 5), et ce que fait un vaisseau ennemi (table E, space opéra).
 
 import * as M from './moteur.js';
-import { h, remplacer, ajouter, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer } from './ui.js';
+import { h, remplacer, ajouter, riche, choix, caseACocher, champ, vibrer, animerResultat, annoncer, ouvrirDialogue, garderFocus } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { saisieDes, essayer, ecarter } from './actions.js';
 import { actionsSuggestion, boutonsChocs } from './composants.js';
@@ -49,15 +49,33 @@ export function creerVueIntentions(ctx) {
       h('span', { class: 'plage' }, pl), ' ', riche(actions[i]), pl === plageObtenue && h('strong', {}, ' ◀ résultat'))));
   }
 
-  function boutonsRelance(rejouer) {
+  function boutonsRelance(executer) {
     const p = ctx.partie;
     if (!M.optionsUnivers(ctx.univ).omniPoints) return null; // univers sans omni-points
     return h('div', { class: 'rangee' }, h('button', {
       type: 'button', class: 'bouton', disabled: p.oracle.omni <= 0, 'data-cle': 'intention-relance',
-      onclick: () => essayer(() => {
-        M.depenserOmniOracle(ctx.commun, p, 'relance');
-        rejouer(true);
-      }),
+      onclick: async () => {
+        let valeur = null;
+        if (ctx.reglages.dePhysique) {
+          const des = saisieDes(ctx, 1, 'Ton d20 de relance');
+          let vals = null;
+          const r = await ouvrirDialogue({
+            titre: 'L\'Oracle relance ce jet',
+            contenu: [h('p', {}, 'Saisis le résultat de ton d20 pour la relance.'), des.el],
+            actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Relancer (1 omni-point)', classe: 'bouton-accent' }],
+            avantFermeture: (id, _dlg, afficherErreur) => {
+              if (id !== 'oui') return true;
+              try { vals = des.lire(); return true; } catch (err) { afficherErreur(err.message); return false; }
+            },
+          });
+          if (r !== 'oui') return;
+          valeur = vals[0];
+        }
+        essayer(() => {
+          M.depenserOmniOracle(ctx.commun, p, 'relance');
+          executer(valeur);
+        });
+      },
     }, `L'Oracle relance ce jet (1 omni-point, il en a ${p.oracle.omni})`));
   }
 
@@ -88,7 +106,7 @@ export function creerVueIntentions(ctx) {
       ecran.pnj = e.target.value;
       const x = pnjs[Number(e.target.value)];
       if (x && x.profil) ecran.profil = x.profil;
-      rendre();
+      garderFocus(rendre);
     });
     const sauf = t.modificateurs.blesseSaufProfils || [];
     const exempte = sauf.includes(ecran.profil);
@@ -118,7 +136,7 @@ export function creerVueIntentions(ctx) {
       rappelRegles(t),
       pnjs.length > 0 && selectPNJ,
       choix('Profil', 'intention-profil', tousProfils.map((l) => ({ valeur: l.id, texte: l.nom })), ecran.profil,
-        { onchange: (v) => { ecran.profil = v; rendre(); } }),
+        { onchange: (v) => { ecran.profil = v; garderFocus(rendre); } }),
       h('fieldset', {}, h('legend', {}, 'Modificateurs'),
         caseACocher(libelleBlesse, {
           coche: ecran.blesse, 'data-cle': 'intention-blesse', onchange: (v) => { ecran.blesse = v; },
@@ -141,27 +159,34 @@ export function creerVueIntentions(ctx) {
 
     const e = p.journal.find((x) => x.n === ecran.dernier);
     if (e) {
-      const { table: tE, ligne: prof } = trouver(e.profil);
+      const { table: tE, ligne: prof } = trouver(e.profil) || trouver('brute');
+      const relancerEntree = ({ parOracle = false, valeur = null } = {}) => {
+        const r = M.intentionPNJ(ctx.commun, {
+          table: tE,
+          profil: prof.id,
+          blesse: aEu(e, 'blesse'),
+          pression: aEu(e, 'pression') ? tE.modificateurs.pression.seuil : 0,
+          des: valeur,
+        });
+        if (!parOracle) ecarter(ctx, e, 'relance');
+        const n = M.journaliser(p, { type: 'intention', relance: parOracle, ...r, nom: e.nom });
+        ecran.dernier = n.n;
+        ecran.animer = 'pnj';
+        if (valeur === null) vibrer();
+        ctx.enregistrer();
+        ctx.annoncerResultat(`${e.nom || prof.nom} : ${r.action}`);
+      };
       const res = h('div', { class: 'resultat', 'aria-live': 'polite' },
         h('p', { class: 'discret' }, `${e.nom ? `${e.nom} · ` : ''}${prof.nom}${e.relance ? ' · relancé par l\'Oracle' : ''}`),
         h('p', { class: 'resultat-titre' }, riche(e.action)),
         h('p', { class: 'resultat-detail' }, detailJet(e)),
         listeColonnes(tE.plages, prof.autres, e.plage),
-        boutonsRelance(jouer));
+        boutonsRelance((valeur) => relancerEntree({ parOracle: true, valeur })));
       if (ecran.animer === 'pnj') animerResultat(res);
       ajouter(carte, [ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
         cle: 'intention',
         // Nouveau d20, même profil et mêmes modificateurs que le résultat écarté.
-        relancer: () => essayer(() => {
-          const r = M.intentionPNJ(ctx.commun, { table: tE, profil: e.profil, blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? tE.modificateurs.pression.seuil : 0 });
-          ecarter(ctx, e, 'relance');
-          const n = M.journaliser(p, { type: 'intention', relance: false, ...r, nom: e.nom });
-          ecran.dernier = n.n;
-          ecran.animer = 'pnj';
-          vibrer();
-          ctx.enregistrer();
-          ctx.annoncerResultat(`${e.nom || prof.nom} : ${r.action}`);
-        }),
+        relancer: () => essayer(() => relancerEntree()),
         ignorer: () => ignorer(e, 'dernier'),
         afficher: { titre: e.nom || prof.nom, texte: e.action },
       }),
@@ -211,25 +236,30 @@ export function creerVueIntentions(ctx) {
         h('button', { type: 'button', class: 'bouton bouton-accent bouton-large', 'data-cle': 'vaisseau-jouer', onclick: () => essayer(() => jouer(false)) }, 'Que fait le vaisseau ?')));
     const e = p.journal.find((x) => x.n === ecran.vDernier);
     if (e) {
+      const relancerVaisseau = ({ parOracle = false, valeur = null } = {}) => {
+        const r = M.intentionVaisseau(E, {
+          blesse: aEu(e, 'blesse'),
+          pression: aEu(e, 'pression') ? m.pression.seuil : 0,
+          des: valeur,
+        });
+        if (!parOracle) ecarter(ctx, e, 'relance');
+        const n = M.journaliser(p, { type: 'intention-vaisseau', relance: parOracle, ...r });
+        ecran.vDernier = n.n;
+        ecran.animer = 'vaisseau';
+        if (valeur === null) vibrer();
+        ctx.enregistrer();
+        ctx.annoncerResultat(`Vaisseau ennemi : ${r.action}`);
+      };
       const res = h('div', { class: 'resultat', 'aria-live': 'polite' },
         e.relance && h('p', { class: 'discret' }, 'Relancé par l\'Oracle'),
         h('p', { class: 'resultat-titre' }, riche(e.action)),
         h('p', { class: 'resultat-detail' }, detailJet(e)),
         listeColonnes(E.lignes.map((l) => l.plage), E.lignes.map((l) => l.texte), e.plage),
-        boutonsRelance(jouer));
+        boutonsRelance((valeur) => relancerVaisseau({ parOracle: true, valeur })));
       if (ecran.animer === 'vaisseau') animerResultat(res);
       carte.append(ctx.resultat(res, { cle: `j-${e.n}` }), actionsSuggestion({
         cle: 'intention-vaisseau',
-        relancer: () => essayer(() => {
-          const r = M.intentionVaisseau(E, { blesse: aEu(e, 'blesse'), pression: aEu(e, 'pression') ? m.pression.seuil : 0 });
-          ecarter(ctx, e, 'relance');
-          const n = M.journaliser(p, { type: 'intention-vaisseau', relance: false, ...r });
-          ecran.vDernier = n.n;
-          ecran.animer = 'vaisseau';
-          vibrer();
-          ctx.enregistrer();
-          ctx.annoncerResultat(`Vaisseau ennemi : ${r.action}`);
-        }),
+        relancer: () => essayer(() => relancerVaisseau()),
         ignorer: () => ignorer(e, 'vDernier'),
         afficher: { titre: 'Vaisseau ennemi', texte: e.action },
       }));

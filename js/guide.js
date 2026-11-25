@@ -7,3 +7,5 @@ if (bouton && typeof window.print === 'function') {
   bouton.hidden = false;
   bouton.addEventListener('click', () => window.print());
 }
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});

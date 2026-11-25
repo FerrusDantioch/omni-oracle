@@ -844,3 +844,58 @@ describe('rappel de sauvegarde', () => {
     }
   });
 });
+
+describe('correctifs moteur : rebondissement au seuil (vrai dé) et double modification Oracle', () => {
+  test('rebondissementAuSeuil avec dePhysique: true retourne { titre, aLancer: true } sans tirer, et dePhysique: false tire normalement', () => {
+    const horreur = cat.univ('horreur-enquete');
+    const t6 = cat.table('horreur-enquete', horreur.roles.rebondissement);
+
+    const pPhysique = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    pPhysique.rebondissementAuSeuil = true;
+    const dPhysique = des(5);
+    const rPhysique = M.rebondissementAuSeuil(cat, 'horreur-enquete', pPhysique, { de: dPhysique, dePhysique: true });
+    assert.deepEqual(rPhysique, { titre: t6.titre, aLancer: true });
+    assert.equal(dPhysique.restants(), 1);
+    assert.equal(pPhysique.journal.length, 0);
+    assert.ok(!pPhysique.tirageMission?.[t6.id]?.valeur);
+
+    const pAuto = M.creerPartie(commun, horreur, { pjs: [{ nom: 'Ada' }] });
+    pAuto.rebondissementAuSeuil = true;
+    const dAuto = des(5);
+    const rAuto = M.rebondissementAuSeuil(cat, 'horreur-enquete', pAuto, { de: dAuto, dePhysique: false });
+    assert.equal(rAuto.table, t6.id);
+    assert.equal(rAuto.valeur, 5);
+    assert.equal(rAuto.auto, 'seuil-rupture');
+    assert.equal(dAuto.restants(), 0);
+    assert.equal(pAuto.tirageMission[t6.id].valeur, 5);
+  });
+
+  test('double modification d\'une réponse Oracle (Oui → Oui, mais… puis contestation) : historique garde apres et transformeeParOracle repasse à false', () => {
+    const p = M.creerPartie(commun, cyber, { mode: 'duo', pjs: [{ nom: 'A' }, { nom: 'B' }] });
+    p.oracle.omni = 1;
+    const e = M.poserQuestion(commun, p, { vraisemblance: 'incertain', joueur: 'pj1', de: des(16) });
+    assert.equal(e.reponse, 'oui');
+
+    M.depenserOmniOracle(commun, p, 'oui-mais', { entree: e });
+    assert.equal(e.reponse, 'oui-mais');
+    assert.equal(e.transformeeParOracle, true);
+    assert.equal(e.historique.length, 1);
+    assert.deepEqual(e.historique[0], {
+      reponse: 'oui',
+      libelle: 'Oui',
+      apres: 'Oui, mais…',
+      par: 'oracle',
+    });
+
+    M.contester(commun, p, e, 'pj2', { de: des(3) });
+    assert.equal(e.reponse, 'non');
+    assert.equal(e.libelle, 'Non');
+    assert.equal(e.contestee, true);
+    assert.equal(e.transformeeParOracle, false);
+    assert.equal(e.historique.length, 2);
+    assert.equal(e.historique[0].apres, 'Oui, mais…');
+    assert.equal(e.historique[1].par, 'contestation');
+    assert.equal(e.historique[1].libelle, 'Oui, mais…');
+    assert.equal(e.historique[1].apres, 'Non');
+  });
+});

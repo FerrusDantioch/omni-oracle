@@ -62,18 +62,24 @@ export function enregistrerPartie(partie) {
   toutes[partie.id] = partie;
   return ecrire(CLE_PARTIES, toutes);
 }
+function supprimerCle(cle) {
+  try {
+    localStorage.removeItem(cle);
+  } catch { /* stockage inaccessible : sans importance */ }
+}
+
 export function supprimerPartie(id) {
   const toutes = lire(CLE_PARTIES, {});
   delete toutes[id];
   ecrire(CLE_PARTIES, toutes);
-  if (lire(CLE_COURANTE, null) === id) localStorage.removeItem(CLE_COURANTE);
+  if (lire(CLE_COURANTE, null) === id) supprimerCle(CLE_COURANTE);
 }
 export function lireCourante() {
   return lire(CLE_COURANTE, null);
 }
 export function ecrireCourante(id) {
   if (id) ecrire(CLE_COURANTE, id);
-  else localStorage.removeItem(CLE_COURANTE);
+  else supprimerCle(CLE_COURANTE);
 }
 
 // --- Export / import --------------------------------------------------------------------
@@ -101,7 +107,7 @@ const aujourdhui = () => new Date().toISOString().slice(0, 10);
 /** Enregistre une partie dans un fichier .json (dossier Téléchargements) et note la date de l'export. */
 export function exporterPartie(partie) {
   noterSauvegarde(partie);
-  enregistrerPartie(partie);
+  const ok = enregistrerPartie(partie);
   telecharger(`oracle-${nomFichier(partie.mission?.nom)}-${aujourdhui()}.json`, {
     application: CONFIG.nom,
     type: 'partie',
@@ -109,20 +115,23 @@ export function exporterPartie(partie) {
     exporte: new Date().toISOString(),
     partie,
   });
+  return ok;
 }
 
 /** Enregistre toutes les parties dans un seul fichier .json et note la date de l'export de chacune. */
 export function exporterTout() {
   const quand = new Date().toISOString();
-  const parties = listerParties();
-  for (const p of parties) { noterSauvegarde(p, quand); enregistrerPartie(p); }
+  const toutes = listerParties();
+  for (const p of toutes) noterSauvegarde(p, quand);
+  const ok = ecrire(CLE_PARTIES, Object.fromEntries(toutes.map((p) => [p.id, p])));
   telecharger(`oracle-toutes-les-parties-${aujourdhui()}.json`, {
     application: CONFIG.nom,
     type: 'parties',
     version: CONFIG.version,
     exporte: quand,
-    parties,
+    parties: toutes,
   });
+  return ok;
 }
 
 /**
@@ -140,15 +149,53 @@ export async function protegerStockage({ demander = true } = {}) {
   }
 }
 
+const estObjet = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+const CLES_DANGEREUSES = new Set(['__proto__', 'constructor', 'prototype', 'toString', 'valueOf']);
+
+function contientCleDangereuse(racine) {
+  const vus = new Set();
+  const pile = [racine];
+  while (pile.length) {
+    const courant = pile.pop();
+    if (!courant || typeof courant !== 'object' || vus.has(courant)) continue;
+    vus.add(courant);
+    if (Array.isArray(courant)) {
+      for (const el of courant) pile.push(el);
+      continue;
+    }
+    for (const cle of Object.keys(courant)) {
+      if (CLES_DANGEREUSES.has(cle)) return true;
+      pile.push(courant[cle]);
+    }
+  }
+  return false;
+}
+
 /** Vérifie qu'un objet ressemble bien à une partie de l'Oracle. Renvoie un message d'erreur ou null. */
 export function verifierPartie(p, universConnus) {
-  if (!p || typeof p !== 'object') return 'ce n\'est pas une partie';
+  if (!estObjet(p)) return 'ce n\'est pas une partie';
   if (p.format !== 1) return 'format de partie inconnu';
-  for (const champ of ['id', 'univers', 'mode', 'pression', 'scene', 'pjs', 'oracle', 'journal', 'fiche']) {
-    if (p[champ] === undefined) return `il manque « ${champ} »`;
+  if (typeof p.id !== 'string' || p.id.length === 0 || CLES_DANGEREUSES.has(p.id) || contientCleDangereuse(p)) {
+    return 'identifiant ou contenu invalide';
   }
   if (!universConnus.includes(p.univers)) return `univers inconnu (« ${p.univers} »)`;
-  if (!Array.isArray(p.pjs) || !Array.isArray(p.journal)) return 'contenu abîmé';
+  if (p.mode !== 'solo' && p.mode !== 'duo') return 'mode de jeu invalide';
+  if (typeof p.pression !== 'number' || !Number.isFinite(p.pression) || p.pression < 0 || p.pression > 10) {
+    return 'pression invalide';
+  }
+  if (p.compteur !== undefined && (typeof p.compteur !== 'number' || !Number.isFinite(p.compteur))) {
+    return 'compteur invalide';
+  }
+  for (const champ of ['mission', 'scene', 'oracle', 'fiche']) {
+    if (!estObjet(p[champ])) return `contenu abîmé (« ${champ} »)`;
+  }
+  if (!Array.isArray(p.pjs) || p.pjs.length === 0 || !p.pjs.every((pj) => estObjet(pj) && typeof pj.id === 'string' && typeof pj.nom === 'string')) {
+    return 'liste des PJ abîmée';
+  }
+  if (!Array.isArray(p.journal)) return 'journal abîmé';
+  for (const rubrique of ['fils', 'pnjs', 'menaces', 'lieux', 'scenes']) {
+    if (!Array.isArray(p.fiche[rubrique])) return `fiche abîmée (« ${rubrique} »)`;
+  }
   return null;
 }
 

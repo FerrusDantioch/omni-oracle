@@ -127,8 +127,11 @@ export async function dialogueOmniOracle(ctx, { entree = null } = {}) {
     titre: `L'Oracle dépense un omni-point (${p.oracle.omni})`,
     contenu: [quoi, detail],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Dépenser 1 omni-point', classe: 'bouton-accent' }],
-    avantFermeture: (id) => {
-      if (id === 'oui' && quoi.valeur() === 'oui-mais' && !cible) { annoncer('Il n\'y a pas de réponse « Oui » à transformer.'); return false; }
+    avantFermeture: (id, _dlg, afficherErreur) => {
+      if (id === 'oui' && quoi.valeur() === 'oui-mais' && !cible) {
+        afficherErreur('Il n\'y a pas de réponse « Oui » à transformer.');
+        return false;
+      }
       return true;
     },
   });
@@ -168,9 +171,9 @@ export async function dialogueContester(ctx, entree) {
       des.el,
     ],
     actions: [{ id: 'non', texte: 'Annuler' }, { id: 'oui', texte: 'Contester (1 omni-point)', classe: 'bouton-accent' }],
-    avantFermeture: (id) => {
+    avantFermeture: (id, _dlg, afficherErreur) => {
       if (id !== 'oui') return true;
-      try { valeurs = des.lire(); return true; } catch (e) { annoncer(e.message); return false; }
+      try { valeurs = des.lire(); return true; } catch (e) { afficherErreur(e.message); return false; }
     },
   });
   if (r !== 'oui') return;
@@ -236,14 +239,21 @@ export async function donnerChocs(ctx, idPJ, n, { motif = '' } = {}) {
   ctx.enregistrer();
   annoncer(`${pj.nom} : ${r.chocs} point${r.chocs > 1 ? 's' : ''} de choc.`);
   if (n > 0 && r.alerte) {
+    const des = saisieDes(ctx, 1, 'Ton d20 de folie');
+    let valeurs = null;
     const choix = await ouvrirDialogue({
       titre: o.alerte,
       contenu: [
         h('p', {}, `${pj.nom} a ${r.chocs} points de choc. ${o.seuil} points de choc = 1 point de folie + un jet sur la table de folie.`),
+        des.el,
       ],
       actions: [{ id: 'plus-tard', texte: 'Plus tard' }, { id: 'convertir', texte: `Convertir ${o.seuil} chocs en 1 point de folie`, classe: 'bouton-accent' }],
+      avantFermeture: (id, _dlg, afficherErreur) => {
+        if (id !== 'convertir') return true;
+        try { valeurs = des.lire(); return true; } catch (e) { afficherErreur(e.message); return false; }
+      },
     });
-    if (choix === 'convertir') convertirEnFolie(ctx, idPJ);
+    if (choix === 'convertir') convertirEnFolie(ctx, idPJ, { des: valeurs?.[0] ?? null });
   }
 }
 

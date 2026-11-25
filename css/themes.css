@@ -8,7 +8,7 @@
    pastilles d'aperçu du menu montrent les couleurs de chaque thème.
 
    Contrastes vérifiés (norme WCAG AA, 4,5:1 minimum pour le texte) :
-   le test tests/contraste.spec.js recalcule ces rapports automatiquement.
+   le test tests/navigateur/themes.spec.js recalcule ces rapports automatiquement.
    ========================================================================== */
 
 /* --- Omni-système (thème par défaut) ------------------------------------ */
@@ -16,7 +16,7 @@
 [data-theme="omni"] {
   --fond: #14111d;          /* arrière-plan de l'application */
   --surface: #1d1929;       /* barres, fenêtres, menus */
-  --page: #1d1929;          /* la feuille de rédaction */
+  --page: #1d1929;          /* la feuille */
   --trait: #332c47;         /* bordures fines */
   --texte: #e9e4f2;         /* texte principal (13,8:1 sur la surface) */
   --discret: #a59cbb;       /* texte secondaire (6,6:1) */
@@ -31,8 +31,6 @@
   --ombre: 0 14px 36px rgb(0 0 0 / 0.45);
   --danger: #ff8a93;        /* bouton « Supprimer » */
   --danger-texte: #1f0a0d;
-  --faute: #d98a93;          /* soulignement des mots inconnus (correcteur), adouci */
-  --texte-surligne: #14111d; /* texte posé sur un surlignage */
   color-scheme: dark;
 }
 
@@ -54,8 +52,6 @@
   --ombre: 0 14px 36px rgb(0 0 0 / 0.5);
   --danger: #ff8f8f;
   --danger-texte: #200b0b;
-  --faute: #d9898c;          /* soulignement des mots inconnus (correcteur), adouci */
-  --texte-surligne: #14111d;
   color-scheme: dark;
 }
 
@@ -77,8 +73,6 @@
   --ombre: 0 14px 36px rgb(28 26 36 / 0.18);
   --danger: #c42b3b;
   --danger-texte: #ffffff;
-  --faute: #b8505c;          /* soulignement des mots inconnus (correcteur), adouci */
-  --texte-surligne: #14111d;
   color-scheme: light;
 }
 
@@ -90,7 +84,6 @@
     --surface: #ffffff;
     --page: #ffffff;
     --texte: #000000;
-    --texte-surligne: #000000;
     color-scheme: light;
   }
 }

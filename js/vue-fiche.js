@@ -32,7 +32,11 @@ export function creerVueFiche(ctx) {
         ch.classList.add(`champ-${c.cle}`);
         if (c.type === 'textarea') ch.classList.add('champ-large');
         const evenement = c.type === 'select' ? 'change' : 'input';
-        ch.saisie.addEventListener(evenement, (e) => { o[c.cle] = e.target.value; ctx.enregistrerSansRendu(); });
+        ch.saisie.addEventListener(evenement, (e) => {
+          o[c.cle] = e.target.value;
+          ctx.enregistrerSansRendu();
+          if (c.onchange) c.onchange(e.target.value, bloc, i);
+        });
         bloc.append(ch);
       }
       bloc.append(h('div', { class: 'rangee' },
@@ -92,7 +96,16 @@ export function creerVueFiche(ctx) {
           { cle: 'nom', etiquette: 'Nom' },
           { cle: 'role', etiquette: 'Rôle' },
           { cle: 'attitude', etiquette: 'Attitude', type: 'select', options: ATTITUDES },
-          { cle: 'profil', etiquette: 'Profil', type: 'select', options: profils },
+          {
+            cle: 'profil', etiquette: 'Profil', type: 'select', options: profils,
+            onchange: (val, bloc, i) => {
+              // Met à jour le bouton « Intention » sans redessiner pour préserver le focus.
+              const btn = bloc.querySelector(`[data-cle="fiche-pnjs-${i}-intention"]`);
+              if (!btn) return;
+              btn.disabled = !val;
+              btn.title = val ? `Profil : ${nomProfil(val)}` : 'Choisis d\'abord un profil';
+            },
+          },
           { cle: 'notes', etiquette: 'Notes', type: 'textarea' },
         ],
         nomElement: (o, i) => o.nom || `PNJ ${i + 1}`,

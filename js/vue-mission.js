@@ -1,10 +1,10 @@
 // Onglet « Mission » : générateur de mission (T1 à T6), déroulé suggéré et clôture.
 
 import * as M from './moteur.js';
-import { h, remplacer, choix, annoncer, vibrer, animerResultat, caseACocher } from './ui.js';
+import { h, remplacer, choix, annoncer, vibrer, animerResultat, caseACocher, garderFocus } from './ui.js';
 import { rendreBloc } from './texte.js';
 import { tirageVerrouillable } from './composants.js';
-import { tirerEtNoter, saisieDes, essayer, decrireJet, ecarter } from './actions.js';
+import { tirerEtNoter, saisieDes, essayer, decrireJet, ecarter, contestataire, dialogueContester, transformerOuiMais } from './actions.js';
 
 export function creerVueMission(ctx) {
   const el = h('div', { class: 'vue-mission' });
@@ -90,7 +90,7 @@ export function creerVueMission(ctx) {
       s && h('div', { class: 'regles' }, rendreBloc(s.texte)),
       choix('Vraisemblance (selon le déroulé réel)', 'vraisemblance-cloture',
         M.vraisemblances(C).map((x) => ({ valeur: x.id, texte: x.texte, detail: x.autres[0] })), ecran.vraisemblance,
-        { onchange: (val) => { ecran.vraisemblance = val; rendre(); } }),
+        { onchange: (val) => { ecran.vraisemblance = val; garderFocus(rendre); } }),
       des.el,
       h('div', { class: 'rangee' },
         h('button', {
@@ -113,8 +113,23 @@ export function creerVueMission(ctx) {
         h('p', { class: 'resultat-titre' }, e.libelle),
         issue && h('p', {}, h('strong', {}, `${issue.libelle} : `), issue.texte),
         h('p', { class: 'resultat-detail' }, `${M.vraisemblance(C, e.vraisemblance).texte} · ${decrireJet(e.jet)}`));
+      const boutons = h('div', { class: 'rangee' });
+      const pj = contestataire(ctx.partie, e, ctx.univ);
+      if (pj) {
+        boutons.append(h('button', {
+          type: 'button', class: 'bouton', 'data-cle': 'cloture-contester', disabled: pj.omni <= 0,
+          onclick: () => { ecran.animer = true; dialogueContester(ctx, e); },
+        }, `Contester (${pj.nom}, 1 omni-point)`));
+      }
+      if (e.reponse === 'oui' && ctx.partie.oracle.omni > 0) {
+        boutons.append(h('button', {
+          type: 'button', class: 'bouton', 'data-cle': 'cloture-ouimais',
+          onclick: () => transformerOuiMais(ctx, e),
+        }, 'L\'Oracle en fait « Oui, mais… » (1 omni-point)'));
+      }
+      if (boutons.childElementCount) res.append(boutons);
       if (ecran.animer) animerResultat(res);
-      carte.append(ctx.resultat(res));
+      carte.append(ctx.resultat(res, { cle: `j-${e.n}` }));
     }
     return carte;
   }

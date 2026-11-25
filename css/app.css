@@ -299,6 +299,7 @@ legend { font-weight: 600; padding: 0; margin-bottom: .35rem; }
   flex-direction: column;
   justify-content: center;
   min-height: 44px;
+  min-width: 44px;
   padding: .4rem .8rem;
   border: 1px solid var(--trait);
   border-radius: .6rem;
@@ -428,6 +429,16 @@ legend { font-weight: 600; padding: 0; margin-bottom: .35rem; }
 }
 .menu-liste { display: flex; flex-direction: column; gap: .5rem; }
 .menu-liste .bouton { justify-content: flex-start; width: 100%; }
+.dialogue-erreur {
+  margin: .5rem 0 0;
+  padding: .5rem .75rem;
+  border-left: 4px solid var(--danger);
+  background: var(--fond);
+  color: var(--texte);
+  border-radius: .4rem;
+  font-size: .95rem;
+  font-weight: 600;
+}
 
 /* --- Annonce (petit message temporaire) ------------------------------------------------------- */
 .annonce {
