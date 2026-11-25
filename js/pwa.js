@@ -19,11 +19,16 @@ export function initialiserPWA({ bouton, surPret = () => {} }) {
 
   if (!('serviceWorker' in navigator)) return;
 
+  const avaitControleur = !!navigator.serviceWorker.controller;
   let miseAJourDemandee = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     // Recharger seulement si c'est la personne qui a demandé la mise à jour
-    // (pas lors de la toute première installation).
-    if (miseAJourDemandee) window.location.reload();
+    // (pas lors de la toute première installation, ni si un autre onglet vient de l'activer).
+    if (miseAJourDemandee) {
+      window.location.reload();
+    } else if (avaitControleur) {
+      bouton.hidden = true;
+    }
   });
 
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {

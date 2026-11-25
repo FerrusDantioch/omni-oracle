@@ -72,6 +72,16 @@ export function animerResultat(el) {
   el.classList.add('apparition');
 }
 
+/** Exécute `f` puis remet le focus clavier sur l'élément portant le même `data-cle`. */
+export function garderFocus(f) {
+  const cle = document.activeElement?.dataset?.cle;
+  f();
+  if (cle) {
+    const cible = document.querySelector(`[data-cle="${CSS.escape(cle)}"]`);
+    if (cible && !cible.disabled) cible.focus({ preventScroll: true });
+  }
+}
+
 // --- Fenêtres (dialog) ----------------------------------------------------------------
 
 /**
@@ -80,19 +90,21 @@ export function animerResultat(el) {
  * - contenu : élément(s) à afficher
  * - actions : [{ id, texte, classe, auto }] ; les boutons ferment la fenêtre et
  *   la promesse renvoie l'id choisi (ou null si on ferme avec Échap / « Fermer »).
- * - avantFermeture(id, dialogue) : facultatif, renvoie false pour garder la fenêtre ouverte.
+ * - avantFermeture(id, dialogue, afficherErreur) : facultatif, renvoie false pour garder la fenêtre ouverte.
  */
 export function ouvrirDialogue({ titre, contenu, actions = [{ id: 'ok', texte: 'Fermer' }], classe = '', avantFermeture = null, liste = false }) {
   return new Promise((resoudre) => {
     const idTitre = 'titre-dialogue-' + Math.random().toString(36).slice(2, 8);
     // liste : les actions forment un menu dans le contenu (au lieu d'une rangée en bas)
     const pied = h('div', { class: liste ? 'menu-liste' : 'dialogue-actions' });
+    const zoneErreur = h('p', { class: 'dialogue-erreur', role: 'alert', hidden: true });
     const dlg = h('dialog', { class: `dialogue ${classe}`, 'aria-labelledby': idTitre },
       h('form', { method: 'dialog', class: 'dialogue-corps' },
         h('div', { class: 'dialogue-entete' },
           h('h2', { id: idTitre }, titre),
           h('button', { type: 'button', class: 'bouton bouton-icone', 'aria-label': 'Fermer', onclick: () => fermer(null) }, '✕')),
         h('div', { class: 'dialogue-contenu' }, contenu, liste && pied),
+        zoneErreur,
         !liste && pied));
     for (const a of actions) {
       pied.append(h('button', {
@@ -101,13 +113,23 @@ export function ouvrirDialogue({ titre, contenu, actions = [{ id: 'ok', texte: '
         onclick: () => fermer(a.id),
       }, a.texte));
     }
+    const afficherErreur = (msg) => {
+      zoneErreur.textContent = msg || '';
+      zoneErreur.hidden = !msg;
+    };
     let resultat = null;
     function fermer(id) {
-      if (id !== null && avantFermeture && avantFermeture(id, dlg) === false) return;
+      afficherErreur('');
+      if (id !== null && avantFermeture && avantFermeture(id, dlg, afficherErreur) === false) return;
       resultat = id;
       dlg.close();
     }
-    dlg.addEventListener('close', () => { dlg.remove(); resoudre(resultat); });
+    const retour = document.activeElement;
+    dlg.addEventListener('close', () => {
+      dlg.remove();
+      if (retour?.isConnected) retour.focus({ preventScroll: true });
+      resoudre(resultat);
+    });
     dlg.addEventListener('submit', (e) => e.preventDefault());
     document.body.append(dlg);
     dlg.showModal();

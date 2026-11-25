@@ -96,25 +96,48 @@ test('Mission et PNJ : « Ignorer » libère la table, « Relancer » refait le 
   await expect(page.locator('.vue-pnj .tirage-texte')).toHaveCount(2);
 });
 
-test('complication de début de scène : relancer ou ignorer sans toucher au d20 d\'altération', async ({ page, serveur }) => {
+test('complication de début de scène (vrai dé) : relancer ou ignorer sans toucher au d20 d\'altération', async ({ page, serveur }) => {
   await nouvellePartie(page, serveur);
   await reglages(page, { 'J\'utilise mon vrai dé (je saisis le résultat)': true });
   await page.getByLabel('Ton d20 de scène').fill('2');
   await page.locator('[data-cle="scene-lancer"]').click();
   await expect(page.locator('.resultat-titre', { hasText: 'Scène modifiée' })).toBeVisible();
+  await page.getByLabel('Ton d20 de complication').fill('5');
+  await page.locator('[data-cle="scene-complication-valider"]').click();
   const premiere = await page.locator('.vue-jouer .complication').first().textContent();
+
   await page.locator('[data-cle="scene-complication-relancer"]').click();
+  await page.getByRole('dialog').getByLabel('Ton d20 de complication').fill('9');
+  await page.getByRole('dialog').getByRole('button', { name: 'Valider' }).click();
   await expect(page.locator('.resultat-titre', { hasText: 'Scène modifiée' })).toBeVisible();
   await expect(page.getByText('d20 = 2 (pair)', { exact: false })).toBeVisible();
+
   await page.locator('[data-cle="scene-complication-ignorer"]').click();
   await expect(page.getByText('Complication ignorée par le MJ : invente l\'élément, ou relance.')).toBeVisible();
   await expect(page.locator('[data-cle="scene-complication-ignorer"]')).toHaveCount(0);
+
   await page.locator('[data-cle="scene-complication-relancer"]').click();
+  await page.getByRole('dialog').getByLabel('Ton d20 de complication').fill('14');
+  await page.getByRole('dialog').getByRole('button', { name: 'Valider' }).click();
   await expect(page.locator('.vue-jouer div.complication')).toHaveCount(1);
+
   await onglet(page, 'Journal');
   const debut = page.locator('.journal li', { hasText: 'Début de la scène 1' });
   await expect(debut.locator('.ancien')).toHaveCount(2);
   await expect(debut.locator('.ancien').first()).toHaveText(premiere.replace(/^.*?\(\d+\) : /, ''));
+});
+
+test('complication de début de scène (dé virtuel) : relance directe en un clic', async ({ page, serveur }) => {
+  await nouvellePartie(page, serveur);
+  for (let i = 0; i < 7; i++) {
+    await page.locator('[data-cle="tdb-plus"]').click();
+    if (await page.locator('dialog[open]').count()) await page.keyboard.press('Escape');
+  }
+  await page.locator('[data-cle="scene-lancer"]').click();
+  await expect(page.locator('.vue-jouer div.complication')).toHaveCount(1);
+  await page.locator('[data-cle="scene-complication-relancer"]').click();
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
+  await expect(page.locator('.vue-jouer div.complication')).toHaveCount(1);
 });
 
 test('intention : « Relancer » garde le profil et les modificateurs', async ({ page, serveur }) => {

@@ -249,7 +249,7 @@ for (const doc of tous) {
 for (const [source, docs] of parSource) {
   const chemin = path.join(racine, source);
   if (!fs.existsSync(chemin)) { console.log(`  (source ${source} absente : contrôle sauté)`); continue; }
-  const attendu = normaliserSource(fs.readFileSync(chemin, 'utf8').split('\n'));
+  const attendu = normaliserSource(fs.readFileSync(chemin, 'utf8').replace(/\r\n?/g, '\n').split('\n'));
   const obtenu = docs.flatMap((d) => recomposer(d, source));
   const n = Math.max(attendu.length, obtenu.length);
   let ecart = -1;

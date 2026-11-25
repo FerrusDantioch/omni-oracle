@@ -2,7 +2,7 @@
 // du plus récent au plus ancien.
 
 import * as M from './moteur.js';
-import { h, remplacer, riche, heure, choix } from './ui.js';
+import { h, remplacer, riche, heure, choix, garderFocus } from './ui.js';
 import { texteBrut } from './texte.js';
 import { decrireJet, contestataire, dialogueContester, transformerOuiMais } from './actions.js';
 
@@ -44,7 +44,7 @@ export function decrireEntree(ctx, e) {
         h('span', { class: 'petit discret' }, `${v.texte} · ${decrireJet(e.jet)}`),
         (e.historique || []).map((x) => [h('br'), h('span', { class: 'petit' },
           x.par === 'contestation' ? `Contestée par ${nomPJ(e.contestePar)} : ` : 'Transformée par l\'Oracle : ',
-          h('span', { class: 'ancien' }, x.libelle), ` → ${e.libelle}`)]),
+          h('span', { class: 'ancien' }, x.libelle), ` → ${x.apres || e.libelle}`)]),
       ];
     }
     case 'scene-debut': {
@@ -113,6 +113,9 @@ export function creerVueJournal(ctx) {
 
   function rendre() {
     const p = ctx.partie;
+    const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
+    if (!avecOmni && filtre === 'omni') filtre = 'tout';
+    const filtres = avecOmni ? FILTRES : FILTRES.filter((f) => f.valeur !== 'omni');
     const types = CORRESPONDANCE[filtre];
     const entrees = p.journal.filter((e) => !types || types.includes(M.typeEntree(e))).slice().reverse();
     const liste = h('ol', { class: 'journal', reversed: true });
@@ -136,7 +139,7 @@ export function creerVueJournal(ctx) {
       h('div', { class: 'carte-entete' },
         h('h2', { id: 'titre-journal' }, 'Journal'),
         h('span', { class: 'discret' }, `${p.journal.length} entrée${p.journal.length > 1 ? 's' : ''}`)),
-      choix('Afficher', 'filtre-journal', FILTRES, filtre, { onchange: (v) => { filtre = v; rendre(); } }),
+      choix('Afficher', 'filtre-journal', filtres, filtre, { onchange: (v) => { filtre = v; garderFocus(rendre); } }),
       entrees.length ? liste : h('p', { class: 'discret' }, 'Rien pour l\'instant. Les jets, les questions à l\'oracle et les scènes s\'inscriront ici.')));
   }
 

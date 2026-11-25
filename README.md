@@ -91,6 +91,8 @@ Le site se publie **tel quel**, depuis la branche `main`, à la racine du dépô
 
 Le fichier `.nojekyll` (vide) demande à GitHub de publier les fichiers sans les transformer.
 
+**Alternative recommandée (GitHub Actions)** : dans **Settings** → **Pages**, choisis **Source : GitHub Actions**. Le workflow `.github/workflows/deploy.yml` lance d'abord `npm test`, puis ne publie que les fichiers d'exécution (`index.html`, `guide.html`, `livret.html`, `manifest.webmanifest`, `sw.js`, `LICENSE`, `.nojekyll`, `css/`, `js/`, `data/`, `assets/`, `icons/`), sans `sources/`, `tests/` ni `CLAUDE.md`.
+
 ### À chaque nouvelle publication
 
 1. Augmente le numéro de **version** dans `js/config.js` (par exemple `0.1.0` → `0.1.1`).
@@ -267,12 +269,14 @@ sources/                    les règles d'origine (Markdown), pour référence ;
                             recopiée du PDF de Ferrus ; 08 = texte du guide d'utilisation
 assets/, icons/             logo et icônes
 tests/                      contrôles automatiques
+.gitattributes              fins de ligne LF imposées (y compris sous Windows, notamment pour LICENSE)
+.github/workflows/          intégration continue (ci.yml) et publication GitHub Pages (deploy.yml)
 ```
 
 ## Licence
 
-- **Code** (HTML, CSS, JavaScript) : © 2026 Ferrus Dantioch, licence Creative Commons
-  BY-NC-ND 4.0 (voir `LICENSE`).
+- **Code** (HTML, CSS, JavaScript) : © 2026 Ferrus Dantioch —
+  Creative Commons BY-NC-ND 4.0 : partage autorisé en citant l'auteur, sans usage commercial ni modification (voir LICENSE).
 - **Règles, tables et textes de l'Omni-système**, logo compris : © 2026 Ferrus Dantioch,
   **tous droits réservés**.
 

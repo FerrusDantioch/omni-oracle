@@ -9,7 +9,7 @@ import { chargerDonnees } from './donnees.js';
 import * as S from './stockage.js';
 import {
   h, remplacer, annoncer, ouvrirDialogue, confirmer, champ, choix, caseACocher,
-  reglerVibration, dateCourte, vibrer, riche,
+  reglerVibration, dateCourte, vibrer, riche, garderFocus,
 } from './ui.js';
 import { dialogueOmniPJ, dialogueOmniOracle, messageEvenement, essayer } from './actions.js';
 import { creerVueJouer } from './vue-jouer.js';
@@ -39,6 +39,7 @@ const ONGLETS = [
 
 
 const $ = (id) => document.getElementById(id);
+const MSG_STOCKAGE_PLEIN = 'Attention : l\'enregistrement sur l\'appareil a échoué (stockage plein ?). Exporte ta partie.';
 
 // --- Contexte partagé avec les vues -----------------------------------------------
 const ctx = {
@@ -57,21 +58,21 @@ const ctx = {
   /** Enregistre la partie sur l'appareil, puis met l'écran à jour. */
   enregistrer() {
     this.partie.modifie = new Date().toISOString();
-    if (!S.enregistrerPartie(this.partie)) {
-      annoncer('Attention : l\'enregistrement sur l\'appareil a échoué (stockage plein ?). Exporte ta partie.');
-    }
+    if (!S.enregistrerPartie(this.partie)) annoncer(MSG_STOCKAGE_PLEIN);
     actualiser();
   },
   /** Enregistre sans redessiner l'écran (saisie dans la fiche de suivi). */
   enregistrerSansRendu() {
     this.partie.modifie = new Date().toISOString();
-    S.enregistrerPartie(this.partie);
+    if (!S.enregistrerPartie(this.partie)) annoncer(MSG_STOCKAGE_PLEIN);
   },
   exporter() {
-    S.exporterPartie(this.partie); // note aussi la date de l'export (rappel de sauvegarde)
+    const ok = S.exporterPartie(this.partie); // note aussi la date de l'export (rappel de sauvegarde)
     S.protegerStockage();
     actualiser();
-    annoncer('Fichier de la partie enregistré.');
+    annoncer(ok
+      ? 'Fichier de la partie enregistré.'
+      : 'Fichier exporté, mais la mise à jour sur l\'appareil a échoué (stockage plein ?).');
   },
   missionSuivante() { dialogueMissionSuivante(); },
   /** Ouvre l'oracle de question (onglet Jouer) avec une question et une vraisemblance préparées. */
@@ -80,8 +81,10 @@ const ctx = {
     allerOnglet('jouer');
   },
   sauverReglages() {
-    S.ecrireReglages(this.reglages);
+    const ok = S.ecrireReglages(this.reglages);
     reglerVibration(this.reglages.vibration);
+    if (!ok) annoncer('Attention : impossible d\'enregistrer les réglages (stockage plein ?).');
+    return ok;
   },
   /** Affiche les événements importants (seuil de rupture, gain de l'Oracle, rebondissement). */
   async signaler(evenements = []) {
@@ -92,14 +95,17 @@ const ctx = {
     if (evenements.some((e) => e.etau?.tire)) this.enregistrer();
     const messages = evenements.map((e) => messageEvenement(e, this.voc)).filter(Boolean);
     // « Option à tester » (horreur, si cochée) : au seuil de rupture, le rebondissement est tiré.
-    const auSeuil = evenements.some((e) => e.type === 'seuil-rupture') && M.rebondissementAuSeuil(this.cat, this.univ.id, this.partie);
-    if (auSeuil) {
+    const auSeuil = evenements.some((e) => e.type === 'seuil-rupture')
+      && M.rebondissementAuSeuil(this.cat, this.univ.id, this.partie, { dePhysique: this.reglages.dePhysique });
+    if (auSeuil?.aLancer) {
+      messages.push(`Option à tester : le rebondissement ${this.voc.de} n'était pas encore tiré. Lance ton d20 et choisis la ligne (${auSeuil.titre}) dans l'onglet ${this.voc.Nom}.`);
+    } else if (auSeuil) {
       this.enregistrer();
       messages.push(`Option à tester : le rebondissement ${this.voc.de} n'était pas encore tiré, il l'est maintenant (${auSeuil.titre}, d20 : ${auSeuil.valeur}).`);
     }
     if (!messages.length) return;
     vibrer(60);
-    const rebond = auSeuil || evenements.some((e) => e.type === 'rebondissement');
+    const rebond = !!auSeuil || evenements.some((e) => e.type === 'rebondissement');
     const r = await ouvrirDialogue({
       titre: 'À noter',
       contenu: h('ul', {}, messages.map((m) => h('li', {}, riche(m)))),
@@ -144,15 +150,6 @@ const ctx = {
 };
 
 // --- Mise à jour de l'écran en gardant le focus clavier -----------------------------
-function garderFocus(f) {
-  const cle = document.activeElement?.dataset?.cle;
-  f();
-  if (cle) {
-    const cible = document.querySelector(`[data-cle="${CSS.escape(cle)}"]`);
-    if (cible && !cible.disabled) cible.focus({ preventScroll: true });
-  }
-}
-
 function actualiser() {
   garderFocus(() => {
     if (!ctx.partie) return;
@@ -267,10 +264,12 @@ function carteNouvellePartie() {
           })),
         });
         M.journaliser(partie, { type: 'mission', nom: partie.mission.nom });
-        S.enregistrerPartie(partie);
+        const ok = S.enregistrerPartie(partie);
         S.protegerStockage(); // demandé au moment d'un geste de la personne
         ouvrirPartie(partie);
-        annoncer(`Partie créée. ${M.vocabulaire(u).bonne} ${M.vocabulaire(u).nom} !`);
+        annoncer(ok
+          ? `Partie créée. ${M.vocabulaire(u).bonne} ${M.vocabulaire(u).nom} !`
+          : MSG_STOCKAGE_PLEIN);
       },
     }, 'Commencer la partie')));
 }
@@ -279,7 +278,9 @@ function carteMesParties() {
   const parties = S.listerParties();
   const inputFichier = h('input', {
     type: 'file', accept: '.json,application/json', hidden: true, id: 'fichier-import',
-    onchange: (e) => importer(e.target.files[0]),
+    onchange: async (e) => {
+      try { await importer(e.target.files[0]); } finally { inputFichier.value = ''; }
+    },
   });
   return h('section', { class: 'carte', 'aria-labelledby': 'titre-parties' },
     h('h2', { id: 'titre-parties' }, 'Mes parties'),
@@ -291,11 +292,29 @@ function carteMesParties() {
         return h('li', {},
           h('div', { class: 'titre-partie' }, p.mission?.nom || voc.sansNom),
           h('div', { class: 'petit discret' },
-            `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${p.pjs.map((x) => x.nom).join(' et ')} · ${voc.nom} ${p.mission?.numero ?? 1}, scène ${p.scene.numero} · ${dateCourte(p.modifie)}`),
+            `${u ? u.nom : p.univers} · ${p.mode === 'duo' ? 'Duo' : 'Solo'} · ${(p.pjs || []).map((x) => x.nom).join(' et ')} · ${voc.nom} ${p.mission?.numero ?? 1}, scène ${p.scene?.numero ?? 1} · ${dateCourte(p.modifie)}`),
           h('div', { class: 'petit discret' }, p.sauvegarde?.quand ? `Exportée le ${dateCourte(p.sauvegarde.quand)}` : 'Jamais exportée'),
           h('div', { class: 'rangee' },
-            h('button', { type: 'button', class: 'bouton bouton-accent', onclick: () => ouvrirPartie(S.lirePartie(p.id)) }, 'Reprendre'),
-            h('button', { type: 'button', class: 'bouton', onclick: () => { S.exporterPartie(p); afficherAccueil(); annoncer('Fichier de la partie enregistré.'); } }, 'Exporter'),
+            h('button', {
+              type: 'button', class: 'bouton bouton-accent',
+              onclick: () => {
+                const lue = S.lirePartie(p.id);
+                const err = S.verifierPartie(lue, ctx.cat.univers.map((x) => x.id));
+                if (err) { annoncer(`Impossible d'ouvrir cette partie : ${err}.`); return; }
+                ouvrirPartie(lue);
+              },
+            }, 'Reprendre'),
+            h('button', {
+              type: 'button', class: 'bouton',
+              onclick: () => {
+                const ok = S.exporterPartie(p);
+                S.protegerStockage();
+                afficherAccueil();
+                annoncer(ok
+                  ? 'Fichier de la partie enregistré.'
+                  : 'Fichier exporté, mais la mise à jour sur l\'appareil a échoué (stockage plein ?).');
+              },
+            }, 'Exporter'),
             h('button', {
               type: 'button', class: 'bouton bouton-discret',
               onclick: async () => {
@@ -310,7 +329,17 @@ function carteMesParties() {
     h('div', { class: 'rangee' },
       inputFichier,
       h('button', { type: 'button', class: 'bouton', onclick: () => inputFichier.click() }, 'Importer un fichier'),
-      parties.length > 0 && h('button', { type: 'button', class: 'bouton', onclick: () => { S.exporterTout(); afficherAccueil(); annoncer('Fichier de toutes les parties enregistré.'); } }, 'Exporter toutes les parties')),
+      parties.length > 0 && h('button', {
+        type: 'button', class: 'bouton',
+        onclick: () => {
+          const ok = S.exporterTout();
+          S.protegerStockage();
+          afficherAccueil();
+          annoncer(ok
+            ? 'Fichier de toutes les parties enregistré.'
+            : 'Fichier exporté, mais la mise à jour sur l\'appareil a échoué (stockage plein ?).');
+        },
+      }, 'Exporter toutes les parties')),
     h('p', { class: 'petit discret' }, 'Tes parties restent sur cet appareil. Exporte-les pour les sauvegarder ou pour changer d\'appareil.'));
 }
 
@@ -325,10 +354,11 @@ async function importer(fichier) {
   }
   let nb = 0;
   for (const p of parties) {
+    const sansNom = M.vocabulaire(ctx.cat.univ(p.univers)).sansNom;
     if (S.lirePartie(p.id)) {
       const r = await ouvrirDialogue({
         titre: 'Partie déjà présente',
-        contenu: h('p', {}, `« ${p.mission?.nom || 'Mission sans nom'} » existe déjà sur cet appareil.`),
+        contenu: h('p', {}, `« ${p.mission?.nom || sansNom} » existe déjà sur cet appareil.`),
         actions: [
           { id: 'passer', texte: 'Ne pas importer' },
           { id: 'copie', texte: 'Garder les deux' },
@@ -337,10 +367,13 @@ async function importer(fichier) {
       });
       if (r === 'copie') {
         p.id = `partie-${Date.now().toString(36)}-${nb}`;
-        p.mission.nom = `${p.mission.nom || 'Mission sans nom'} (copie)`;
+        p.mission.nom = `${p.mission.nom || sansNom} (copie)`;
       } else if (r !== 'remplacer') continue;
     }
-    S.enregistrerPartie(p);
+    if (!S.enregistrerPartie(p)) {
+      await ouvrirDialogue({ titre: 'Stockage plein', contenu: h('p', {}, 'Impossible d\'enregistrer cette partie sur l\'appareil (stockage plein ?).') });
+      break;
+    }
     nb++;
   }
   afficherAccueil();
@@ -532,14 +565,14 @@ async function dialogueReglages() {
   if (ctx.reglages.secret !== secret.saisie.checked) ctx.reveles.clear();
   ctx.reglages.secret = secret.saisie.checked;
   ctx.reglages.rappelSauvegarde = rappel.saisie.checked;
-  ctx.sauverReglages();
+  const ok = ctx.sauverReglages();
   if (ctx.partie) actualiser();
-  annoncer('Réglages enregistrés.');
+  if (ok) annoncer('Réglages enregistrés.');
 }
 
 async function dialogueModifier() {
   const p = ctx.partie;
-  const mission = champ('Nom de la mission', { type: 'text', valeur: p.mission.nom });
+  const mission = champ(`Nom ${ctx.voc.de}`, { type: 'text', valeur: p.mission.nom });
   const avecOmni = M.optionsUnivers(ctx.univ).omniPoints;
   const pjs = p.pjs.map((pj, i) => ({
     nom: champ(`Nom du PJ ${i + 1}`, { type: 'text', valeur: pj.nom }),

@@ -362,17 +362,19 @@ export function ajusterPression(commun, partie, delta, { univers = null } = {}) 
  * - Sinon : altérée si d20 ≤ Pression ; pair = modifiée, impair = interrompue.
  * Si la scène est altérée et qu'une table de complications est fournie, on y tire une ligne.
  */
-export function debuterScene(commun, partie, { prevue = '', complications = null, des = null, de = deAleatoire, univers = null } = {}) {
+export function debuterScene(commun, partie, { prevue = '', complications = null, des = null, de = deAleatoire, univers = null, dePhysique = false } = {}) {
   const valeur = des ?? de(20);
   if (!valeurD20Valide(valeur)) throw new Error('Un d20 donne un nombre entier de 1 à 20.');
   const soupape = partie.pression >= commun.pression.soupape.niveau;
   const alteree = soupape || valeur <= partie.pression;
   const type = alteree ? (valeur % 2 === 0 ? 'modifiee' : 'interrompue') : null;
-  const complication = alteree && complications ? tirerTable(complications, { de }) : null;
+  const complicationALancer = !!(dePhysique && alteree && complications);
+  const complication = alteree && complications && !dePhysique ? tirerTable(complications, { de }) : null;
   partie.scene.prevue = prevue;
   partie.scene.etat = 'en-cours';
   partie.scene.soupape = soupape;
   partie.scene.alteration = { de: valeur, pression: partie.pression, alteree, type, complication };
+  if (complicationALancer) partie.scene.alteration.complicationALancer = true;
   const res = { de: valeur, pression: partie.pression, soupape, alteree, type, complication, palier: palier(commun, partie.pression, univers) };
   // « alteration » (modifiée / interrompue) : rangé à part pour ne pas écraser le type de l'entrée.
   journaliser(partie, { ...res, type: 'scene-debut', alteration: type, prevue, palier: res.palier.id });
@@ -454,7 +456,7 @@ export function depenserOmniOracle(commun, partie, action, { entree = null, deta
       throw new Error('Seule une réponse « Oui » peut devenir « Oui, mais… ».');
     }
     const om = reponses(commun).find((r) => r.id === 'oui-mais');
-    entree.historique = [...(entree.historique || []), { reponse: entree.reponse, libelle: entree.libelle, par: 'oracle' }];
+    entree.historique = [...(entree.historique || []), { reponse: entree.reponse, libelle: entree.libelle, apres: om.libelle, par: 'oracle' }];
     entree.reponse = om.id;
     entree.libelle = om.libelle;
     entree.complication = commun.oracle.complications[om.id] || null;
@@ -489,8 +491,8 @@ export function contester(commun, partie, entree, idContestataire, { replique = 
   pj.omni -= 1;
   const evenements = compterUtilisation(commun, partie);
   const r = interrogerOracle(commun, { vraisemblance: entree.vraisemblance, des, de });
-  entree.historique = [...(entree.historique || []), { reponse: entree.reponse, libelle: entree.libelle, jet: entree.jet, par: 'contestation' }];
-  Object.assign(entree, r, { contestee: true, contestePar: pj.id, repliqueContestation: replique });
+  entree.historique = [...(entree.historique || []), { reponse: entree.reponse, libelle: entree.libelle, apres: r.libelle, jet: entree.jet, par: 'contestation' }];
+  Object.assign(entree, r, { contestee: true, contestePar: pj.id, repliqueContestation: replique, transformeeParOracle: false });
   journaliser(partie, { type: 'omni-pj', pj: pj.id, replique, motif: 'contestation', cible: entree.n, evenements });
   return { entree, evenements };
 }
@@ -546,9 +548,12 @@ export function rebondissementEtau(catalogue, universId, partie, { de = deAleato
  * Seulement si l'univers propose l'option ET si elle est cochée dans la partie.
  * Renvoie l'entrée du journal du tirage, ou null (option absente ou décochée, déjà tiré).
  */
-export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAleatoire } = {}) {
+export function rebondissementAuSeuil(catalogue, universId, partie, { de = deAleatoire, dePhysique = false } = {}) {
   const u = catalogue.univ(universId);
   if (!optionsUnivers(u).rebondissementAuSeuil || !partie.rebondissementAuSeuil) return null;
+  const table = catalogue.table(universId, u.roles.rebondissement);
+  if (partie.tirageMission?.[table.id]?.valeur) return null;
+  if (dePhysique) return { titre: table.titre, aLancer: true };
   return tirerRebondissementLibre(catalogue, universId, partie, { de, auto: 'seuil-rupture' });
 }
 

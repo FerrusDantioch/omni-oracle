@@ -102,7 +102,7 @@ test('aucune couleur écrite en dur hors de css/themes.css', () => {
   const fichiers = [...lister('css').filter((f) => f !== 'css/themes.css'), ...lister('js'), ...pagesHTML];
   for (const f of fichiers) {
     const t = lire(f).replace(/<meta name="theme-color" content="#[0-9a-f]+">/i, '');
-    assert.ok(!/#[0-9a-fA-F]{3,8}\b(?![\w-])|rgba?\(|hsla?\(/.test(t.replace(/href="#\w+"/g, '').replace(/'#\w[\w-]*'/g, '')), `${f} contient une couleur écrite en dur`);
+    assert.ok(!/#[0-9a-fA-F]{3,8}\b(?![\w-])|\b(?:rgba?|hsla?|oklch|oklab|color-mix|hwb|lab|lch)\(/i.test(t.replace(/href="#\w+"/g, '').replace(/'#\w[\w-]*'/g, '')), `${f} contient une couleur écrite en dur`);
   }
 });
 
