@@ -33,7 +33,7 @@ Tu peux passer de l'un à l'autre en pleine partie : saisis dans l'application l
 
 ## Se repérer dans l'application
 
-Ce guide suit la version 0.3.4. Tu vois la version de ton application dans « À propos ».
+Ce guide suit la version 0.3.5. Tu vois la version de ton application dans « À propos ».
 
 **À l'accueil**, tu trouves « Nouvelle partie » (univers, mode, noms, compagnons) et « Mes parties » (Reprendre, Exporter, Supprimer, Importer un fichier, Exporter toutes les parties).
 
